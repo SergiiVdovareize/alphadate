@@ -10,15 +10,7 @@ const emit = defineEmits<{
   (e: 'select', letter: LetterState): void;
 }>();
 
-const getStatusColor = (status: LetterState['status']) => {
-  switch (status) {
-    case 'available': return 'var(--color-primary)';
-    case 'used': return 'var(--color-fg-muted)';
-    case 'excluded': return 'var(--color-danger)';
-    case 'skipped': return 'var(--color-warning)';
-    default: return 'var(--color-fg)';
-  }
-};
+
 </script>
 
 <template>
