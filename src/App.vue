@@ -3,12 +3,14 @@ import { ref } from 'vue';
 import AlphabetGrid from './components/AlphabetGrid.vue';
 import RandomPickButton from './components/RandomPickButton.vue';
 import LetterActionModal from './components/LetterActionModal.vue';
+import ResetConfirmModal from './components/ResetConfirmModal.vue';
 import { useAlphabetState } from './composables/useAlphabetState';
 import type { LetterState, LetterStatus } from './composables/useAlphabetState';
 
 const { letters, markAsStatus, pickRandom, resetState } = useAlphabetState();
 
 const activeLetter = ref<LetterState | null>(null);
+const isResetModalOpen = ref(false);
 
 const handleSelect = (letter: LetterState) => {
   activeLetter.value = { ...letter };
@@ -19,10 +21,9 @@ const handleUpdateStatus = (letterChar: string, status: LetterStatus) => {
   activeLetter.value = null; // Failsafe, though modal should hit close itself mostly
 };
 
-const handleReset = () => {
-  if (confirm("Ви впевнені, що хочете повністю скинути всі дані?")) {
-    resetState();
-  }
+const handleResetConfirm = () => {
+  resetState();
+  isResetModalOpen.value = false;
 };
 </script>
 
@@ -49,8 +50,14 @@ const handleReset = () => {
       @close="activeLetter = null" 
     />
 
+    <ResetConfirmModal 
+      :isOpen="isResetModalOpen" 
+      @confirm="handleResetConfirm" 
+      @cancel="isResetModalOpen = false" 
+    />
+
     <footer class="footer">
-      <button class="button small outline danger" @click="handleReset">
+      <button class="button reset-btn danger" @click="isResetModalOpen = true">
         Скинути всі дані
       </button>
     </footer>
@@ -70,7 +77,7 @@ const handleReset = () => {
 }
 
 h1 {
-  font-size: 3rem;
+  font-size: clamp(2rem, 10vw, 3rem);
   font-weight: 800;
   margin-bottom: 0.5rem;
   background: -webkit-linear-gradient(315deg, #42d392 25%, #647eff);
@@ -92,8 +99,17 @@ h1 {
   border-top: 1px solid var(--border);
 }
 
-.danger {
+.reset-btn {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  background: transparent;
   color: #ef4444;
-  border-color: #ef4444;
+  border: 1px solid #ef4444;
+}
+.reset-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+.reset-btn:active {
+  transform: translateY(0);
 }
 </style>
