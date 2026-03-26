@@ -1,115 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import AlphabetGrid from './components/AlphabetGrid.vue';
-import RandomPickButton from './components/RandomPickButton.vue';
-import LetterActionModal from './components/LetterActionModal.vue';
-import ResetConfirmModal from './components/ResetConfirmModal.vue';
-import { useAlphabetState } from './composables/useAlphabetState';
-import type { LetterState, LetterStatus } from './composables/useAlphabetState';
-
-const { letters, markAsStatus, pickRandom, resetState } = useAlphabetState();
-
-const activeLetter = ref<LetterState | null>(null);
-const isResetModalOpen = ref(false);
-
-const handleSelect = (letter: LetterState) => {
-  activeLetter.value = { ...letter };
-};
-
-const handleUpdateStatus = (letterChar: string, status: LetterStatus) => {
-  markAsStatus(letterChar, status);
-  activeLetter.value = null; // Failsafe, though modal should hit close itself mostly
-};
-
-const handleResetConfirm = () => {
-  resetState();
-  isResetModalOpen.value = false;
-};
+// Main logic is now handled in /src/pages/Board.vue
 </script>
 
 <template>
-  <main class="container">
-    <header class="header">
-      <h1>AlphaDate</h1>
-      <p class="subtitle">Оберіть літеру для вашого наступного тематичного побачення.</p>
-    </header>
-
-    <RandomPickButton 
-      :pickRandom="pickRandom" 
-      @pick="handleSelect" 
-    />
-
-    <AlphabetGrid 
-      :letters="letters" 
-      @select="handleSelect" 
-    />
-
-    <LetterActionModal 
-      :letter="activeLetter" 
-      @update-status="handleUpdateStatus" 
-      @close="activeLetter = null" 
-    />
-
-    <ResetConfirmModal 
-      :isOpen="isResetModalOpen" 
-      @confirm="handleResetConfirm" 
-      @cancel="isResetModalOpen = false" 
-    />
-
-    <footer class="footer">
-      <button class="button reset-btn danger" @click="isResetModalOpen = true">
-        Скинути всі дані
-      </button>
-    </footer>
-  </main>
+  <router-view />
 </template>
 
 <style scoped>
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-h1 {
-  font-size: clamp(2rem, 10vw, 3rem);
-  font-weight: 800;
-  margin-bottom: 0.5rem;
-  background: -webkit-linear-gradient(315deg, #42d392 25%, #647eff);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.subtitle {
-  opacity: 0.8;
-  font-size: 1.1rem;
-}
-
-.footer {
-  text-align: center;
-  margin-top: 4rem;
-  margin-bottom: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border);
-}
-
-.reset-btn {
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-  background: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
-}
-.reset-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
-}
-.reset-btn:active {
-  transform: translateY(0);
-}
+/* Scoped styles have been moved to Board.vue */
 </style>

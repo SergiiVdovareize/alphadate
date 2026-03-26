@@ -20,14 +20,13 @@ const UKRAINIAN_ALPHABET = [
   'Ш', 'Щ', 'Ь', 'Ю', 'Я'
 ];
 
-const LOCAL_STORAGE_KEY = 'alphadate_state';
-
 const defaultState = UKRAINIAN_ALPHABET.map((letter): LetterState => ({
   letter,
   status: 'available'
 }));
 
-export function useAlphabetState() {
+export function useAlphabetState(boardId: string) {
+  const LOCAL_STORAGE_KEY = `alphadate_state_${boardId}`;
   const letters = ref<LetterState[]>([]);
 
   // Load state from local storage or set default

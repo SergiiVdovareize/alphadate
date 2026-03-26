@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@knadh/oat": "^0.5.0",
-    "vue": "^3.5.12"
+    "vue": "^3.5.12",
+    "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.4",
