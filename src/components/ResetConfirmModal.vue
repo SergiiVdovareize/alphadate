@@ -15,7 +15,7 @@ const emit = defineEmits<{
       <div v-if="isOpen" class="modal-content">
         <h2>Підтвердження</h2>
         <p>Ви впевнені, що хочете повністю скинути всі дані?</p>
-        
+
         <div class="actions">
           <button class="button danger" @click="emit('confirm')">Так, скинути</button>
           <button class="button outline cancel-btn" @click="emit('cancel')">Скасувати</button>
@@ -38,7 +38,9 @@ const emit = defineEmits<{
   border: 1px solid var(--border, #e2e8f0);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 90vw;
   width: 400px;
 }

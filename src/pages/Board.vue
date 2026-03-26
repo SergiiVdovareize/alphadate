@@ -41,30 +41,24 @@ const goHome = () => {
 <template>
   <main class="container">
     <header class="header">
-      <h1 style="cursor: pointer;" @click="goHome" title="Повернутися на головну">AlphaDate</h1>
+      <h1 style="cursor: pointer" title="Повернутися на головну" @click="goHome">AlphaDate</h1>
       <p class="subtitle">Оберіть літеру для вашого наступного тематичного побачення.</p>
     </header>
 
-    <RandomPickButton 
-      :pickRandom="pickRandom" 
-      @pick="handleSelect" 
+    <RandomPickButton :pick-random="pickRandom" @pick="handleSelect" />
+
+    <AlphabetGrid :letters="letters" @select="handleSelect" />
+
+    <LetterActionModal
+      :letter="activeLetter"
+      @update-status="handleUpdateStatus"
+      @close="activeLetter = null"
     />
 
-    <AlphabetGrid 
-      :letters="letters" 
-      @select="handleSelect" 
-    />
-
-    <LetterActionModal 
-      :letter="activeLetter" 
-      @update-status="handleUpdateStatus" 
-      @close="activeLetter = null" 
-    />
-
-    <ResetConfirmModal 
-      :isOpen="isResetModalOpen" 
-      @confirm="handleResetConfirm" 
-      @cancel="isResetModalOpen = false" 
+    <ResetConfirmModal
+      :is-open="isResetModalOpen"
+      @confirm="handleResetConfirm"
+      @cancel="isResetModalOpen = false"
     />
 
     <footer class="footer">
@@ -117,7 +111,9 @@ h1:hover {
 
 .reset-btn {
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   background: transparent;
   color: #ef4444;
   border: 1px solid #ef4444;

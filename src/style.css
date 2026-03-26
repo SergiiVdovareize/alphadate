@@ -1,13 +1,18 @@
 /* Rely strictly on oat.ink base styles.
    We only place basic app-wide resets here if needed. */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   background-color: var(--bg);
   color: var(--fg);
   -webkit-font-smoothing: antialiased;

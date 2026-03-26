@@ -39,3 +39,4 @@ The app must NOT:
 - Do not pull and push anything without permission
 - Add short comment about what you do when ask for permission for anything
 - Do not add any tests until it's asked
+- Use code and formatting style according to .eslintrc.cjs and .prettierrc files

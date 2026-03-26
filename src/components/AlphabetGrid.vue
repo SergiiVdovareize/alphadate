@@ -9,8 +9,6 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'select', letter: LetterState): void;
 }>();
-
-
 </script>
 
 <template>
@@ -20,8 +18,8 @@ const emit = defineEmits<{
       :key="item.letter"
       class="letter-btn"
       :class="`status-${item.status}`"
-      @click="emit('select', item)"
       :title="`Статус: ${STATUS_UI_STRINGS[item.status]}`"
+      @click="emit('select', item)"
     >
       {{ item.letter }}
       <small class="status-indicator">{{ STATUS_UI_STRINGS[item.status] }}</small>
@@ -53,7 +51,7 @@ const emit = defineEmits<{
   cursor: pointer;
   padding: 0.5rem;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 /* Mobile tap target improvement */

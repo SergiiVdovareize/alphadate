@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router';
 
 // We use WebHashHistory for GitHub Pages compatibility without complex server rewriting.
 const router = createRouter({
@@ -15,6 +15,6 @@ const router = createRouter({
       component: () => import('../pages/Board.vue')
     }
   ]
-})
+});
 
-export default router
+export default router;

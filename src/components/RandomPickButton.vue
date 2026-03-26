@@ -14,7 +14,7 @@ const handleRandomPick = () => {
   if (result) {
     emit('pick', result);
   } else {
-    alert("Більше немає доступних літер!");
+    alert('Більше немає доступних літер!');
   }
 };
 </script>
@@ -41,7 +41,9 @@ const handleRandomPick = () => {
   color: white;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(100, 126, 255, 0.3);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
   cursor: pointer;
   border: none;
 }

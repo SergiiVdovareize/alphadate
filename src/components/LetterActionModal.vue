@@ -23,25 +23,43 @@ const applyStatus = (status: LetterStatus) => {
   <div>
     <dialog class="selection-modal" :open="letter !== null">
       <div v-if="letter" class="modal-content">
-        <h2>Літера: <strong>{{ letter.letter }}</strong></h2>
-        <p>Поточний статус: <strong>{{ STATUS_UI_STRINGS[letter.status] }}</strong></p>
-        
+        <h2>
+          Літера: <strong>{{ letter.letter }}</strong>
+        </h2>
+        <p>
+          Поточний статус: <strong>{{ STATUS_UI_STRINGS[letter.status] }}</strong>
+        </p>
+
         <div class="actions">
-          <button class="button outline" @click="applyStatus('used')">Позначити як використану</button>
-          
-          <button v-if="letter.status !== 'skipped'" class="button outline" @click="applyStatus('skipped')">
+          <button class="button outline" @click="applyStatus('used')">
+            Позначити як використану
+          </button>
+
+          <button
+            v-if="letter.status !== 'skipped'"
+            class="button outline"
+            @click="applyStatus('skipped')"
+          >
             Пропустити
           </button>
-          
-          <button v-if="letter.status !== 'excluded'" class="button outline" @click="applyStatus('excluded')">
+
+          <button
+            v-if="letter.status !== 'excluded'"
+            class="button outline"
+            @click="applyStatus('excluded')"
+          >
             Виключити
           </button>
-          
-          <button v-if="letter.status !== 'available'" class="button outline" @click="applyStatus('available')">
+
+          <button
+            v-if="letter.status !== 'available'"
+            class="button outline"
+            @click="applyStatus('available')"
+          >
             Зробити доступною
           </button>
         </div>
-        
+
         <button class="button outline cancel-btn" @click="emit('close')">Скасувати</button>
       </div>
     </dialog>
@@ -61,7 +79,9 @@ const applyStatus = (status: LetterStatus) => {
   border: 1px solid var(--border, #e2e8f0);
   border-radius: 12px;
   padding: 2rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
   max-width: 90vw;
   width: 400px;
 }
