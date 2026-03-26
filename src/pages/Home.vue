@@ -1,25 +1,28 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAlphabetState } from '../composables/useAlphabetState';
 
 const router = useRouter();
 
-const partner1 = ref('');
-const partner2 = ref('');
+const partners = ref(['', '']);
 
 const createBoard = () => {
-    if (!partner1.value || !partner2.value) {
-        alert("Будь ласка, введіть обидва імена.");
+    const validPartners = partners.value.map(p => p.trim()).filter(Boolean);
+    if (validPartners.length < 1) {
+        alert("Будь ласка, введіть хоча б одне ім'я.");
         return;
     }
 
     const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
     let boardId = '';
     for (let i = 0; i < 5; i++) {
-      boardId += chars.charAt(Math.floor(Math.random() * chars.length));
+        boardId += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     
-    // You can optionally save clean1 and clean2 to localStorage here if you want to display their names later.
+    // Initialize the board metadata immediately into localStorage using the composable
+    const { initBoardMetadata } = useAlphabetState(boardId);
+    initBoardMetadata(validPartners);
     
     router.push(`/${boardId}`);
 };
@@ -32,14 +35,14 @@ const createBoard = () => {
         <p>Створіть свій унікальний простір для планування побачень.</p>
         
         <form @submit.prevent="createBoard" class="setup-form">
-            <div class="input-group">
-                <label>Ваше ім'я</label>
-                <input type="text" v-model="partner1" required placeholder="Наприклад: Олексій" />
-            </div>
-            
-            <div class="input-group">
-                <label>Ім'я партнера</label>
-                <input type="text" v-model="partner2" required placeholder="Наприклад: Марія" />
+            <div 
+              v-for="(_, index) in partners" 
+              :key="index" 
+              class="input-group"
+            >
+                <label v-if="index === 0">Ваше ім'я</label>
+                <label v-else>Ім'я партнера</label>
+                <input type="text" v-model="partners[index]" required :placeholder="index === 0 ? 'Наприклад: Олексій' : 'Наприклад: Марія'" />
             </div>
 
             <button type="submit" class="start-btn">Створити спільну дошку</button>
