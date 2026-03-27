@@ -2,29 +2,38 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAlphabetState } from '../composables/useAlphabetState';
+import { api } from '../services/api';
 
 const router = useRouter();
 
 const partners = ref(['', '']);
+const isLoading = ref(false);
 
-const createBoard = () => {
+const createBoard = async () => {
   const validPartners = partners.value.map((p) => p.trim()).filter(Boolean);
   if (validPartners.length < 1) {
     alert("Будь ласка, введіть хоча б одне ім'я.");
     return;
   }
 
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let boardId = '';
-  for (let i = 0; i < 5; i++) {
-    boardId += chars.charAt(Math.floor(Math.random() * chars.length));
+  isLoading.value = true;
+  try {
+    const data = await api.createBoard(validPartners);
+    if (data.success && data.key) {
+      // Initialize the board metadata immediately into localStorage using the composable
+      const { initBoardMetadata } = useAlphabetState(data.key);
+      initBoardMetadata(validPartners);
+
+      router.push(`/${data.key}`);
+    } else {
+      alert('Не вдалося створити дошку. Спробуйте ще раз.');
+    }
+  } catch (error) {
+    console.error('Error creating board:', error);
+    alert('Помилка при створенні дошки. Перевірте, чи запущений сервер.');
+  } finally {
+    isLoading.value = false;
   }
-
-  // Initialize the board metadata immediately into localStorage using the composable
-  const { initBoardMetadata } = useAlphabetState(boardId);
-  initBoardMetadata(validPartners);
-
-  router.push(`/${boardId}`);
 };
 </script>
 
@@ -46,7 +55,9 @@ const createBoard = () => {
           />
         </div>
 
-        <button type="submit" class="start-btn">Створити спільну дошку</button>
+        <button type="submit" class="start-btn" :disabled="isLoading">
+          {{ isLoading ? 'Створення...' : 'Створити спільну дошку' }}
+        </button>
       </form>
     </div>
   </main>
@@ -132,8 +143,13 @@ p {
     background-color 0.2s;
 }
 
-.start-btn:hover {
+.start-btn:hover:not(:disabled) {
   opacity: 0.9;
   background-color: #5265e0;
+}
+
+.start-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
