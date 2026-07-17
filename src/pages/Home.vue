@@ -7,6 +7,7 @@ import { api } from '../services/api';
 const router = useRouter();
 
 const partners = ref(['', '']);
+const email = ref('');
 const isLoading = ref(false);
 
 const createBoard = async () => {
@@ -16,9 +17,15 @@ const createBoard = async () => {
     return;
   }
 
+  const trimmedEmail = email.value.trim();
+  if (!trimmedEmail) {
+    alert('Будь ласка, введіть електронну пошту.');
+    return;
+  }
+
   isLoading.value = true;
   try {
-    const data = await api.createBoard(validPartners);
+    const data = await api.createBoard(validPartners, trimmedEmail);
     if (data.success && data.key) {
       // Initialize the board metadata immediately into localStorage using the composable
       const { initBoardMetadata } = useAlphabetState(data.key);
@@ -52,6 +59,16 @@ const createBoard = async () => {
             type="text"
             required
             :placeholder="index === 0 ? 'Наприклад: Олексій' : 'Наприклад: Марія'"
+          />
+        </div>
+
+        <div class="input-group">
+          <label>Електронна пошта</label>
+          <input
+            v-model="email"
+            type="email"
+            required
+            placeholder="Наприклад: email@example.com"
           />
         </div>
 

@@ -6,13 +6,13 @@ export interface CreateBoardResponse {
 }
 
 export const api = {
-  async createBoard(partners: string[]): Promise<CreateBoardResponse> {
+  async createBoard(partners: string[], email: string): Promise<CreateBoardResponse> {
     const response = await fetch(`${BASE_URL}/alphadate`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ partners })
+      body: JSON.stringify({ partners, email })
     });
 
     if (!response.ok) {

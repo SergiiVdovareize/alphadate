@@ -21,8 +21,21 @@ const emit = defineEmits<{
       :title="`Статус: ${STATUS_UI_STRINGS[item.status]}`"
       @click="emit('select', item)"
     >
+      <span v-if="item.status === 'used'" class="check-badge">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          class="icon-svg"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </span>
       {{ item.letter }}
-      <small class="status-indicator">{{ STATUS_UI_STRINGS[item.status] }}</small>
     </button>
   </div>
 </template>
@@ -38,6 +51,7 @@ const emit = defineEmits<{
 }
 
 .letter-btn {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -69,14 +83,6 @@ const emit = defineEmits<{
   transform: scale(0.95);
 }
 
-.status-indicator {
-  font-size: 0.5rem;
-  text-transform: uppercase;
-  font-weight: normal;
-  margin-top: 4px;
-  opacity: 0.8;
-}
-
 /* Status variants */
 .status-available {
   border-color: #42d392;
@@ -88,22 +94,43 @@ const emit = defineEmits<{
 }
 
 .status-used {
-  opacity: 0.4;
+  opacity: 1;
   background-color: var(--bg-muted);
-  text-decoration: line-through;
+  border-color: #42d392;
+  color: var(--fg);
 }
 
 .status-excluded {
   opacity: 0.6;
-  border-color: #ff5c5c;
-  color: #ff5c5c;
-  background-color: rgba(255, 92, 92, 0.05);
+  border-color: #94a3b8;
+  color: #94a3b8;
+  background-color: rgba(148, 163, 184, 0.05);
 }
 
 .status-skipped {
   opacity: 0.6;
-  border-color: #eab308;
-  color: #eab308;
-  background-color: rgba(234, 179, 8, 0.05);
+  border-color: #f97316;
+  color: #f97316;
+  background-color: rgba(249, 115, 22, 0.05);
+}
+
+.check-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  background-color: #42d392;
+  color: white;
+  border-radius: 50%;
+  padding: 2px;
+}
+
+.icon-svg {
+  width: 100%;
+  height: 100%;
 }
 </style>
