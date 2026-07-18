@@ -4,7 +4,7 @@ import { api } from '../services/api';
 export type LetterStatus = 'available' | 'used' | 'excluded' | 'skipped';
 
 export const STATUS_UI_STRINGS: Record<LetterStatus, string> = {
-  available: 'доступна',
+  available: 'нова',
   used: 'використана',
   excluded: 'виключена',
   skipped: 'пропущена'
@@ -15,9 +15,15 @@ export interface LetterState {
   status: LetterStatus;
 }
 
+export interface Partner {
+  id: number;
+  name: string;
+}
+
 export interface BoardMetadata {
-  partners: string[];
+  partners: Partner[];
   pinHash: string | null;
+  currentPartnerId: number | null;
 }
 
 const UKRAINIAN_ALPHABET = [
@@ -68,7 +74,8 @@ export function useAlphabetState(boardId: string) {
   const letters = ref<LetterState[]>([]);
   const metadata = ref<BoardMetadata>({
     partners: [],
-    pinHash: null
+    pinHash: null,
+    currentPartnerId: null
   });
 
   // Load state from local storage or set default
@@ -91,11 +98,25 @@ export function useAlphabetState(boardId: string) {
             if (typeof parsed.metadata.partner1 === 'string') {
               // Legacy object struct migration
               metadata.value = {
-                partners: [parsed.metadata.partner1, parsed.metadata.partner2].filter(Boolean),
-                pinHash: parsed.metadata.pinHash || null
+                partners: [
+                  { id: 1, name: parsed.metadata.partner1 },
+                  { id: 2, name: parsed.metadata.partner2 || '' }
+                ].filter((p) => p.name),
+                pinHash: parsed.metadata.pinHash || null,
+                currentPartnerId: 1
               };
             } else {
-              metadata.value = parsed.metadata;
+              const partnersList = parsed.metadata.partners || [];
+              const mappedPartners =
+                partnersList.length > 0 && typeof partnersList[0] === 'string'
+                  ? partnersList.map((name: string, index: number) => ({ id: index + 1, name }))
+                  : partnersList;
+
+              metadata.value = {
+                partners: mappedPartners,
+                pinHash: parsed.metadata.pinHash || null,
+                currentPartnerId: parsed.metadata.currentPartnerId || (mappedPartners[0]?.id || null)
+              };
             }
           }
         } else {
@@ -147,14 +168,20 @@ export function useAlphabetState(boardId: string) {
   const syncWithBackend = async () => {
     if (boardId === 'default') return;
     try {
-      await api.updateBoard(boardId, letters.value, metadata.value);
+      const data = await api.updateBoard(boardId, letters.value);
+      if (data && typeof data.currentPartnerId === 'number') {
+        metadata.value.currentPartnerId = data.currentPartnerId;
+      }
     } catch (e) {
       console.error('Failed to sync board state to backend:', e);
     }
   };
 
   const initBoardMetadata = (partnersArray: string[]) => {
-    metadata.value.partners = partnersArray;
+    metadata.value.partners = partnersArray.map((name, index) => ({
+      id: index + 1,
+      name
+    }));
     syncWithBackend();
   };
 
