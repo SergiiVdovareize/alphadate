@@ -1,4 +1,5 @@
 import { ref, watch } from 'vue';
+import { api } from '../services/api';
 
 export type LetterStatus = 'available' | 'used' | 'excluded' | 'skipped';
 
@@ -76,14 +77,14 @@ export function useAlphabetState(boardId: string) {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === 33) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           // Legacy migration
           letters.value = parsed;
         } else if (
           parsed &&
           parsed.letters &&
           Array.isArray(parsed.letters) &&
-          parsed.letters.length === 33
+          parsed.letters.length > 0
         ) {
           letters.value = parsed.letters;
           if (parsed.metadata) {
@@ -110,6 +111,24 @@ export function useAlphabetState(boardId: string) {
 
   fetchState();
 
+  // Sync state from backend asynchronously
+  const fetchBackendState = async () => {
+    if (boardId === 'default') return;
+    try {
+      const data = await api.getBoard(boardId);
+      if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
+        letters.value = data.letters;
+        if (data.metadata) {
+          metadata.value = data.metadata;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to sync state from backend:', e);
+    }
+  };
+
+  fetchBackendState();
+
   // Watch for changes and save to local storage
   watch(
     [letters, metadata],
@@ -125,14 +144,25 @@ export function useAlphabetState(boardId: string) {
     { deep: true }
   );
 
+  const syncWithBackend = async () => {
+    if (boardId === 'default') return;
+    try {
+      await api.updateBoard(boardId, letters.value, metadata.value);
+    } catch (e) {
+      console.error('Failed to sync board state to backend:', e);
+    }
+  };
+
   const initBoardMetadata = (partnersArray: string[]) => {
     metadata.value.partners = partnersArray;
+    syncWithBackend();
   };
 
   const markAsStatus = (letterChar: string, status: LetterStatus) => {
     const item = letters.value.find((l) => l.letter === letterChar);
     if (item) {
       item.status = status;
+      syncWithBackend();
     }
   };
 
@@ -145,6 +175,7 @@ export function useAlphabetState(boardId: string) {
 
   const resetState = () => {
     letters.value = JSON.parse(JSON.stringify(defaultState));
+    syncWithBackend();
   };
 
   return {
