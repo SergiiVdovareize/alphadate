@@ -14,10 +14,10 @@ const emit = defineEmits<{
     <dialog class="selection-modal" :open="isOpen">
       <div v-if="isOpen" class="modal-content">
         <h2>Підтвердження</h2>
-        <p>Ви впевнені, що хочете повністю скинути всі дані?</p>
+        <p>Ви впевнені, що хочете повністю видалити цю дошку? Цю дію неможливо скасувати.</p>
 
         <div class="actions">
-          <button class="button danger" @click="emit('confirm')">Так, скинути</button>
+          <button class="button danger" @click="emit('confirm')">Так, видалити</button>
           <button class="button outline cancel-btn" @click="emit('cancel')">Скасувати</button>
         </div>
       </div>
@@ -99,18 +99,15 @@ const emit = defineEmits<{
   border-color: transparent;
 }
 .button.danger:hover {
-  opacity: 0.9;
+  background: #dc2626;
 }
 
 .button.outline {
-  background: var(--bg-muted, #f8fafc);
-  color: var(--fg, #334155);
+  background: transparent;
+  color: var(--fg);
+  border-color: var(--border);
 }
 .button.outline:hover {
-  background: var(--border, #e2e8f0);
-}
-
-.cancel-btn {
-  width: 100%;
+  background: var(--bg-muted);
 }
 </style>

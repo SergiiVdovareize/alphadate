@@ -62,5 +62,20 @@ export const api = {
     }
 
     return response.json();
+  },
+
+  async deleteBoard(key: string): Promise<{ success: boolean }> {
+    const response = await fetch(`${BASE_URL}/alphadate/${key}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return response.json();
   }
 };

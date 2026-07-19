@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AlphabetGrid from '../components/AlphabetGrid.vue';
 import RandomPickButton from '../components/RandomPickButton.vue';
-import ResetConfirmModal from '../components/ResetConfirmModal.vue';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import { useAlphabetState, STATUS_UI_STRINGS } from '../composables/useAlphabetState';
 import type { LetterState, LetterStatus } from '../composables/useAlphabetState';
 
@@ -13,10 +13,10 @@ const router = useRouter();
 // Retrieve ID from URL params. Fallback to default if somehow missing.
 const boardId = (route.params.id as string) || 'default';
 
-const { letters, metadata, markAsStatus, pickRandom, resetState } = useAlphabetState(boardId);
+const { letters, metadata, markAsStatus, pickRandom, deleteBoardState } = useAlphabetState(boardId);
 
 const activeLetter = ref<LetterState | null>(null);
-const isResetModalOpen = ref(false);
+const isDeleteModalOpen = ref(false);
 
 const handleSelect = (letter: LetterState) => {
   activeLetter.value = { ...letter };
@@ -27,9 +27,10 @@ const handleUpdateStatus = (letterChar: string, status: LetterStatus) => {
   activeLetter.value = null; // Failsafe
 };
 
-const handleResetConfirm = () => {
-  resetState();
-  isResetModalOpen.value = false;
+const handleDeleteConfirm = async () => {
+  await deleteBoardState();
+  isDeleteModalOpen.value = false;
+  goHome();
 };
 
 const goHome = () => {
@@ -106,17 +107,17 @@ const goHome = () => {
       </div>
     </div>
 
-    <AlphabetGrid :letters="letters" @select="handleSelect" />
+    <AlphabetGrid :letters="letters" :active-letter="activeLetter?.letter" @select="handleSelect" />
 
-    <ResetConfirmModal
-      :is-open="isResetModalOpen"
-      @confirm="handleResetConfirm"
-      @cancel="isResetModalOpen = false"
+    <DeleteConfirmModal
+      :is-open="isDeleteModalOpen"
+      @confirm="handleDeleteConfirm"
+      @cancel="isDeleteModalOpen = false"
     />
 
     <footer class="footer">
-      <button class="button reset-btn danger" @click="isResetModalOpen = true">
-        Скинути всі дані
+      <button class="button reset-btn" @click="isDeleteModalOpen = true">
+        Видалити дошку
       </button>
     </footer>
   </main>
@@ -161,13 +162,16 @@ h1:hover {
   cursor: pointer;
   transition:
     transform 0.2s,
-    box-shadow 0.2s;
+    box-shadow 0.2s,
+    background-color 0.2s,
+    color 0.2s;
   background: transparent;
   color: #ef4444;
   border: 1px solid #ef4444;
 }
 .reset-btn:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background-color: #ef4444;
+  color: white;
 }
 .reset-btn:active {
   transform: translateY(0);
@@ -215,25 +219,25 @@ h1:hover {
 
 .partner-badge.active {
   opacity: 1;
-  background-color: #647eff;
+  background-color: #db2777;
   color: white;
-  border-color: #647eff;
-  box-shadow: 0 4px 12px rgba(100, 126, 255, 0.3);
+  border-color: #db2777;
+  box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
   animation: pulse 2.5s infinite;
 }
 
 @keyframes pulse {
   0% {
     transform: scale(1);
-    box-shadow: 0 4px 12px rgba(100, 126, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
   }
   50% {
     transform: scale(1.03);
-    box-shadow: 0 4px 20px rgba(100, 126, 255, 0.5);
+    box-shadow: 0 4px 20px rgba(219, 39, 119, 0.5);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 4px 12px rgba(100, 126, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
   }
 }
 
@@ -250,9 +254,13 @@ h1:hover {
 
 .panel-placeholder {
   color: var(--fg);
-  opacity: 0.7;
   font-size: 1rem;
   padding: 0.5rem 0;
+  margin: 0;
+}
+
+.panel-placeholder p {
+  opacity: 0.7;
   margin: 0;
 }
 

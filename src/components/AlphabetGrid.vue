@@ -4,6 +4,7 @@ import type { LetterState } from '../composables/useAlphabetState';
 
 defineProps<{
   letters: LetterState[];
+  activeLetter?: string;
 }>();
 
 const emit = defineEmits<{
@@ -17,7 +18,7 @@ const emit = defineEmits<{
       v-for="item in letters"
       :key="item.letter"
       class="letter-btn"
-      :class="`status-${item.status}`"
+      :class="[`status-${item.status}`, { active: item.letter === activeLetter }]"
       :title="`Статус: ${STATUS_UI_STRINGS[item.status]}`"
       @click="emit('select', item)"
     >
@@ -66,6 +67,13 @@ const emit = defineEmits<{
   padding: 0.5rem;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.letter-btn.active {
+  border-color: #647eff !important;
+  box-shadow: 0 0 0 3px rgba(100, 126, 255, 0.4);
+  transform: scale(1.05);
+  z-index: 2;
 }
 
 /* Mobile tap target improvement */

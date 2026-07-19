@@ -141,6 +141,22 @@ export function useAlphabetState(boardId: string) {
         letters.value = data.letters;
         if (data.metadata) {
           metadata.value = data.metadata;
+
+          // Save board to local storage history list
+          const savedKey = 'alphadate_saved_boards';
+          const savedBoards = JSON.parse(localStorage.getItem(savedKey) || '[]');
+          const partnerNames = data.metadata.partners ? data.metadata.partners.map((p) => p.name) : [];
+          const newEntry = {
+            key: boardId,
+            partners: partnerNames,
+            createdAt: new Date().toISOString()
+          };
+          const existing = savedBoards.find((b: any) => b.key === boardId);
+          if (existing) {
+            newEntry.createdAt = existing.createdAt;
+          }
+          const updated = [newEntry, ...savedBoards.filter((b: any) => b.key !== boardId)];
+          localStorage.setItem(savedKey, JSON.stringify(updated));
         }
       }
     } catch (e) {
@@ -205,6 +221,22 @@ export function useAlphabetState(boardId: string) {
     syncWithBackend();
   };
 
+  const deleteBoardState = async () => {
+    if (boardId === 'default') return;
+    try {
+      await api.deleteBoard(boardId);
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+      // Cleanup from history list
+      const savedKey = 'alphadate_saved_boards';
+      const savedBoards = JSON.parse(localStorage.getItem(savedKey) || '[]');
+      const updated = savedBoards.filter((b: any) => b.key !== boardId);
+      localStorage.setItem(savedKey, JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to delete board state from backend:', e);
+    }
+  };
+
   return {
     letters,
     metadata,
@@ -212,6 +244,7 @@ export function useAlphabetState(boardId: string) {
     markAsStatus,
     pickRandom,
     resetState,
-    initBoardMetadata
+    initBoardMetadata,
+    deleteBoardState
   };
 }

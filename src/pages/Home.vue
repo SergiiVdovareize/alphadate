@@ -1,14 +1,37 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAlphabetState } from '../composables/useAlphabetState';
 import { api } from '../services/api';
+
+interface SavedBoard {
+  key: string;
+  partners: string[];
+  createdAt: string;
+}
 
 const router = useRouter();
 
 const partners = ref(['', '']);
 const email = ref('');
 const isLoading = ref(false);
+const savedBoards = ref<SavedBoard[]>([]);
+
+onMounted(() => {
+  const savedKey = 'alphadate_saved_boards';
+  const list = localStorage.getItem(savedKey);
+  if (list) {
+    try {
+      savedBoards.value = JSON.parse(list);
+    } catch (e) {
+      console.error('Failed to parse saved boards:', e);
+    }
+  }
+});
+
+const openBoard = (key: string) => {
+  router.push(`/${key}`);
+};
 
 const createBoard = async () => {
   const validPartners = partners.value.map((p) => p.trim()).filter(Boolean);
@@ -27,6 +50,17 @@ const createBoard = async () => {
   try {
     const data = await api.createBoard(validPartners, trimmedEmail);
     if (data.success && data.key) {
+      // Save board details to localStorage history list
+      const savedKey = 'alphadate_saved_boards';
+      const existingList = JSON.parse(localStorage.getItem(savedKey) || '[]');
+      const newEntry = {
+        key: data.key,
+        partners: validPartners,
+        createdAt: new Date().toISOString()
+      };
+      const updated = [newEntry, ...existingList.filter((b: any) => b.key !== data.key)];
+      localStorage.setItem(savedKey, JSON.stringify(updated));
+
       // Initialize the board metadata immediately into localStorage using the composable
       const { initBoardMetadata } = useAlphabetState(data.key);
       initBoardMetadata(validPartners);
@@ -49,6 +83,26 @@ const createBoard = async () => {
     <div class="card">
       <h1>AlphaDate</h1>
       <p>Створіть свій унікальний простір для планування побачень.</p>
+
+      <!-- Quick continue banner for the most recent board -->
+      <div v-if="savedBoards.length > 0" class="recent-suggestion" @click="openBoard(savedBoards[0].key)">
+        <span class="suggestion-tag">Збережена дошка:</span>
+        <span class="suggestion-partners">{{ savedBoards[0].partners.join(' та ') }}</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2.5"
+          stroke="currentColor"
+          class="arrow-icon"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+          />
+        </svg>
+      </div>
 
       <form class="setup-form" @submit.prevent="createBoard">
         <div v-for="(_, index) in partners" :key="index" class="input-group">
@@ -168,5 +222,46 @@ p {
 .start-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.recent-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(100, 126, 255, 0.08);
+  border: 1px solid rgba(100, 126, 255, 0.15);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+  margin-bottom: 1.75rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.recent-suggestion:hover {
+  background: rgba(100, 126, 255, 0.12);
+  border-color: #647eff;
+}
+
+.suggestion-tag {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #647eff;
+  letter-spacing: 0.05em;
+  margin-right: 0.5rem;
+}
+
+.suggestion-partners {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--fg);
+  flex-grow: 1;
+}
+
+.recent-suggestion .arrow-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #647eff;
+  margin-left: 0.5rem;
 }
 </style>
