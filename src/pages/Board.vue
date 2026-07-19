@@ -13,18 +13,21 @@ const router = useRouter();
 // Retrieve ID from URL params. Fallback to default if somehow missing.
 const boardId = (route.params.id as string) || 'default';
 
-const { letters, metadata, markAsStatus, pickRandom, deleteBoardState } = useAlphabetState(boardId);
+const {
+  letters,
+  metadata,
+  markAsStatus,
+  pickRandom,
+  deleteBoardState,
+  activeLetter,
+  selectLetter
+} = useAlphabetState(boardId);
 
-const activeLetter = ref<LetterState | null>(null);
 const isDeleteModalOpen = ref(false);
-
-const handleSelect = (letter: LetterState) => {
-  activeLetter.value = { ...letter };
-};
 
 const handleUpdateStatus = (letterChar: string, status: LetterStatus) => {
   markAsStatus(letterChar, status);
-  activeLetter.value = null; // Failsafe
+  selectLetter(null); // Clear selection and sync with DB
 };
 
 const handleDeleteConfirm = async () => {
@@ -96,18 +99,18 @@ const goHome = () => {
           >
             Зробити новою
           </button>
-          <button class="button text close-panel-btn" @click="activeLetter = null">
+          <button class="button text close-panel-btn" @click="selectLetter(null)">
             Скасувати
           </button>
         </div>
       </div>
       <div v-else class="panel-placeholder">
         <p>Оберіть літеру вручну на дошці або натисніть кнопку випадкового вибору.</p>
-        <RandomPickButton :pick-random="pickRandom" @pick="handleSelect" />
+        <RandomPickButton :pick-random="pickRandom" @pick="selectLetter" />
       </div>
     </div>
 
-    <AlphabetGrid :letters="letters" :active-letter="activeLetter?.letter" @select="handleSelect" />
+    <AlphabetGrid :letters="letters" :active-letter="activeLetter?.letter" @select="selectLetter" />
 
     <DeleteConfirmModal
       :is-open="isDeleteModalOpen"

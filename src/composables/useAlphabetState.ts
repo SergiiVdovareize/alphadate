@@ -24,6 +24,7 @@ export interface BoardMetadata {
   partners: Partner[];
   pinHash: string | null;
   currentPartnerId: number | null;
+  currentLetter: string | null;
 }
 
 const UKRAINIAN_ALPHABET = [
@@ -75,8 +76,10 @@ export function useAlphabetState(boardId: string) {
   const metadata = ref<BoardMetadata>({
     partners: [],
     pinHash: null,
-    currentPartnerId: null
+    currentPartnerId: null,
+    currentLetter: null
   });
+  const activeLetter = ref<LetterState | null>(null);
 
   // Load state from local storage or set default
   const fetchState = () => {
@@ -103,7 +106,8 @@ export function useAlphabetState(boardId: string) {
                   { id: 2, name: parsed.metadata.partner2 || '' }
                 ].filter((p) => p.name),
                 pinHash: parsed.metadata.pinHash || null,
-                currentPartnerId: 1
+                currentPartnerId: 1,
+                currentLetter: parsed.metadata.currentLetter || null
               };
             } else {
               const partnersList = parsed.metadata.partners || [];
@@ -115,12 +119,18 @@ export function useAlphabetState(boardId: string) {
               metadata.value = {
                 partners: mappedPartners,
                 pinHash: parsed.metadata.pinHash || null,
-                currentPartnerId: parsed.metadata.currentPartnerId || (mappedPartners[0]?.id || null)
+                currentPartnerId: parsed.metadata.currentPartnerId || (mappedPartners[0]?.id || null),
+                currentLetter: parsed.metadata.currentLetter || null
               };
             }
           }
         } else {
           letters.value = JSON.parse(JSON.stringify(defaultState));
+        }
+
+        // Resolve activeLetter from currentLetter
+        if (metadata.value.currentLetter) {
+          activeLetter.value = letters.value.find((l) => l.letter === metadata.value.currentLetter) || null;
         }
       } catch (e) {
         letters.value = JSON.parse(JSON.stringify(defaultState));
@@ -141,6 +151,9 @@ export function useAlphabetState(boardId: string) {
         letters.value = data.letters;
         if (data.metadata) {
           metadata.value = data.metadata;
+          activeLetter.value = data.metadata.currentLetter
+            ? letters.value.find((l) => l.letter === data.metadata.currentLetter) || null
+            : null;
 
           // Save board to local storage history list
           const savedKey = 'alphadate_saved_boards';
@@ -184,13 +197,19 @@ export function useAlphabetState(boardId: string) {
   const syncWithBackend = async () => {
     if (boardId === 'default') return;
     try {
-      const data = await api.updateBoard(boardId, letters.value);
+      const data = await api.updateBoard(boardId, letters.value, metadata.value.currentLetter);
       if (data && typeof data.currentPartnerId === 'number') {
         metadata.value.currentPartnerId = data.currentPartnerId;
       }
     } catch (e) {
       console.error('Failed to sync board state to backend:', e);
     }
+  };
+
+  const selectLetter = (letter: LetterState | null) => {
+    activeLetter.value = letter;
+    metadata.value.currentLetter = letter ? letter.letter : null;
+    syncWithBackend();
   };
 
   const initBoardMetadata = (partnersArray: string[]) => {
@@ -240,11 +259,13 @@ export function useAlphabetState(boardId: string) {
   return {
     letters,
     metadata,
+    activeLetter,
     fetchState,
     markAsStatus,
     pickRandom,
     resetState,
     initBoardMetadata,
-    deleteBoardState
+    deleteBoardState,
+    selectLetter
   };
 }

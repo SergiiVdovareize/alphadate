@@ -47,14 +47,15 @@ export const api = {
 
   async updateBoard(
     key: string,
-    letters: LetterState[]
+    letters: LetterState[],
+    currentLetter: string | null
   ): Promise<{ success: boolean; currentPartnerId: number }> {
     const response = await fetch(`${BASE_URL}/alphadate/${key}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ letters })
+      body: JSON.stringify({ letters, currentLetter })
     });
 
     if (!response.ok) {
