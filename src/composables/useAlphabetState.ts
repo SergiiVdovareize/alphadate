@@ -13,6 +13,7 @@ export const STATUS_UI_STRINGS: Record<LetterStatus, string> = {
 export interface LetterState {
   letter: string;
   status: LetterStatus;
+  note?: string;
 }
 
 export interface Partner {
@@ -248,12 +249,25 @@ export function useAlphabetState(boardId: string) {
     syncWithBackend();
   };
 
-  const markAsStatus = (letterChar: string, status: LetterStatus) => {
+  const markAsStatus = (
+    letterChar: string,
+    status: LetterStatus,
+    note?: string,
+    clearActive: boolean = true
+  ) => {
     const item = letters.value.find((l) => l.letter === letterChar);
     if (item) {
       item.status = status;
-      syncWithBackend();
+      if (note !== undefined) {
+        item.note = note.trim() || undefined;
+      }
     }
+    if (clearActive && metadata.value.currentLetter === letterChar) {
+      activeLetter.value = null;
+      metadata.value.currentLetter = null;
+      metadata.value.currentLetterSelectedAt = null;
+    }
+    syncWithBackend();
   };
 
   const pickRandom = (): LetterState | null => {

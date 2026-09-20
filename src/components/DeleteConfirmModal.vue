@@ -104,8 +104,12 @@ const emit = defineEmits<{
 }
 
 .button.danger {
-  background: var(--color-accent, #ea7a87);
+  background: var(--color-accent-confirm, #5ea885);
   color: #ffffff;
+}
+
+.button.danger:hover {
+  background: var(--color-accent-confirm-hover, #519675);
 }
 
 .button.outline {

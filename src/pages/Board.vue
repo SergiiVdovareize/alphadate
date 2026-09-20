@@ -36,13 +36,6 @@ onMounted(() => {
   }, 1000);
 });
 
-onUnmounted(() => {
-  if (timerInterval) {
-    clearInterval(timerInterval);
-    timerInterval = null;
-  }
-});
-
 const countdownInfo = computed(() => {
   if (!activeLetter.value || !metadata.value.currentLetterSelectedAt) {
     return null;
@@ -85,13 +78,85 @@ const countdownInfo = computed(() => {
   };
 });
 
+const isCompleting = ref(false);
+const completionNote = ref('');
+const confirmingAction = ref<'exclude' | 'cancel' | 'reset' | null>(null);
+let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const clearConfirmTimeout = () => {
+  if (confirmTimeout) {
+    clearTimeout(confirmTimeout);
+    confirmTimeout = null;
+  }
+};
+
+onUnmounted(() => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+  clearConfirmTimeout();
+});
+
+const startCompleting = () => {
+  clearConfirmTimeout();
+  confirmingAction.value = null;
+  completionNote.value = activeLetter.value?.note || '';
+  isCompleting.value = true;
+};
+
+const cancelCompleting = () => {
+  isCompleting.value = false;
+  completionNote.value = '';
+};
+
+const submitComplete = () => {
+  if (!activeLetter.value) return;
+  const letterChar = activeLetter.value.letter;
+  const note = completionNote.value.trim();
+  markAsStatus(letterChar, 'used', note);
+  isCompleting.value = false;
+  completionNote.value = '';
+  clearConfirmTimeout();
+  confirmingAction.value = null;
+};
+
+const handleConfirmableAction = (action: 'exclude' | 'cancel' | 'reset') => {
+  if (confirmingAction.value === action) {
+    clearConfirmTimeout();
+    confirmingAction.value = null;
+    if (action === 'exclude' && activeLetter.value) {
+      handleUpdateStatus(activeLetter.value.letter, 'excluded');
+    } else if (action === 'cancel') {
+      selectLetter(null);
+      isCompleting.value = false;
+      completionNote.value = '';
+    } else if (action === 'reset' && activeLetter.value) {
+      handleUpdateStatus(activeLetter.value.letter, 'available');
+    }
+  } else {
+    clearConfirmTimeout();
+    confirmingAction.value = action;
+    confirmTimeout = setTimeout(() => {
+      confirmingAction.value = null;
+    }, 4000);
+  }
+};
+
 const handleUpdateStatus = (letterChar: string, status: LetterStatus) => {
   markAsStatus(letterChar, status);
-  selectLetter(null); // Clear selection and sync with DB
+  clearConfirmTimeout();
+  confirmingAction.value = null;
+  isCompleting.value = false;
+  completionNote.value = '';
 };
 
 const handleSelectLetter = (letter: LetterState) => {
   if (activeLetter.value) return;
+  clearConfirmTimeout();
+  confirmingAction.value = null;
+  isCompleting.value = false;
+  completionNote.value = '';
   selectLetter(letter);
 };
 
@@ -165,31 +230,63 @@ const goHome = () => {
             </svg>
             <span>{{ countdownInfo.text }}</span>
           </div>
+          <!-- Existing note if letter was completed with a note and not in editing mode -->
+          <div v-if="activeLetter.note && !isCompleting" class="existing-note-box">
+            <span class="existing-note-label">Нотатка про побачення:</span>
+            <p class="existing-note-text">«{{ activeLetter.note }}»</p>
+          </div>
         </div>
-        <div class="action-buttons">
+
+        <!-- Inline completion form with comment input -->
+        <div v-if="isCompleting" class="completion-form">
+          <label class="comment-label" for="date-note"> Як пройшло побачення? </label>
+          <textarea
+            id="date-note"
+            v-model="completionNote"
+            rows="3"
+            class="comment-textarea"
+            placeholder="Опишіть ваші враження, куди сходили... (необов'язково)"
+            autofocus
+          ></textarea>
+          <div class="completion-actions">
+            <button class="button success confirm-btn" @click="submitComplete">
+              Підтвердити виконання
+            </button>
+            <button class="button outline cancel-btn" @click="cancelCompleting">Назад</button>
+          </div>
+        </div>
+
+        <!-- Normal action buttons with inline two-step confirmation -->
+        <div v-else class="action-buttons">
           <button
             v-if="activeLetter.status !== 'used'"
             class="button success"
-            @click="handleUpdateStatus(activeLetter.letter, 'used')"
+            @click="startCompleting"
           >
             Виконано
           </button>
           <button
             v-if="activeLetter.status !== 'excluded'"
             class="button danger"
-            @click="handleUpdateStatus(activeLetter.letter, 'excluded')"
+            :class="{ 'is-confirming': confirmingAction === 'exclude' }"
+            @click="handleConfirmableAction('exclude')"
           >
-            Виключити
+            {{ confirmingAction === 'exclude' ? 'Точно виключити?' : 'Виключити' }}
           </button>
           <button
             v-if="activeLetter.status !== 'available'"
             class="button outline"
-            @click="handleUpdateStatus(activeLetter.letter, 'available')"
+            :class="{ 'is-confirming': confirmingAction === 'reset' }"
+            @click="handleConfirmableAction('reset')"
           >
-            Зробити новою
+            {{ confirmingAction === 'reset' ? 'Точно скинути?' : 'Зробити новою' }}
           </button>
-          <button class="button text close-panel-btn" @click="selectLetter(null)">
-            Обрати іншу
+          <button
+            class="button text close-panel-btn"
+            :class="{ 'is-confirming': confirmingAction === 'cancel' }"
+            @click="handleConfirmableAction('cancel')"
+          >
+            {{ confirmingAction === 'cancel' ? 'Точно обрати іншу?' : 'Обрати іншу' }}
           </button>
         </div>
       </div>
@@ -488,6 +585,147 @@ const goHome = () => {
 .close-panel-btn:active {
   transform: translateY(2px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+/* Inline completion form with comment input */
+.completion-form {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  text-align: left;
+}
+
+.comment-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-ink, #2d3748);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.comment-textarea {
+  width: 100%;
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 12px;
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-ink, #2d3748);
+  background: #ffffff;
+  resize: vertical;
+  min-height: 75px;
+  box-shadow: inset 0 2px 0 rgba(45, 55, 72, 0.04);
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: var(--color-accent, #ea7a87);
+  box-shadow: 0 0 0 3px rgba(234, 122, 135, 0.2);
+}
+
+.completion-actions {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.completion-actions .confirm-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 2px solid var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  cursor: pointer;
+  background-color: var(--color-accent-confirm, #5ea885);
+  color: #ffffff;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
+}
+
+.completion-actions .confirm-btn:hover {
+  background-color: var(--color-accent-confirm-hover, #519675);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+
+.completion-actions .confirm-btn:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.completion-actions .cancel-btn {
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border-radius: 12px;
+  border: 2px solid var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  cursor: pointer;
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-ink, #2d3748);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
+}
+
+.completion-actions .cancel-btn:hover {
+  background-color: var(--color-surface-muted, #f3eae3);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+
+.completion-actions .cancel-btn:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+/* Inline two-step confirmation state styles (all action confirmations) */
+.action-buttons button.is-confirming {
+  background-color: var(--color-accent-confirm, #5ea885) !important;
+  color: #ffffff !important;
+  border-color: var(--color-ink, #2d3748) !important;
+}
+
+.action-buttons button.is-confirming:hover {
+  background-color: var(--color-accent-confirm-hover, #519675) !important;
+}
+
+.existing-note-box {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--color-surface-muted, #f3eae3);
+  border: 1.5px dashed rgba(45, 55, 72, 0.3);
+  border-radius: 12px;
+  max-width: 320px;
+}
+
+.existing-note-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-ink-muted, #718096);
+  display: block;
+  margin-bottom: 0.2rem;
+}
+
+.existing-note-text {
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--color-ink, #2d3748);
+  margin: 0;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .footer {
