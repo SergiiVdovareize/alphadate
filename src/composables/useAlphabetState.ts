@@ -25,6 +25,13 @@ export interface BoardMetadata {
   pinHash: string | null;
   currentPartnerId: number | null;
   currentLetter: string | null;
+  currentLetterSelectedAt: string | null;
+}
+
+export interface SavedBoard {
+  key: string;
+  partners: string[];
+  createdAt: string;
 }
 
 const UKRAINIAN_ALPHABET = [
@@ -77,7 +84,8 @@ export function useAlphabetState(boardId: string) {
     partners: [],
     pinHash: null,
     currentPartnerId: null,
-    currentLetter: null
+    currentLetter: null,
+    currentLetterSelectedAt: null
   });
   const activeLetter = ref<LetterState | null>(null);
 
@@ -107,7 +115,8 @@ export function useAlphabetState(boardId: string) {
                 ].filter((p) => p.name),
                 pinHash: parsed.metadata.pinHash || null,
                 currentPartnerId: 1,
-                currentLetter: parsed.metadata.currentLetter || null
+                currentLetter: parsed.metadata.currentLetter || null,
+                currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
               };
             } else {
               const partnersList = parsed.metadata.partners || [];
@@ -119,8 +128,9 @@ export function useAlphabetState(boardId: string) {
               metadata.value = {
                 partners: mappedPartners,
                 pinHash: parsed.metadata.pinHash || null,
-                currentPartnerId: parsed.metadata.currentPartnerId || (mappedPartners[0]?.id || null),
-                currentLetter: parsed.metadata.currentLetter || null
+                currentPartnerId: parsed.metadata.currentPartnerId || mappedPartners[0]?.id || null,
+                currentLetter: parsed.metadata.currentLetter || null,
+                currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
               };
             }
           }
@@ -130,7 +140,8 @@ export function useAlphabetState(boardId: string) {
 
         // Resolve activeLetter from currentLetter
         if (metadata.value.currentLetter) {
-          activeLetter.value = letters.value.find((l) => l.letter === metadata.value.currentLetter) || null;
+          activeLetter.value =
+            letters.value.find((l) => l.letter === metadata.value.currentLetter) || null;
         }
       } catch (e) {
         letters.value = JSON.parse(JSON.stringify(defaultState));
@@ -150,25 +161,30 @@ export function useAlphabetState(boardId: string) {
       if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
         letters.value = data.letters;
         if (data.metadata) {
-          metadata.value = data.metadata;
+          metadata.value = {
+            ...data.metadata,
+            currentLetterSelectedAt: data.metadata.currentLetterSelectedAt || null
+          };
           activeLetter.value = data.metadata.currentLetter
             ? letters.value.find((l) => l.letter === data.metadata.currentLetter) || null
             : null;
 
           // Save board to local storage history list
           const savedKey = 'alphadate_saved_boards';
-          const savedBoards = JSON.parse(localStorage.getItem(savedKey) || '[]');
-          const partnerNames = data.metadata.partners ? data.metadata.partners.map((p) => p.name) : [];
-          const newEntry = {
+          const savedBoards: SavedBoard[] = JSON.parse(localStorage.getItem(savedKey) || '[]');
+          const partnerNames = data.metadata.partners
+            ? data.metadata.partners.map((p) => p.name)
+            : [];
+          const newEntry: SavedBoard = {
             key: boardId,
             partners: partnerNames,
             createdAt: new Date().toISOString()
           };
-          const existing = savedBoards.find((b: any) => b.key === boardId);
+          const existing = savedBoards.find((b) => b.key === boardId);
           if (existing) {
             newEntry.createdAt = existing.createdAt;
           }
-          const updated = [newEntry, ...savedBoards.filter((b: any) => b.key !== boardId)];
+          const updated = [newEntry, ...savedBoards.filter((b) => b.key !== boardId)];
           localStorage.setItem(savedKey, JSON.stringify(updated));
         }
       }
@@ -198,8 +214,13 @@ export function useAlphabetState(boardId: string) {
     if (boardId === 'default') return;
     try {
       const data = await api.updateBoard(boardId, letters.value, metadata.value.currentLetter);
-      if (data && typeof data.currentPartnerId === 'number') {
-        metadata.value.currentPartnerId = data.currentPartnerId;
+      if (data) {
+        if (typeof data.currentPartnerId === 'number') {
+          metadata.value.currentPartnerId = data.currentPartnerId;
+        }
+        if (data.currentLetterSelectedAt !== undefined) {
+          metadata.value.currentLetterSelectedAt = data.currentLetterSelectedAt;
+        }
       }
     } catch (e) {
       console.error('Failed to sync board state to backend:', e);
@@ -209,6 +230,13 @@ export function useAlphabetState(boardId: string) {
   const selectLetter = (letter: LetterState | null) => {
     activeLetter.value = letter;
     metadata.value.currentLetter = letter ? letter.letter : null;
+    if (letter) {
+      if (!metadata.value.currentLetterSelectedAt) {
+        metadata.value.currentLetterSelectedAt = new Date().toISOString();
+      }
+    } else {
+      metadata.value.currentLetterSelectedAt = null;
+    }
     syncWithBackend();
   };
 
@@ -248,8 +276,8 @@ export function useAlphabetState(boardId: string) {
 
       // Cleanup from history list
       const savedKey = 'alphadate_saved_boards';
-      const savedBoards = JSON.parse(localStorage.getItem(savedKey) || '[]');
-      const updated = savedBoards.filter((b: any) => b.key !== boardId);
+      const savedBoards: SavedBoard[] = JSON.parse(localStorage.getItem(savedKey) || '[]');
+      const updated = savedBoards.filter((b) => b.key !== boardId);
       localStorage.setItem(savedKey, JSON.stringify(updated));
     } catch (e) {
       console.error('Failed to delete board state from backend:', e);

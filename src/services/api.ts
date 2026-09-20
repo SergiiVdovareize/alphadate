@@ -49,7 +49,11 @@ export const api = {
     key: string,
     letters: LetterState[],
     currentLetter: string | null
-  ): Promise<{ success: boolean; currentPartnerId: number }> {
+  ): Promise<{
+    success: boolean;
+    currentPartnerId: number;
+    currentLetterSelectedAt?: string | null;
+  }> {
     const response = await fetch(`${BASE_URL}/alphadate/${key}`, {
       method: 'PUT',
       headers: {

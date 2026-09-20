@@ -34,23 +34,14 @@ const emit = defineEmits<{
   transform: translate(-50%, -50%);
   margin: 0;
   z-index: 1000;
-  background: var(--bg, #fff);
-  border: 1px solid var(--border, #e2e8f0);
-  border-radius: 12px;
+  background: var(--color-surface, #ffffff);
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 16px;
   padding: 2rem;
-  box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 0 var(--color-ink, #2d3748);
   max-width: 90vw;
   width: 400px;
-}
-
-@media (prefers-color-scheme: dark) {
-  .selection-modal {
-    background: #1e293b;
-    border-color: #334155;
-    color: #f8fafc;
-  }
+  color: var(--color-ink, #2d3748);
 }
 
 .modal-overlay {
@@ -59,22 +50,27 @@ const emit = defineEmits<{
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(45, 55, 72, 0.5);
   backdrop-filter: blur(2px);
   z-index: 999;
 }
 
 .modal-content h2 {
-  font-size: 2rem;
+  font-size: 1.5rem;
+  font-weight: 800;
   text-align: center;
   margin-top: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-ink, #2d3748);
 }
 
 .modal-content p {
   text-align: center;
-  margin-bottom: 2rem;
-  opacity: 0.8;
+  margin-bottom: 1.75rem;
+  color: var(--color-ink, #2d3748);
+  opacity: 0.85;
+  line-height: 1.5;
+  font-size: 0.95rem;
 }
 
 .actions {
@@ -84,30 +80,36 @@ const emit = defineEmits<{
 }
 
 .actions button {
-  padding: 0.75rem;
-  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 10px;
   font-size: 1rem;
   cursor: pointer;
-  border: 1px solid var(--border, #e2e8f0);
-  font-weight: 500;
-  transition: all 0.2s;
+  border: 2px solid var(--color-ink, #2d3748);
+  font-weight: 700;
+  box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease;
+}
+
+.actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 var(--color-ink, #2d3748);
+}
+
+.actions button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--color-ink, #2d3748);
 }
 
 .button.danger {
-  background: var(--color-danger, #ef4444);
-  color: white;
-  border-color: transparent;
-}
-.button.danger:hover {
-  background: #dc2626;
+  background: var(--color-accent, #ea7a87);
+  color: #ffffff;
 }
 
 .button.outline {
-  background: transparent;
-  color: var(--fg);
-  border-color: var(--border);
-}
-.button.outline:hover {
-  background: var(--bg-muted);
+  background: #ffffff;
+  color: var(--color-ink, #2d3748);
 }
 </style>

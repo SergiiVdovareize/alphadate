@@ -29,31 +29,37 @@ const handleRandomPick = () => {
 
 <style scoped>
 .selector-container {
-  margin: 1rem 0;
+  margin: 1.25rem 0;
   display: flex;
   justify-content: center;
 }
 
 .random-btn {
   font-size: 1rem;
-  padding: 0.6rem 1.25rem;
-  background-color: #647eff;
-  color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(100, 126, 255, 0.3);
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-ink, #2d3748);
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 12px;
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
   cursor: pointer;
-  border: none;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .random-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(100, 126, 255, 0.4);
+  background-color: var(--color-accent, #ea7a87);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
 
 .random-btn:active {
-  transform: translateY(0);
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 </style>

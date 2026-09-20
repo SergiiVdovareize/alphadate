@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import AlphabetGrid from '../components/AlphabetGrid.vue';
 import RandomPickButton from '../components/RandomPickButton.vue';
 import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
-import { useAlphabetState, STATUS_UI_STRINGS } from '../composables/useAlphabetState';
+import AppLogo from '../components/AppLogo.vue';
+import { useAlphabetState } from '../composables/useAlphabetState';
 import type { LetterState, LetterStatus } from '../composables/useAlphabetState';
 
 const route = useRoute();
@@ -25,9 +26,73 @@ const {
 
 const isDeleteModalOpen = ref(false);
 
+const COUNTDOWN_DAYS = 30;
+const now = ref(Date.now());
+let timerInterval: ReturnType<typeof setInterval> | null = null;
+
+onMounted(() => {
+  timerInterval = setInterval(() => {
+    now.value = Date.now();
+  }, 1000);
+});
+
+onUnmounted(() => {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+});
+
+const countdownInfo = computed(() => {
+  if (!activeLetter.value || !metadata.value.currentLetterSelectedAt) {
+    return null;
+  }
+
+  const selectedTime = new Date(metadata.value.currentLetterSelectedAt).getTime();
+  if (isNaN(selectedTime)) return null;
+
+  const deadline = selectedTime + COUNTDOWN_DAYS * 24 * 60 * 60 * 1000;
+  const remaining = deadline - now.value;
+
+  if (remaining <= 0) {
+    return {
+      expired: true,
+      urgent: true,
+      text: 'Час на побачення вичерпано!'
+    };
+  }
+
+  const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+
+  const urgent = days < 3;
+
+  let text = '';
+  if (days > 0) {
+    text = `Залишилось: ${days} дн. ${hours} год. ${minutes} хв`;
+  } else if (hours > 0) {
+    text = `Залишилось: ${hours} год. ${minutes} хв ${seconds} с`;
+  } else {
+    text = `Залишилось: ${minutes} хв ${seconds} с`;
+  }
+
+  return {
+    expired: false,
+    urgent,
+    text
+  };
+});
+
 const handleUpdateStatus = (letterChar: string, status: LetterStatus) => {
   markAsStatus(letterChar, status);
   selectLetter(null); // Clear selection and sync with DB
+};
+
+const handleSelectLetter = (letter: LetterState) => {
+  if (activeLetter.value) return;
+  selectLetter(letter);
 };
 
 const handleDeleteConfirm = async () => {
@@ -44,7 +109,15 @@ const goHome = () => {
 <template>
   <main class="container">
     <header class="header">
-      <h1 style="cursor: pointer" title="Повернутися на головну" @click="goHome">AlphaDate</h1>
+      <div
+        class="brand-wrap"
+        style="cursor: pointer"
+        title="Повернутися на головну"
+        @click="goHome"
+      >
+        <AppLogo :size="38" :with-badge="true" />
+        <h1 class="brand-title">AlphaDate</h1>
+      </div>
     </header>
 
     <div v-if="metadata.partners && metadata.partners.length > 0" class="turn-container">
@@ -56,7 +129,12 @@ const goHome = () => {
           class="partner-badge"
           :class="{ active: partner.id === metadata.currentPartnerId }"
         >
-          {{ partner.name }}
+          <span
+            v-if="partner.id === metadata.currentPartnerId"
+            class="active-dot"
+            aria-hidden="true"
+          ></span>
+          <span class="partner-name">{{ partner.name }}</span>
         </span>
       </div>
     </div>
@@ -66,9 +144,27 @@ const goHome = () => {
       <div v-if="activeLetter" class="panel-content">
         <div class="letter-display-wrap">
           <h2 class="active-letter-char">{{ activeLetter.letter }}</h2>
-          <span class="active-status-badge" :class="`status-${activeLetter.status}`">
-            {{ STATUS_UI_STRINGS[activeLetter.status] }}
-          </span>
+          <div
+            v-if="countdownInfo"
+            class="countdown-badge"
+            :class="{ 'is-urgent': countdownInfo.urgent, 'is-expired': countdownInfo.expired }"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="countdown-icon"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+              />
+            </svg>
+            <span>{{ countdownInfo.text }}</span>
+          </div>
         </div>
         <div class="action-buttons">
           <button
@@ -76,14 +172,7 @@ const goHome = () => {
             class="button success"
             @click="handleUpdateStatus(activeLetter.letter, 'used')"
           >
-            Використана
-          </button>
-          <button
-            v-if="activeLetter.status !== 'skipped'"
-            class="button warning"
-            @click="handleUpdateStatus(activeLetter.letter, 'skipped')"
-          >
-            Пропустити
+            Виконано
           </button>
           <button
             v-if="activeLetter.status !== 'excluded'"
@@ -100,7 +189,7 @@ const goHome = () => {
             Зробити новою
           </button>
           <button class="button text close-panel-btn" @click="selectLetter(null)">
-            Скасувати
+            Обрати іншу
           </button>
         </div>
       </div>
@@ -110,7 +199,12 @@ const goHome = () => {
       </div>
     </div>
 
-    <AlphabetGrid :letters="letters" :active-letter="activeLetter?.letter" @select="selectLetter" />
+    <AlphabetGrid
+      :letters="letters"
+      :active-letter="activeLetter?.letter"
+      :disabled="!!activeLetter"
+      @select="handleSelectLetter"
+    />
 
     <DeleteConfirmModal
       :is-open="isDeleteModalOpen"
@@ -119,9 +213,7 @@ const goHome = () => {
     />
 
     <footer class="footer">
-      <button class="button reset-btn" @click="isDeleteModalOpen = true">
-        Видалити дошку
-      </button>
+      <button class="button reset-btn" @click="isDeleteModalOpen = true">Видалити дошку</button>
     </footer>
   </main>
 </template>
@@ -138,46 +230,29 @@ const goHome = () => {
   margin-bottom: 2rem;
 }
 
-h1 {
-  font-size: clamp(2rem, 10vw, 3rem);
+.brand-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  user-select: none;
+  transition: transform 0.15s ease;
+}
+
+.brand-wrap:hover {
+  transform: translateY(-1px);
+}
+
+.brand-wrap:active {
+  transform: translateY(2px);
+}
+
+.brand-title {
+  font-size: clamp(2rem, 6vw, 2.5rem);
   font-weight: 800;
-  margin-bottom: 0.5rem;
-  background: -webkit-linear-gradient(315deg, #42d392 25%, #647eff);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transition: opacity 0.2s;
-}
-
-h1:hover {
-  opacity: 0.8;
-}
-
-.footer {
-  text-align: center;
-  margin-top: 4rem;
-  margin-bottom: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border);
-}
-
-.reset-btn {
-  cursor: pointer;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s,
-    background-color 0.2s,
-    color 0.2s;
-  background: transparent;
-  color: #ef4444;
-  border: 1px solid #ef4444;
-}
-.reset-btn:hover {
-  background-color: #ef4444;
-  color: white;
-}
-.reset-btn:active {
-  transform: translateY(0);
+  margin: 0;
+  color: var(--color-ink, #2d3748);
+  letter-spacing: -0.02em;
 }
 
 .turn-container {
@@ -186,89 +261,89 @@ h1:hover {
   align-items: center;
   gap: 0.75rem;
   margin: 1.5rem 0 2rem 0;
-  background: var(--bg-muted);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: var(--color-surface, #ffffff);
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 16px;
   padding: 1.25rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
 }
 
 .turn-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  opacity: 0.8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-ink-muted, #718096);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 
 .turn-badges {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .partner-badge {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--fg);
-  padding: 0.5rem 1.25rem;
-  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-surface-muted, #f3eae3);
+  border: 1.5px solid transparent;
+  color: var(--color-ink-muted, #718096);
+  padding: 0.4rem 1.1rem;
+  border-radius: 9999px;
   font-weight: 600;
-  opacity: 0.4;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  cursor: default;
+  user-select: none;
+  box-shadow: none;
+  transition: all 0.2s ease;
 }
 
 .partner-badge.active {
-  opacity: 1;
-  background-color: #db2777;
-  color: white;
-  border-color: #db2777;
-  box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
-  animation: pulse 2.5s infinite;
+  background: #ffffff;
+  border-color: var(--color-accent, #ea7a87);
+  color: var(--color-ink, #2d3748);
+  font-weight: 700;
+  box-shadow: none;
+  transform: none;
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
-  }
-  50% {
-    transform: scale(1.03);
-    box-shadow: 0 4px 20px rgba(219, 39, 119, 0.5);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
-  }
+.active-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-accent, #ea7a87);
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .active-letter-panel {
   margin: 2rem 0;
-  padding: 1.5rem;
-  border-radius: 12px;
-  background: var(--bg-muted);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  padding: 1.75rem;
+  border-radius: 20px;
+  background: var(--color-surface, #ffffff);
+  border: 2px solid var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d-lg, 0 6px 0 #2d3748);
   text-align: center;
-  transition: all 0.3s ease;
 }
 
 .panel-placeholder {
-  color: var(--fg);
+  color: var(--color-ink, #2d3748);
   font-size: 1rem;
   padding: 0.5rem 0;
   margin: 0;
 }
 
 .panel-placeholder p {
-  opacity: 0.7;
+  color: var(--color-ink-muted, #718096);
   margin: 0;
+  font-weight: 500;
 }
 
 .panel-placeholder :deep(.selector-container) {
-  margin: 1.5rem 0 0 0;
+  margin: 1.25rem 0 0 0;
 }
 
 .panel-content {
@@ -287,44 +362,48 @@ h1:hover {
 }
 
 .active-letter-char {
-  font-size: 3.5rem;
-  font-weight: 800;
+  font-size: 4rem;
+  font-weight: 900;
   margin: 0;
   line-height: 1;
-  color: #647eff;
+  color: var(--color-accent, #ea7a87);
 }
 
-.active-status-badge {
-  font-size: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
+.countdown-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--color-surface-muted, #f3eae3);
+  border: 1px solid rgba(45, 55, 72, 0.15);
+  box-shadow: none;
+  color: var(--color-ink, #2d3748);
+  margin-top: 0.5rem;
+  cursor: default;
+  user-select: none;
+}
+
+.countdown-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  color: var(--color-accent, #ea7a87);
+}
+
+.countdown-badge.is-urgent {
+  background: rgba(234, 122, 135, 0.12);
+  border-color: rgba(234, 122, 135, 0.4);
+  color: var(--color-accent, #ea7a87);
+}
+
+.countdown-badge.is-expired {
+  background: rgba(234, 122, 135, 0.18);
+  border-color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #ea7a87);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.active-status-badge.status-available {
-  background: rgba(66, 211, 146, 0.1);
-  color: #33a06f;
-  border: 1px solid rgba(66, 211, 146, 0.3);
-}
-
-.active-status-badge.status-used {
-  background: rgba(66, 211, 146, 0.15);
-  color: #33a06f;
-  border: 1px solid rgba(66, 211, 146, 0.3);
-}
-
-.active-status-badge.status-excluded {
-  background: rgba(148, 163, 184, 0.1);
-  color: #64748b;
-  border: 1px solid rgba(148, 163, 184, 0.3);
-}
-
-.active-status-badge.status-skipped {
-  background: rgba(249, 115, 22, 0.1);
-  color: #f97316;
-  border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
 .action-buttons {
@@ -337,63 +416,113 @@ h1:hover {
 }
 
 .action-buttons button {
-  padding: 0.6rem 1.25rem;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  border-radius: 12px;
+  border: 2px solid var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
   width: 100%;
   box-sizing: border-box;
 }
 
 /* Button variants */
 .button.success {
-  background-color: #42d392;
-  color: white;
-  border: none;
+  background-color: var(--color-accent, #ea7a87);
+  color: #ffffff;
 }
 .button.success:hover {
-  background-color: #33a06f;
+  background-color: var(--color-accent-hover, #dc6876);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
-
-.button.warning {
-  background-color: #f97316;
-  color: white;
-  border: none;
-}
-.button.warning:hover {
-  background-color: #ea580c;
+.button.success:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
 .button.danger {
-  background-color: transparent;
-  color: #94a3b8;
-  border: 1px solid #94a3b8;
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-ink, #2d3748);
 }
 .button.danger:hover {
-  background-color: #94a3b8;
-  color: white;
+  background-color: var(--color-surface-muted, #f3eae3);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+.button.danger:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
 .button.outline {
-  background-color: transparent;
-  border: 1px solid var(--border);
-  color: var(--fg);
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-ink, #2d3748);
 }
 .button.outline:hover {
-  border-color: #647eff;
-  background-color: rgba(100, 126, 255, 0.05);
+  background-color: var(--color-surface-muted, #f3eae3);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+.button.outline:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
-.button.text {
-  background: transparent;
-  border: none;
-  color: var(--fg);
-  opacity: 0.6;
+.close-panel-btn {
+  grid-column: 1 / -1;
+  background-color: var(--color-surface-muted, #f3eae3);
+  color: var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d-sm, 0 2.5px 0 #2d3748);
+  margin-top: 0.25rem;
 }
-.button.text:hover {
-  opacity: 1;
-  text-decoration: underline;
+.close-panel-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+}
+.close-panel-btn:active {
+  transform: translateY(2px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.footer {
+  text-align: center;
+  margin-top: 4rem;
+  margin-bottom: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid var(--color-ink, #2d3748);
+}
+
+.reset-btn {
+  cursor: pointer;
+  background: var(--color-surface, #ffffff);
+  color: var(--color-ink-muted, #718096);
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 12px;
+  padding: 0.65rem 1.5rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-3d-sm, 0 2.5px 0 #2d3748);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.reset-btn:hover {
+  color: var(--color-accent, #ea7a87);
+  border-color: var(--color-accent, #ea7a87);
+  box-shadow: 0 3px 0 var(--color-accent, #ea7a87);
+  transform: translateY(-1px);
+}
+
+.reset-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--color-accent, #ea7a87);
 }
 </style>
