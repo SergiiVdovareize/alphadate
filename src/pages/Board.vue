@@ -180,7 +180,7 @@ const goHome = () => {
         title="Повернутися на головну"
         @click="goHome"
       >
-        <AppLogo :size="38" :with-badge="true" />
+        <AppLogo :size="38" />
         <h1 class="brand-title">AlphaDate</h1>
       </div>
     </header>
@@ -271,7 +271,8 @@ const goHome = () => {
             :class="{ 'is-confirming': confirmingAction === 'exclude' }"
             @click="handleConfirmableAction('exclude')"
           >
-            {{ confirmingAction === 'exclude' ? 'Точно виключити?' : 'Виключити' }}
+            <span>{{ confirmingAction === 'exclude' ? 'Точно виключити?' : 'Виключити' }}</span>
+            <span v-if="confirmingAction === 'exclude'" class="confirm-progress-bar"></span>
           </button>
           <button
             v-if="activeLetter.status !== 'available'"
@@ -279,14 +280,16 @@ const goHome = () => {
             :class="{ 'is-confirming': confirmingAction === 'reset' }"
             @click="handleConfirmableAction('reset')"
           >
-            {{ confirmingAction === 'reset' ? 'Точно скинути?' : 'Зробити новою' }}
+            <span>{{ confirmingAction === 'reset' ? 'Точно скинути?' : 'Зробити новою' }}</span>
+            <span v-if="confirmingAction === 'reset'" class="confirm-progress-bar"></span>
           </button>
           <button
             class="button text close-panel-btn"
             :class="{ 'is-confirming': confirmingAction === 'cancel' }"
             @click="handleConfirmableAction('cancel')"
           >
-            {{ confirmingAction === 'cancel' ? 'Точно обрати іншу?' : 'Обрати іншу' }}
+            <span>{{ confirmingAction === 'cancel' ? 'Точно обрати іншу?' : 'Обрати іншу' }}</span>
+            <span v-if="confirmingAction === 'cancel'" class="confirm-progress-bar"></span>
           </button>
         </div>
       </div>
@@ -513,6 +516,8 @@ const goHome = () => {
 }
 
 .action-buttons button {
+  position: relative;
+  overflow: hidden;
   padding: 0.75rem 1.25rem;
   font-size: 0.95rem;
   font-weight: 700;
@@ -526,6 +531,11 @@ const goHome = () => {
     background-color 0.15s ease;
   width: 100%;
   box-sizing: border-box;
+}
+
+.action-buttons button span:not(.confirm-progress-bar) {
+  position: relative;
+  z-index: 1;
 }
 
 /* Button variants */
@@ -699,6 +709,28 @@ const goHome = () => {
 
 .action-buttons button.is-confirming:hover {
   background-color: var(--color-accent-confirm-hover, #519675) !important;
+}
+
+.confirm-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background-color: var(--color-accent-confirm-dark, #2a5943);
+  transform-origin: left center;
+  animation: confirm-progress-shrink 4s linear forwards;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes confirm-progress-shrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 .existing-note-box {

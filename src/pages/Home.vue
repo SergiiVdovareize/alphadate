@@ -83,7 +83,7 @@ const createBoard = async () => {
   <main class="home-container">
     <div class="card">
       <div class="logo-wrap">
-        <AppLogo :size="48" :with-badge="true" />
+        <AppLogo :size="52" />
       </div>
       <h1>AlphaDate</h1>
       <p>Створіть свій унікальний простір для планування побачень.</p>
