@@ -15,6 +15,12 @@ export interface BoardResponse {
   metadata: BoardMetadata;
 }
 
+export interface UpdateBoardResponse {
+  success: boolean;
+  currentPartnerId: number;
+  currentLetterSelectedAt?: string | null;
+}
+
 export interface DateSuggestion {
   title: string;
   description: string;
@@ -29,6 +35,22 @@ export interface DateSuggestionsResponse {
   suggestions: DateSuggestion[];
 }
 
+async function handleResponse<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    let errorMsg = `API error: ${response.status}`;
+    try {
+      const errJson = await response.json();
+      if (errJson && errJson.message) {
+        errorMsg = errJson.message;
+      }
+    } catch {
+      // Keep default error message
+    }
+    throw new Error(errorMsg);
+  }
+  return response.json();
+}
+
 export const api = {
   async createBoard(partners: string[], email: string): Promise<CreateBoardResponse> {
     const response = await fetch(`${BASE_URL}/alphadate`, {
@@ -39,68 +61,55 @@ export const api = {
       body: JSON.stringify({ partners, email })
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    return response.json();
+    return handleResponse<CreateBoardResponse>(response);
   },
 
-  async getBoard(key: string): Promise<BoardResponse> {
-    const response = await fetch(`${BASE_URL}/alphadate/${key}`, {
+  async getBoard(key: string, signal?: AbortSignal): Promise<BoardResponse> {
+    const response = await fetch(`${BASE_URL}/alphadate/${encodeURIComponent(key)}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
-      }
+      },
+      signal
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    return response.json();
+    return handleResponse<BoardResponse>(response);
   },
 
   async updateBoard(
     key: string,
     letters: LetterState[],
-    currentLetter: string | null
-  ): Promise<{
-    success: boolean;
-    currentPartnerId: number;
-    currentLetterSelectedAt?: string | null;
-  }> {
-    const response = await fetch(`${BASE_URL}/alphadate/${key}`, {
+    currentLetter: string | null,
+    signal?: AbortSignal
+  ): Promise<UpdateBoardResponse> {
+    const response = await fetch(`${BASE_URL}/alphadate/${encodeURIComponent(key)}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ letters, currentLetter })
+      body: JSON.stringify({ letters, currentLetter }),
+      signal
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    return response.json();
+    return handleResponse<UpdateBoardResponse>(response);
   },
 
   async deleteBoard(key: string): Promise<{ success: boolean }> {
-    const response = await fetch(`${BASE_URL}/alphadate/${key}`, {
+    const response = await fetch(`${BASE_URL}/alphadate/${encodeURIComponent(key)}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json'
       }
     });
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
-    }
-
-    return response.json();
+    return handleResponse<{ success: boolean }>(response);
   },
 
-  async getSuggestions(key: string, letter: string): Promise<DateSuggestionsResponse> {
+  async getSuggestions(
+    key: string,
+    letter: string,
+    signal?: AbortSignal
+  ): Promise<DateSuggestionsResponse> {
     if (key === 'default') {
       return {
         success: true,
@@ -124,28 +133,16 @@ export const api = {
     }
 
     const response = await fetch(
-      `${BASE_URL}/alphadate/${key}/suggestions?letter=${encodeURIComponent(letter)}`,
+      `${BASE_URL}/alphadate/${encodeURIComponent(key)}/suggestions?letter=${encodeURIComponent(letter)}`,
       {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        signal
       }
     );
 
-    if (!response.ok) {
-      let errorMsg = `API error: ${response.status}`;
-      try {
-        const errJson = await response.json();
-        if (errJson && errJson.message) {
-          errorMsg = errJson.message;
-        }
-      } catch {
-        // use default errorMsg
-      }
-      throw new Error(errorMsg);
-    }
-
-    return response.json();
+    return handleResponse<DateSuggestionsResponse>(response);
   }
 };

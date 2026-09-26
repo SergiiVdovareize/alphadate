@@ -1,21 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { useAlphabetState } from '../composables/useAlphabetState';
+import { initBoardLocalStorage, type SavedBoard } from '../composables/useAlphabetState';
 import { api } from '../services/api';
 import AppLogo from '../components/AppLogo.vue';
-
-interface SavedBoard {
-  key: string;
-  partners: string[];
-  createdAt: string;
-}
 
 const router = useRouter();
 
 const partners = ref(['', '']);
 const email = ref('');
 const isLoading = ref(false);
+const errorMessage = ref<string | null>(null);
 const savedBoards = ref<SavedBoard[]>([]);
 
 onMounted(() => {
@@ -35,15 +30,16 @@ const openBoard = (key: string) => {
 };
 
 const createBoard = async () => {
+  errorMessage.value = null;
   const validPartners = partners.value.map((p) => p.trim()).filter(Boolean);
   if (validPartners.length < 1) {
-    alert("Будь ласка, введіть хоча б одне ім'я.");
+    errorMessage.value = "Будь ласка, введіть хоча б одне ім'я.";
     return;
   }
 
   const trimmedEmail = email.value.trim();
   if (!trimmedEmail) {
-    alert('Будь ласка, введіть електронну пошту.');
+    errorMessage.value = 'Будь ласка, введіть електронну пошту.';
     return;
   }
 
@@ -62,17 +58,19 @@ const createBoard = async () => {
       const updated = [newEntry, ...existingList.filter((b) => b.key !== data.key)];
       localStorage.setItem(savedKey, JSON.stringify(updated));
 
-      // Initialize the board metadata immediately into localStorage using the composable
-      const { initBoardMetadata } = useAlphabetState(data.key);
-      initBoardMetadata(validPartners);
+      // Initialize the board metadata safely into localStorage without triggering out-of-context watchers
+      initBoardLocalStorage(data.key, validPartners);
 
       router.push(`/${data.key}`);
     } else {
-      alert('Не вдалося створити дошку. Спробуйте ще раз.');
+      errorMessage.value = 'Не вдалося створити дошку. Спробуйте ще раз.';
     }
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error creating board:', error);
-    alert('Помилка при створенні дошки. Перевірте, чи запущений сервер.');
+    errorMessage.value =
+      error instanceof Error
+        ? error.message
+        : 'Помилка при створенні дошки. Перевірте зʼєднання з сервером.';
   } finally {
     isLoading.value = false;
   }
@@ -127,6 +125,10 @@ const createBoard = async () => {
         <div class="input-group">
           <label>Електронна пошта</label>
           <input v-model="email" type="email" required placeholder="Наприклад: email@example.com" />
+        </div>
+
+        <div v-if="errorMessage" class="form-error-banner" role="alert">
+          {{ errorMessage }}
         </div>
 
         <button type="submit" class="start-btn" :disabled="isLoading">
@@ -251,6 +253,19 @@ p {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: 0 2px 0 var(--color-ink, #2d3748);
+}
+
+.form-error-banner {
+  padding: 0.65rem 0.9rem;
+  background-color: rgba(234, 122, 135, 0.12);
+  border: 1.5px solid var(--color-accent, #ea7a87);
+  border-radius: 10px;
+  color: var(--color-accent, #ea7a87);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
+  margin-top: -0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .recent-suggestion {

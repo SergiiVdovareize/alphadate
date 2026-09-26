@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, onUnmounted } from 'vue';
 import type { LetterState } from '../composables/useAlphabetState';
 
 const props = defineProps<{
@@ -9,12 +10,27 @@ const emit = defineEmits<{
   (e: 'pick', letter: LetterState): void;
 }>();
 
+const isEmptyNotice = ref(false);
+let noticeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+onUnmounted(() => {
+  if (noticeTimeout) {
+    clearTimeout(noticeTimeout);
+    noticeTimeout = null;
+  }
+});
+
 const handleRandomPick = () => {
   const result = props.pickRandom();
   if (result) {
+    isEmptyNotice.value = false;
     emit('pick', result);
   } else {
-    alert('Більше немає нових літер!');
+    isEmptyNotice.value = true;
+    if (noticeTimeout) clearTimeout(noticeTimeout);
+    noticeTimeout = setTimeout(() => {
+      isEmptyNotice.value = false;
+    }, 3000);
   }
 };
 </script>
@@ -24,6 +40,9 @@ const handleRandomPick = () => {
     <button class="button primary large random-btn" @click="handleRandomPick">
       Випадкова літера
     </button>
+    <p v-if="isEmptyNotice" class="empty-notice" role="alert">
+      Усі літери вже використано або виключено!
+    </p>
   </div>
 </template>
 
@@ -31,7 +50,9 @@ const handleRandomPick = () => {
 .selector-container {
   margin: 1.25rem 0;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .random-btn {
@@ -61,5 +82,12 @@ const handleRandomPick = () => {
 .random-btn:active {
   transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.empty-notice {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent, #ea7a87);
 }
 </style>

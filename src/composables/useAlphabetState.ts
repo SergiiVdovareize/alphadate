@@ -71,12 +71,37 @@ const UKRAINIAN_ALPHABET = [
   'Я'
 ];
 
-const defaultState = UKRAINIAN_ALPHABET.map(
-  (letter): LetterState => ({
-    letter,
-    status: 'available'
-  })
-);
+const defaultState: LetterState[] = UKRAINIAN_ALPHABET.map((letter) => ({
+  letter,
+  status: 'available'
+}));
+
+/**
+ * Initializes localStorage for a new board key without triggering component reactive watchers.
+ */
+export function initBoardLocalStorage(boardId: string, partnersArray: string[]): void {
+  const LOCAL_STORAGE_KEY = `alphadate_state_${boardId}`;
+  const mappedPartners: Partner[] = partnersArray.map((name, index) => ({
+    id: index + 1,
+    name
+  }));
+
+  const initialMetadata: BoardMetadata = {
+    partners: mappedPartners,
+    pinHash: null,
+    currentPartnerId: 1,
+    currentLetter: null,
+    currentLetterSelectedAt: null
+  };
+
+  localStorage.setItem(
+    LOCAL_STORAGE_KEY,
+    JSON.stringify({
+      metadata: initialMetadata,
+      letters: structuredClone(defaultState)
+    })
+  );
+}
 
 export function useAlphabetState(boardId: string) {
   const LOCAL_STORAGE_KEY = `alphadate_state_${boardId}`;
@@ -89,6 +114,11 @@ export function useAlphabetState(boardId: string) {
     currentLetterSelectedAt: null
   });
   const activeLetter = ref<LetterState | null>(null);
+  const fetchError = ref<string | null>(null);
+  const isLoadingBackend = ref(boardId !== 'default');
+  const isSyncing = ref(false);
+
+  let currentSyncController: AbortController | null = null;
 
   // Load state from local storage or set default
   const fetchState = () => {
@@ -136,7 +166,7 @@ export function useAlphabetState(boardId: string) {
             }
           }
         } else {
-          letters.value = JSON.parse(JSON.stringify(defaultState));
+          letters.value = structuredClone(defaultState);
         }
 
         // Resolve activeLetter from currentLetter
@@ -145,10 +175,10 @@ export function useAlphabetState(boardId: string) {
             letters.value.find((l) => l.letter === metadata.value.currentLetter) || null;
         }
       } catch (e) {
-        letters.value = JSON.parse(JSON.stringify(defaultState));
+        letters.value = structuredClone(defaultState);
       }
     } else {
-      letters.value = JSON.parse(JSON.stringify(defaultState));
+      letters.value = structuredClone(defaultState);
     }
   };
 
@@ -156,7 +186,13 @@ export function useAlphabetState(boardId: string) {
 
   // Sync state from backend asynchronously
   const fetchBackendState = async () => {
-    if (boardId === 'default') return;
+    if (boardId === 'default') {
+      isLoadingBackend.value = false;
+      return;
+    }
+    isLoadingBackend.value = true;
+    fetchError.value = null;
+
     try {
       const data = await api.getBoard(boardId);
       if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
@@ -189,8 +225,11 @@ export function useAlphabetState(boardId: string) {
           localStorage.setItem(savedKey, JSON.stringify(updated));
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.error('Failed to sync state from backend:', e);
+      fetchError.value = e instanceof Error ? e.message : 'Не вдалося завантажити дошку з сервера.';
+    } finally {
+      isLoadingBackend.value = false;
     }
   };
 
@@ -211,10 +250,24 @@ export function useAlphabetState(boardId: string) {
     { deep: true }
   );
 
+  // Sync with backend using AbortController to prevent race conditions
   const syncWithBackend = async () => {
     if (boardId === 'default') return;
+
+    if (currentSyncController) {
+      currentSyncController.abort();
+    }
+    currentSyncController = new AbortController();
+    const signal = currentSyncController.signal;
+
+    isSyncing.value = true;
     try {
-      const data = await api.updateBoard(boardId, letters.value, metadata.value.currentLetter);
+      const data = await api.updateBoard(
+        boardId,
+        letters.value,
+        metadata.value.currentLetter,
+        signal
+      );
       if (data) {
         if (typeof data.currentPartnerId === 'number') {
           metadata.value.currentPartnerId = data.currentPartnerId;
@@ -223,8 +276,14 @@ export function useAlphabetState(boardId: string) {
           metadata.value.currentLetterSelectedAt = data.currentLetterSelectedAt;
         }
       }
-    } catch (e) {
+    } catch (e: unknown) {
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        // Request cancelled in favor of a newer state update
+        return;
+      }
       console.error('Failed to sync board state to backend:', e);
+    } finally {
+      isSyncing.value = false;
     }
   };
 
@@ -280,7 +339,7 @@ export function useAlphabetState(boardId: string) {
   };
 
   const resetState = () => {
-    letters.value = JSON.parse(JSON.stringify(defaultState));
+    letters.value = structuredClone(defaultState);
     syncWithBackend();
   };
 
@@ -304,12 +363,16 @@ export function useAlphabetState(boardId: string) {
     letters,
     metadata,
     activeLetter,
+    fetchError,
+    isLoadingBackend,
+    isSyncing,
     fetchState,
     markAsStatus,
     pickRandom,
     resetState,
     initBoardMetadata,
     deleteBoardState,
-    selectLetter
+    selectLetter,
+    reloadBackendState: fetchBackendState
   };
 }
