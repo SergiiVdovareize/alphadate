@@ -1,60 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useBoardPage } from '../composables/useBoardPage';
 import AlphabetGrid from '../components/AlphabetGrid.vue';
 import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import AppLogo from '../components/AppLogo.vue';
 import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
-import { useAlphabetState } from '../composables/useAlphabetState';
-import type { LetterState } from '../composables/useAlphabetState';
-
-const route = useRoute();
-const router = useRouter();
-
-// Retrieve ID from URL params. Fallback to default if somehow missing.
-const boardId = (route.params.id as string) || 'default';
 
 const {
+  boardId,
   letters,
   metadata,
-  markAsStatus,
-  pickRandom,
-  deleteBoardState,
   activeLetter,
-  selectLetter,
-  fetchError
-} = useAlphabetState(boardId);
-
-const isDeleteModalOpen = ref(false);
-
-const handleCompleteLetter = (note: string) => {
-  if (!activeLetter.value) return;
-  markAsStatus(activeLetter.value.letter, 'used', note);
-};
-
-const handleExcludeLetter = () => {
-  if (!activeLetter.value) return;
-  markAsStatus(activeLetter.value.letter, 'excluded');
-};
-
-const handleCancelLetter = () => {
-  selectLetter(null);
-};
-
-const handleSelectLetter = (letter: LetterState) => {
-  if (activeLetter.value) return;
-  selectLetter(letter);
-};
-
-const handleDeleteConfirm = async () => {
-  await deleteBoardState();
-  isDeleteModalOpen.value = false;
-  goHome();
-};
-
-const goHome = () => {
-  router.push('/');
-};
+  fetchError,
+  isDeleteModalOpen,
+  pickRandom,
+  handleCompleteLetter,
+  handleExcludeLetter,
+  handleCancelLetter,
+  handleSelectLetter,
+  handleDeleteConfirm,
+  goHome
+} = useBoardPage();
 </script>
 
 <template>

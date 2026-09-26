@@ -1,80 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { initBoardLocalStorage, type SavedBoard } from '../composables/useAlphabetState';
-import { api } from '../services/api';
+import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
 
-const router = useRouter();
-
-const partners = ref(['', '']);
-const email = ref('');
-const isLoading = ref(false);
-const errorMessage = ref<string | null>(null);
-const savedBoards = ref<SavedBoard[]>([]);
-
-onMounted(() => {
-  const savedKey = 'alphadate_saved_boards';
-  const list = localStorage.getItem(savedKey);
-  if (list) {
-    try {
-      savedBoards.value = JSON.parse(list);
-    } catch (e) {
-      console.error('Failed to parse saved boards:', e);
-    }
-  }
-});
-
-const openBoard = (key: string) => {
-  router.push(`/${key}`);
-};
-
-const createBoard = async () => {
-  errorMessage.value = null;
-  const validPartners = partners.value.map((p) => p.trim()).filter(Boolean);
-  if (validPartners.length < 1) {
-    errorMessage.value = "Будь ласка, введіть хоча б одне ім'я.";
-    return;
-  }
-
-  const trimmedEmail = email.value.trim();
-  if (!trimmedEmail) {
-    errorMessage.value = 'Будь ласка, введіть електронну пошту.';
-    return;
-  }
-
-  isLoading.value = true;
-  try {
-    const data = await api.createBoard(validPartners, trimmedEmail);
-    if (data.success && data.key) {
-      // Save board details to localStorage history list
-      const savedKey = 'alphadate_saved_boards';
-      const existingList: SavedBoard[] = JSON.parse(localStorage.getItem(savedKey) || '[]');
-      const newEntry: SavedBoard = {
-        key: data.key,
-        partners: validPartners,
-        createdAt: new Date().toISOString()
-      };
-      const updated = [newEntry, ...existingList.filter((b) => b.key !== data.key)];
-      localStorage.setItem(savedKey, JSON.stringify(updated));
-
-      // Initialize the board metadata safely into localStorage without triggering out-of-context watchers
-      initBoardLocalStorage(data.key, validPartners);
-
-      router.push(`/${data.key}`);
-    } else {
-      errorMessage.value = 'Не вдалося створити дошку. Спробуйте ще раз.';
-    }
-  } catch (error: unknown) {
-    console.error('Error creating board:', error);
-    errorMessage.value =
-      error instanceof Error
-        ? error.message
-        : 'Помилка при створенні дошки. Перевірте зʼєднання з сервером.';
-  } finally {
-    isLoading.value = false;
-  }
-};
+const { partners, email, isLoading, errorMessage, savedBoards, openBoard, createBoard } = useHome();
 </script>
 
 <template>
@@ -166,10 +94,9 @@ const createBoard = async () => {
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.25rem;
   font-weight: 800;
-  margin-bottom: 0.5rem;
-  margin-top: 0;
+  margin: 0 0 0.5rem 0;
   color: var(--color-ink, #2d3748);
   letter-spacing: -0.02em;
 }
@@ -177,61 +104,59 @@ h1 {
 p {
   color: var(--color-ink-muted, #718096);
   margin-bottom: 2rem;
-  font-size: 1rem;
   line-height: 1.5;
+  font-size: 0.95rem;
 }
 
 .setup-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
   text-align: left;
 }
 
 .input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.input-group label {
-  font-weight: 600;
-  font-size: 0.875rem;
+label {
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--color-ink, #2d3748);
 }
 
-.input-group input {
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
+input {
+  padding: 0.85rem 1rem;
   border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 12px;
   font-size: 1rem;
-  background: var(--color-surface, #ffffff);
+  background-color: var(--color-surface, #ffffff);
   color: var(--color-ink, #2d3748);
-  width: 100%;
-  box-shadow: inset 0 2px 0 rgba(45, 55, 72, 0.04);
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
+  font-family: inherit;
 }
 
-.input-group input:focus {
+input:focus {
   outline: none;
   border-color: var(--color-accent, #ea7a87);
   box-shadow: 0 0 0 3px rgba(234, 122, 135, 0.2);
 }
 
 .start-btn {
-  margin-top: 1rem;
-  width: 100%;
+  margin-top: 0.5rem;
   padding: 1rem;
-  font-weight: 700;
-  font-size: 1.05rem;
   background-color: var(--color-accent, #ea7a87);
   color: #ffffff;
   border: 2px solid var(--color-ink, #2d3748);
   border-radius: 12px;
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
   transition:
     transform 0.1s ease,
     box-shadow 0.1s ease,

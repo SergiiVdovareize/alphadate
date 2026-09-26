@@ -1,108 +1,92 @@
-import type { LetterState, BoardMetadata } from '../composables/useAlphabetState';
+import type {
+  LetterState,
+  CreateBoardResponse,
+  BoardResponse,
+  UpdateBoardResponse,
+  DateSuggestion,
+  DateSuggestionsResponse
+} from '../types';
+import { getDefaultBoardSuggestions } from './mocks/defaultSuggestions';
+
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+    public readonly responseBody?: unknown
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
 
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   (import.meta.env.PROD ? 'https://api.vdovareize.me' : 'http://localhost:3000');
 
-export interface CreateBoardResponse {
-  success: boolean;
-  key: string;
-}
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${BASE_URL}${path}`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((options.headers as Record<string, string>) || {})
+  };
 
-export interface BoardResponse {
-  success: boolean;
-  letters: LetterState[];
-  metadata: BoardMetadata;
-}
+  const response = await fetch(url, {
+    ...options,
+    headers
+  });
 
-export interface UpdateBoardResponse {
-  success: boolean;
-  currentPartnerId: number;
-  currentLetterSelectedAt?: string | null;
-}
-
-export interface DateSuggestion {
-  title: string;
-  description: string;
-  category?: 'romantic' | 'food' | 'active' | 'culture' | 'relax' | 'creative' | string;
-  estimatedCost?: 'free' | 'budget' | 'moderate' | 'premium' | string;
-}
-
-export interface DateSuggestionsResponse {
-  success: boolean;
-  letter: string;
-  lang?: string;
-  suggestions: DateSuggestion[];
-}
-
-async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let errorMsg = `API error: ${response.status}`;
+    let errJson: unknown = null;
     try {
-      const errJson = await response.json();
-      if (errJson && errJson.message) {
-        errorMsg = errJson.message;
+      errJson = await response.json();
+      if (errJson && typeof errJson === 'object' && 'message' in errJson) {
+        const msg = (errJson as { message?: unknown }).message;
+        if (typeof msg === 'string') {
+          errorMsg = msg;
+        }
       }
     } catch {
       // Keep default error message
     }
-    throw new Error(errorMsg);
+    throw new ApiError(response.status, errorMsg, errJson);
   }
+
   return response.json();
 }
 
 export const api = {
-  async createBoard(partners: string[], email: string): Promise<CreateBoardResponse> {
-    const response = await fetch(`${BASE_URL}/alphadate`, {
+  createBoard(partners: string[], email: string): Promise<CreateBoardResponse> {
+    return request<CreateBoardResponse>('/alphadate', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ partners, email })
     });
-
-    return handleResponse<CreateBoardResponse>(response);
   },
 
-  async getBoard(key: string, signal?: AbortSignal): Promise<BoardResponse> {
-    const response = await fetch(`${BASE_URL}/alphadate/${encodeURIComponent(key)}`, {
+  getBoard(key: string, signal?: AbortSignal): Promise<BoardResponse> {
+    return request<BoardResponse>(`/alphadate/${encodeURIComponent(key)}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       signal
     });
-
-    return handleResponse<BoardResponse>(response);
   },
 
-  async updateBoard(
+  updateBoard(
     key: string,
     letters: LetterState[],
     currentLetter: string | null,
     signal?: AbortSignal
   ): Promise<UpdateBoardResponse> {
-    const response = await fetch(`${BASE_URL}/alphadate/${encodeURIComponent(key)}`, {
+    return request<UpdateBoardResponse>(`/alphadate/${encodeURIComponent(key)}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
       body: JSON.stringify({ letters, currentLetter }),
       signal
     });
-
-    return handleResponse<UpdateBoardResponse>(response);
   },
 
-  async deleteBoard(key: string): Promise<{ success: boolean }> {
-    const response = await fetch(`${BASE_URL}/alphadate/${encodeURIComponent(key)}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
+  deleteBoard(key: string): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>(`/alphadate/${encodeURIComponent(key)}`, {
+      method: 'DELETE'
     });
-
-    return handleResponse<{ success: boolean }>(response);
   },
 
   async getSuggestions(
@@ -115,34 +99,26 @@ export const api = {
         success: true,
         letter,
         lang: 'uk',
-        suggestions: [
-          {
-            title: `Побачення на літеру «${letter}»`,
-            description: `Спільна прогулянка або затишний вечір, натхненний темою на літеру «${letter}».`,
-            category: 'romantic',
-            estimatedCost: 'budget'
-          },
-          {
-            title: `Кулінарна або творча ідея на «${letter}»`,
-            description: `Приготуйте особливу страву або відвідайте нове атмосферне місце на літеру «${letter}».`,
-            category: 'food',
-            estimatedCost: 'moderate'
-          }
-        ]
+        suggestions: getDefaultBoardSuggestions(letter)
       };
     }
 
-    const response = await fetch(
-      `${BASE_URL}/alphadate/${encodeURIComponent(key)}/suggestions?letter=${encodeURIComponent(letter)}`,
+    const encodedKey = encodeURIComponent(key);
+    const encodedLetter = encodeURIComponent(letter);
+    return request<DateSuggestionsResponse>(
+      `/alphadate/${encodedKey}/suggestions?letter=${encodedLetter}`,
       {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         signal
       }
     );
-
-    return handleResponse<DateSuggestionsResponse>(response);
   }
+};
+
+export type {
+  CreateBoardResponse,
+  BoardResponse,
+  UpdateBoardResponse,
+  DateSuggestion,
+  DateSuggestionsResponse
 };

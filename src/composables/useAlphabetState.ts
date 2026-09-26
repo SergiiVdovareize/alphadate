@@ -1,39 +1,10 @@
 import { ref, watch } from 'vue';
 import { api } from '../services/api';
+import type { LetterStatus, LetterState, Partner, BoardMetadata, SavedBoard } from '../types';
+import { STATUS_UI_STRINGS } from '../types';
 
-export type LetterStatus = 'available' | 'used' | 'excluded' | 'skipped';
-
-export const STATUS_UI_STRINGS: Record<LetterStatus, string> = {
-  available: 'нова',
-  used: 'використана',
-  excluded: 'виключена',
-  skipped: 'пропущена'
-};
-
-export interface LetterState {
-  letter: string;
-  status: LetterStatus;
-  note?: string;
-}
-
-export interface Partner {
-  id: number;
-  name: string;
-}
-
-export interface BoardMetadata {
-  partners: Partner[];
-  pinHash: string | null;
-  currentPartnerId: number | null;
-  currentLetter: string | null;
-  currentLetterSelectedAt: string | null;
-}
-
-export interface SavedBoard {
-  key: string;
-  partners: string[];
-  createdAt: string;
-}
+export type { LetterStatus, LetterState, Partner, BoardMetadata, SavedBoard };
+export { STATUS_UI_STRINGS };
 
 const UKRAINIAN_ALPHABET = [
   'А',

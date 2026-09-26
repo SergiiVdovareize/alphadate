@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue';
-import { useCountdown } from '../composables/useCountdown';
+import { useActiveLetterPanel } from '../composables/useActiveLetterPanel';
 import DateSuggestions from './DateSuggestions.vue';
 import RandomPickButton from './RandomPickButton.vue';
 import type { LetterState } from '../composables/useAlphabetState';
@@ -19,63 +18,16 @@ const emit = defineEmits<{
   (e: 'pick', letter: LetterState): void;
 }>();
 
-const countdownInfo = useCountdown(() => props.selectedAt);
-
-const isCompleting = ref(false);
-const completionNote = ref('');
-const confirmingAction = ref<'exclude' | 'cancel' | null>(null);
-let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
-
-const clearConfirmTimeout = () => {
-  if (confirmTimeout) {
-    clearTimeout(confirmTimeout);
-    confirmTimeout = null;
-  }
-};
-
-onUnmounted(() => {
-  clearConfirmTimeout();
-});
-
-const startCompleting = () => {
-  clearConfirmTimeout();
-  confirmingAction.value = null;
-  completionNote.value = props.letter?.note || '';
-  isCompleting.value = true;
-};
-
-const cancelCompleting = () => {
-  isCompleting.value = false;
-  completionNote.value = '';
-};
-
-const submitComplete = () => {
-  emit('complete', completionNote.value.trim());
-  isCompleting.value = false;
-  completionNote.value = '';
-  clearConfirmTimeout();
-  confirmingAction.value = null;
-};
-
-const handleConfirmableAction = (action: 'exclude' | 'cancel') => {
-  if (confirmingAction.value === action) {
-    clearConfirmTimeout();
-    confirmingAction.value = null;
-    if (action === 'exclude') {
-      emit('exclude');
-    } else if (action === 'cancel') {
-      emit('cancel');
-      isCompleting.value = false;
-      completionNote.value = '';
-    }
-  } else {
-    clearConfirmTimeout();
-    confirmingAction.value = action;
-    confirmTimeout = setTimeout(() => {
-      confirmingAction.value = null;
-    }, 4000);
-  }
-};
+const {
+  countdownInfo,
+  isCompleting,
+  completionNote,
+  confirmingAction,
+  startCompleting,
+  cancelCompleting,
+  submitComplete,
+  handleConfirmableAction
+} = useActiveLetterPanel(props, emit);
 </script>
 
 <template>
