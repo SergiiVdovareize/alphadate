@@ -271,7 +271,9 @@ export function useAlphabetState(boardId: string) {
   };
 
   const pickRandom = (): LetterState | null => {
-    const available = letters.value.filter((l) => l.status === 'available');
+    const available = letters.value.filter(
+      (l) => l.status === 'available' || l.status === 'skipped'
+    );
     if (available.length === 0) return null;
     const randomIndex = Math.floor(Math.random() * available.length);
     return available[randomIndex];

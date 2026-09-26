@@ -35,10 +35,10 @@ const emit = defineEmits<{
   margin: 0;
   z-index: 1000;
   background: var(--color-surface, #ffffff);
-  border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 8px 0 var(--color-ink, #2d3748);
+  border: 1.5px solid #dfd5ca;
+  border-radius: 24px;
+  padding: 2.25rem;
+  box-shadow: 0 20px 50px rgba(45, 55, 72, 0.16);
   max-width: 90vw;
   width: 400px;
   color: var(--color-ink, #2d3748);

@@ -148,13 +148,13 @@ const createBoard = async () => {
 
 .card {
   background: var(--color-surface, #ffffff);
-  border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 20px;
-  padding: 2.5rem;
+  border: 1.5px solid #dfd5ca;
+  border-radius: 24px;
+  padding: 3rem 2.5rem;
   max-width: 450px;
   width: 100%;
   text-align: center;
-  box-shadow: var(--shadow-3d-lg, 0 6px 0 #2d3748);
+  box-shadow: inset 0 2px 6px rgba(45, 55, 72, 0.06);
 }
 
 .logo-wrap {

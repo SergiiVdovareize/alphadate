@@ -80,7 +80,7 @@ const countdownInfo = computed(() => {
 
 const isCompleting = ref(false);
 const completionNote = ref('');
-const confirmingAction = ref<'exclude' | 'cancel' | 'reset' | null>(null);
+const confirmingAction = ref<'exclude' | 'cancel' | null>(null);
 let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
 
 const clearConfirmTimeout = () => {
@@ -121,7 +121,7 @@ const submitComplete = () => {
   confirmingAction.value = null;
 };
 
-const handleConfirmableAction = (action: 'exclude' | 'cancel' | 'reset') => {
+const handleConfirmableAction = (action: 'exclude' | 'cancel') => {
   if (confirmingAction.value === action) {
     clearConfirmTimeout();
     confirmingAction.value = null;
@@ -131,8 +131,6 @@ const handleConfirmableAction = (action: 'exclude' | 'cancel' | 'reset') => {
       selectLetter(null);
       isCompleting.value = false;
       completionNote.value = '';
-    } else if (action === 'reset' && activeLetter.value) {
-      handleUpdateStatus(activeLetter.value.letter, 'available');
     }
   } else {
     clearConfirmTimeout();
@@ -259,11 +257,12 @@ const goHome = () => {
         <!-- Normal action buttons with inline two-step confirmation -->
         <div v-else class="action-buttons">
           <button
-            v-if="activeLetter.status !== 'used'"
-            class="button success"
-            @click="startCompleting"
+            class="button text close-panel-btn"
+            :class="{ 'is-confirming': confirmingAction === 'cancel' }"
+            @click="handleConfirmableAction('cancel')"
           >
-            Виконано
+            <span>{{ confirmingAction === 'cancel' ? 'Точно обрати іншу?' : 'Обрати іншу' }}</span>
+            <span v-if="confirmingAction === 'cancel'" class="confirm-progress-bar"></span>
           </button>
           <button
             v-if="activeLetter.status !== 'excluded'"
@@ -275,21 +274,11 @@ const goHome = () => {
             <span v-if="confirmingAction === 'exclude'" class="confirm-progress-bar"></span>
           </button>
           <button
-            v-if="activeLetter.status !== 'available'"
-            class="button outline"
-            :class="{ 'is-confirming': confirmingAction === 'reset' }"
-            @click="handleConfirmableAction('reset')"
+            v-if="activeLetter.status !== 'used'"
+            class="button success complete-main-btn"
+            @click="startCompleting"
           >
-            <span>{{ confirmingAction === 'reset' ? 'Точно скинути?' : 'Зробити новою' }}</span>
-            <span v-if="confirmingAction === 'reset'" class="confirm-progress-bar"></span>
-          </button>
-          <button
-            class="button text close-panel-btn"
-            :class="{ 'is-confirming': confirmingAction === 'cancel' }"
-            @click="handleConfirmableAction('cancel')"
-          >
-            <span>{{ confirmingAction === 'cancel' ? 'Точно обрати іншу?' : 'Обрати іншу' }}</span>
-            <span v-if="confirmingAction === 'cancel'" class="confirm-progress-bar"></span>
+            Виконано
           </button>
         </div>
       </div>
@@ -362,10 +351,10 @@ const goHome = () => {
   gap: 0.75rem;
   margin: 1.5rem 0 2rem 0;
   background: var(--color-surface, #ffffff);
-  border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 16px;
-  padding: 1.25rem;
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  border: 1.5px solid #dfd5ca;
+  border-radius: 18px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: inset 0 2px 6px rgba(45, 55, 72, 0.06);
 }
 
 .turn-label {
@@ -421,11 +410,11 @@ const goHome = () => {
 
 .active-letter-panel {
   margin: 2rem 0;
-  padding: 1.75rem;
-  border-radius: 20px;
+  padding: 2rem;
+  border-radius: 22px;
   background: var(--color-surface, #ffffff);
-  border: 2px solid var(--color-ink, #2d3748);
-  box-shadow: var(--shadow-3d-lg, 0 6px 0 #2d3748);
+  border: 1.5px solid #dfd5ca;
+  box-shadow: inset 0 2px 6px rgba(45, 55, 72, 0.06);
   text-align: center;
 }
 
@@ -533,6 +522,10 @@ const goHome = () => {
   box-sizing: border-box;
 }
 
+.action-buttons .complete-main-btn {
+  grid-column: 1 / -1;
+}
+
 .action-buttons button span:not(.confirm-progress-bar) {
   position: relative;
   z-index: 1;
@@ -554,11 +547,11 @@ const goHome = () => {
 }
 
 .button.danger {
-  background-color: var(--color-surface, #ffffff);
+  background-color: var(--color-surface-muted, #f3eae3);
   color: var(--color-ink, #2d3748);
 }
 .button.danger:hover {
-  background-color: var(--color-surface-muted, #f3eae3);
+  background-color: var(--color-surface, #ffffff);
   transform: translateY(-1px);
   box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
@@ -582,15 +575,13 @@ const goHome = () => {
 }
 
 .close-panel-btn {
-  grid-column: 1 / -1;
   background-color: var(--color-surface-muted, #f3eae3);
   color: var(--color-ink, #2d3748);
-  box-shadow: var(--shadow-3d-sm, 0 2.5px 0 #2d3748);
-  margin-top: 0.25rem;
 }
 .close-panel-btn:hover {
+  background-color: var(--color-surface, #ffffff);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
 .close-panel-btn:active {
   transform: translateY(2px);
