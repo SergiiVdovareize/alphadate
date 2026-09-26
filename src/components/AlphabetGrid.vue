@@ -14,7 +14,7 @@ const emit = defineEmits<{
 
 const handleClick = (item: LetterState) => {
   if (props.disabled) return;
-  if (item.status === 'used') return;
+  if (item.status === 'used' || item.status === 'excluded') return;
   emit('select', item);
 };
 </script>

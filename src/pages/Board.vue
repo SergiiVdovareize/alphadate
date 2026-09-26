@@ -265,7 +265,6 @@ const goHome = () => {
             <span v-if="confirmingAction === 'cancel'" class="confirm-progress-bar"></span>
           </button>
           <button
-            v-if="activeLetter.status !== 'excluded'"
             class="button danger"
             :class="{ 'is-confirming': confirmingAction === 'exclude' }"
             @click="handleConfirmableAction('exclude')"
