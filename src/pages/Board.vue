@@ -5,6 +5,7 @@ import AlphabetGrid from '../components/AlphabetGrid.vue';
 import RandomPickButton from '../components/RandomPickButton.vue';
 import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import AppLogo from '../components/AppLogo.vue';
+import DateSuggestions from '../components/DateSuggestions.vue';
 import { useAlphabetState } from '../composables/useAlphabetState';
 import type { LetterState, LetterStatus } from '../composables/useAlphabetState';
 
@@ -228,11 +229,6 @@ const goHome = () => {
             </svg>
             <span>{{ countdownInfo.text }}</span>
           </div>
-          <!-- Existing note if letter was completed with a note and not in editing mode -->
-          <div v-if="activeLetter.note && !isCompleting" class="existing-note-box">
-            <span class="existing-note-label">Нотатка про побачення:</span>
-            <p class="existing-note-text">«{{ activeLetter.note }}»</p>
-          </div>
         </div>
 
         <!-- Inline completion form with comment input -->
@@ -280,6 +276,9 @@ const goHome = () => {
             Виконано
           </button>
         </div>
+
+        <!-- Date Suggestions section -->
+        <DateSuggestions :board-id="boardId" :letter="activeLetter.letter" />
       </div>
       <div v-else class="panel-placeholder">
         <p>Оберіть літеру вручну на дошці або натисніть кнопку випадкового вибору.</p>
@@ -721,33 +720,6 @@ const goHome = () => {
   to {
     transform: scaleX(0);
   }
-}
-
-.existing-note-box {
-  margin-top: 0.75rem;
-  padding: 0.6rem 0.9rem;
-  background: var(--color-surface-muted, #f3eae3);
-  border: 1.5px dashed rgba(45, 55, 72, 0.3);
-  border-radius: 12px;
-  max-width: 320px;
-}
-
-.existing-note-label {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--color-ink-muted, #718096);
-  display: block;
-  margin-bottom: 0.2rem;
-}
-
-.existing-note-text {
-  font-size: 0.9rem;
-  font-style: italic;
-  color: var(--color-ink, #2d3748);
-  margin: 0;
-  line-height: 1.4;
-  word-break: break-word;
 }
 
 .footer {
