@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import type { LetterStatus, LetterState, Partner, BoardMetadata, SavedBoard } from '../types';
 import { STATUS_UI_STRINGS } from '../types';
 
-export type { LetterStatus, LetterState, Partner, BoardMetadata, SavedBoard };
+export type { LetterStatus, LetterState, BoardMetadata, SavedBoard };
 export { STATUS_UI_STRINGS };
 
 const UKRAINIAN_ALPHABET = [

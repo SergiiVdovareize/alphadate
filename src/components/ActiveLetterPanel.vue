@@ -67,7 +67,6 @@ const {
           rows="3"
           class="comment-textarea"
           placeholder="Опишіть ваші враження, куди сходили... (необов'язково)"
-          autofocus
         ></textarea>
         <div class="completion-actions">
           <button class="button success confirm-btn" @click="submitComplete">

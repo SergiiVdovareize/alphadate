@@ -25,15 +25,10 @@ const {
 <template>
   <main class="container">
     <header class="header">
-      <div
-        class="brand-wrap"
-        style="cursor: pointer"
-        title="Повернутися на головну"
-        @click="goHome"
-      >
+      <button type="button" class="brand-wrap" title="Повернутися на головну" @click="goHome">
         <AppLogo :size="38" />
         <h1 class="brand-title">AlphaDate</h1>
-      </div>
+      </button>
     </header>
 
     <!-- Sync error notification banner -->
@@ -124,6 +119,10 @@ const {
   justify-content: center;
   gap: 0.75rem;
   user-select: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   transition: transform 0.15s ease;
 }
 

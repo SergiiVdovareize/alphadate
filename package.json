@@ -11,7 +11,10 @@
     "format": "prettier --write src/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "check:circular": "dpdm --no-warning --no-tree --exit-code circular:1 src/main.ts",
+    "check:deadcode": "knip",
+    "check:size": "size-limit"
   },
   "dependencies": {
     "@knadh/oat": "^0.5.0",
@@ -20,15 +23,20 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.16.1",
+    "@size-limit/file": "^14.0.1",
     "@vitejs/plugin-vue": "^5.1.4",
     "@vitest/coverage-v8": "^2.1.9",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^13.0.0",
     "@vue/test-utils": "^2.5.1",
+    "dpdm": "^4.3.0",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.33.0",
+    "eslint-plugin-vuejs-accessibility": "^2.6.0",
     "jsdom": "^29.1.1",
+    "knip": "^6.38.0",
     "prettier": "^3.8.1",
+    "size-limit": "^14.0.1",
     "typescript": "~5.6.2",
     "vite": "^5.4.10",
     "vitest": "^2.1.9",

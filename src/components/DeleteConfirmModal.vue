@@ -22,7 +22,13 @@ const emit = defineEmits<{
         </div>
       </div>
     </dialog>
-    <div v-if="isOpen" class="modal-overlay" @click="emit('cancel')"></div>
+    <button
+      v-if="isOpen"
+      type="button"
+      class="modal-overlay"
+      aria-label="Закрити модальне вікно"
+      @click="emit('cancel')"
+    ></button>
   </div>
 </template>
 

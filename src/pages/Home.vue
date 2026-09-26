@@ -15,8 +15,9 @@ const { partners, email, isLoading, errorMessage, savedBoards, openBoard, create
       <p>Створіть свій унікальний простір для планування побачень.</p>
 
       <!-- Quick continue banner for the most recent board -->
-      <div
+      <button
         v-if="savedBoards.length > 0"
+        type="button"
         class="recent-suggestion"
         @click="openBoard(savedBoards[0].key)"
       >
@@ -36,13 +37,15 @@ const { partners, email, isLoading, errorMessage, savedBoards, openBoard, create
             d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
           />
         </svg>
-      </div>
+      </button>
 
       <form class="setup-form" @submit.prevent="createBoard">
         <div v-for="(_, index) in partners" :key="index" class="input-group">
-          <label v-if="index === 0">Ваше ім'я</label>
-          <label v-else>Ім'я партнера</label>
+          <label :for="`partner-${index}`">
+            {{ index === 0 ? "Ваше ім'я" : "Ім'я партнера" }}
+          </label>
           <input
+            :id="`partner-${index}`"
             v-model="partners[index]"
             type="text"
             required
@@ -51,8 +54,14 @@ const { partners, email, isLoading, errorMessage, savedBoards, openBoard, create
         </div>
 
         <div class="input-group">
-          <label>Електронна пошта</label>
-          <input v-model="email" type="email" required placeholder="Наприклад: email@example.com" />
+          <label for="board-email">Електронна пошта</label>
+          <input
+            id="board-email"
+            v-model="email"
+            type="email"
+            required
+            placeholder="Наприклад: email@example.com"
+          />
         </div>
 
         <div v-if="errorMessage" class="form-error-banner" role="alert">
@@ -197,6 +206,9 @@ input:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
   background: var(--color-surface, #ffffff);
   border: 2px solid var(--color-ink, #2d3748);
   border-radius: 12px;

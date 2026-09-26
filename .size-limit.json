@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Main Application JS (Gzipped)",
+    "path": "dist/assets/index-*.js",
+    "limit": "50 kB"
+  },
+  {
+    "name": "All JavaScript Assets (Gzipped)",
+    "path": "dist/assets/*.js",
+    "limit": "80 kB"
+  },
+  {
+    "name": "All CSS Stylesheets (Gzipped)",
+    "path": "dist/assets/*.css",
+    "limit": "25 kB"
+  }
+]
