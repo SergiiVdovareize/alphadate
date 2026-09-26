@@ -31,3 +31,4 @@ dist-ssr
 # Caches and build info
 .eslintcache
 tsconfig.tsbuildinfo
+coverage

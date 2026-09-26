@@ -1,0 +1,84 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useHome } from './useHome';
+import { api } from '../services/api';
+
+const mockPush = vi.fn();
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: mockPush
+  })
+}));
+
+vi.mock('../services/api', () => ({
+  api: {
+    createBoard: vi.fn()
+  }
+}));
+
+describe('useHome', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it('validates required partner names', async () => {
+    const vm = useHome();
+    vm.partners.value = ['', ''];
+    vm.email.value = 'test@example.com';
+
+    await vm.createBoard();
+    expect(vm.errorMessage.value).toBe("Будь ласка, введіть хоча б одне ім'я.");
+    expect(api.createBoard).not.toHaveBeenCalled();
+  });
+
+  it('validates required email', async () => {
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = '';
+
+    await vm.createBoard();
+    expect(vm.errorMessage.value).toBe('Будь ласка, введіть електронну пошту.');
+    expect(api.createBoard).not.toHaveBeenCalled();
+  });
+
+  it('creates board, saves to localStorage, and navigates on success', async () => {
+    vi.mocked(api.createBoard).mockResolvedValue({
+      success: true,
+      key: 'new-board-key'
+    });
+
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = 'couple@example.com';
+
+    await vm.createBoard();
+
+    expect(api.createBoard).toHaveBeenCalledWith(['Оля', 'Максим'], 'couple@example.com');
+    expect(mockPush).toHaveBeenCalledWith('/new-board-key');
+
+    const saved = JSON.parse(localStorage.getItem('alphadate_saved_boards') || '[]');
+    expect(saved).toHaveLength(1);
+    expect(saved[0].key).toBe('new-board-key');
+    expect(saved[0].partners).toEqual(['Оля', 'Максим']);
+  });
+
+  it('handles server failure during board creation', async () => {
+    vi.mocked(api.createBoard).mockRejectedValue(new Error('Server unavailable'));
+
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = 'couple@example.com';
+
+    await vm.createBoard();
+
+    expect(vm.errorMessage.value).toBe('Server unavailable');
+    expect(vm.isLoading.value).toBe(false);
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('openBoard routes to the board key', () => {
+    const vm = useHome();
+    vm.openBoard('my-board');
+    expect(mockPush).toHaveBeenCalledWith('/my-board');
+  });
+});
