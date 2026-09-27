@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import type { LetterHistoryItem, LetterState } from '../types';
 import { formatDurationBetween, formatCompletionDate } from '../utils/formatDuration';
 
@@ -12,16 +12,33 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void;
+  (e: 'view-all'): void;
 }>();
+
+const internalLetter = ref<string | null | undefined>(props.selectedLetter);
+
+watch(
+  () => props.selectedLetter,
+  (val) => {
+    internalLetter.value = val;
+  }
+);
+
+const currentSelectedLetter = computed(() => internalLetter.value);
+
+const handleViewAll = () => {
+  internalLetter.value = null;
+  emit('view-all');
+};
 
 // Filter for a specific letter if selectedLetter is set (with fallback to letter object)
 const letterHistoryItems = computed<LetterHistoryItem[]>(() => {
-  if (!props.selectedLetter) return [];
-  const found = props.history.filter((h) => h.letter === props.selectedLetter);
+  if (!currentSelectedLetter.value) return [];
+  const found = props.history.filter((h) => h.letter === currentSelectedLetter.value);
   if (found.length > 0) return found;
 
   // Fallback to letter object from letters array if history not yet synced
-  const fallbackLetter = props.letters?.find((l) => l.letter === props.selectedLetter);
+  const fallbackLetter = props.letters?.find((l) => l.letter === currentSelectedLetter.value);
   if (fallbackLetter && fallbackLetter.status === 'used') {
     return [
       {
@@ -77,7 +94,7 @@ watch(
     <div class="modal-card">
       <header class="modal-header">
         <h3 id="history-modal-title" class="modal-title">
-          <span v-if="selectedLetter">Спогад про літеру «{{ selectedLetter }}»</span>
+          <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
           <span v-else>📖 Щоденник побачень</span>
         </h3>
         <button
@@ -91,61 +108,75 @@ watch(
       </header>
 
       <!-- Single letter focused memory view (ONLY this letter) -->
-      <div v-if="selectedLetter" class="single-letter-container">
-        <div v-if="letterHistoryItems.length === 0" class="empty-history">
-          <div class="memory-letter-heading">
-            <span class="memory-letter-char">{{ selectedLetter }}</span>
+      <div v-if="currentSelectedLetter" class="single-letter-container">
+        <div class="single-letter-content-scroll">
+          <div v-if="letterHistoryItems.length === 0" class="empty-history">
+            <div class="memory-letter-heading">
+              <span class="memory-letter-char">{{ currentSelectedLetter }}</span>
+            </div>
+            <p class="empty-title">Спогадів для літери «{{ currentSelectedLetter }}» ще немає</p>
+            <p class="empty-desc">
+              Виконайте побачення на цю літеру, щоб зберегти деталі в щоденник!
+            </p>
           </div>
-          <p class="empty-title">Спогадів для літери «{{ selectedLetter }}» ще немає</p>
-          <p class="empty-desc">
-            Виконайте побачення на цю літеру, щоб зберегти деталі в щоденник!
-          </p>
+
+          <div v-else class="single-letter-memories">
+            <div
+              v-for="(item, idx) in letterHistoryItems"
+              :key="idx"
+              class="single-memory-view"
+            >
+              <div class="memory-letter-heading">
+                <span class="memory-letter-char">{{ item.letter }}</span>
+              </div>
+
+              <div class="memory-meta">
+                <div v-if="item.partnerName" class="meta-row">
+                  <span class="meta-label">Організатор:</span>
+                  <span class="partner-pill">
+                    <span class="partner-icon" aria-hidden="true">👤</span>
+                    <strong>{{ item.partnerName }}</strong>
+                  </span>
+                </div>
+
+                <div class="meta-row">
+                  <span class="meta-label">Час на виконання:</span>
+                  <span class="duration-badge">
+                    ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
+                  </span>
+                </div>
+
+                <div v-if="item.completedAt" class="meta-row">
+                  <span class="meta-label">Дата завершення:</span>
+                  <span class="date-text">
+                    {{ formatCompletionDate(item.completedAt) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="memory-note-box">
+                <span class="note-label">Враження від побачення:</span>
+                <p v-if="item.note" class="note-content">
+                  «{{ item.note }}»
+                </p>
+                <p v-else class="empty-note">
+                  Коментар не було додано
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div v-else class="single-letter-memories">
-          <div
-            v-for="(item, idx) in letterHistoryItems"
-            :key="idx"
-            class="single-memory-view"
+        <!-- Link to open full history (fixed footer outside scrollbar) -->
+        <div class="view-all-history-section">
+          <button
+            type="button"
+            class="view-all-history-link"
+            @click="handleViewAll"
           >
-            <div class="memory-letter-heading">
-              <span class="memory-letter-char">{{ item.letter }}</span>
-            </div>
-
-            <div class="memory-meta">
-              <div v-if="item.partnerName" class="meta-row">
-                <span class="meta-label">Організатор:</span>
-                <span class="partner-pill">
-                  <span class="partner-icon" aria-hidden="true">👤</span>
-                  <strong>{{ item.partnerName }}</strong>
-                </span>
-              </div>
-
-              <div class="meta-row">
-                <span class="meta-label">Час на виконання:</span>
-                <span class="duration-badge">
-                  ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
-                </span>
-              </div>
-
-              <div v-if="item.completedAt" class="meta-row">
-                <span class="meta-label">Дата завершення:</span>
-                <span class="date-text">
-                  {{ formatCompletionDate(item.completedAt) }}
-                </span>
-              </div>
-            </div>
-
-            <div class="memory-note-box">
-              <span class="note-label">Враження від побачення:</span>
-              <p v-if="item.note" class="note-content">
-                «{{ item.note }}»
-              </p>
-              <p v-else class="empty-note">
-                Коментар не було додано
-              </p>
-            </div>
-          </div>
+            <span class="view-all-icon" aria-hidden="true">📖</span>
+            <span class="view-all-text">Відкрити щоденник побачень</span>
+          </button>
         </div>
       </div>
 
@@ -293,6 +324,25 @@ watch(
 }
 
 /* Single Letter View */
+.single-letter-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.single-letter-content-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.single-letter-memories {
+  display: flex;
+  flex-direction: column;
+}
+
 .single-memory-view {
   padding: 1.5rem;
   display: flex;
@@ -391,12 +441,64 @@ watch(
   line-height: 1.5;
   color: var(--color-ink, #2d3748);
   font-style: italic;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .empty-note {
   margin: 0;
   font-size: 0.92rem;
   color: var(--color-ink-muted, #718096);
+}
+
+.view-all-history-section {
+  flex-shrink: 0;
+  background: var(--color-surface, #ffffff);
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 1.5rem 1.25rem 1.5rem;
+  border-top: 1.5px solid var(--color-surface-muted, #f3eae3);
+  z-index: 2;
+}
+
+.view-all-history-link {
+  background: transparent;
+  border: none;
+  color: var(--color-ink, #2d3748);
+  font-size: 0.92rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  box-shadow: none;
+  user-select: none;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.view-all-history-link .view-all-text {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(113, 128, 150, 0.4);
+  transition: text-decoration-color 0.15s ease;
+}
+
+.view-all-history-link:hover {
+  color: var(--color-accent);
+  background-color: var(--color-surface-muted, #f3eae3);
+}
+
+.view-all-history-link:hover .view-all-text {
+  text-decoration-color: var(--color-accent);
+}
+
+.view-all-icon {
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 /* History List View */
@@ -460,7 +562,7 @@ watch(
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(234, 122, 135, 0.12);
+  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
   color: var(--color-accent, #ea7a87);
   display: flex;
   align-items: center;

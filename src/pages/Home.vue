@@ -152,7 +152,7 @@ input {
 input:focus {
   outline: none;
   border-color: var(--color-accent, #ea7a87);
-  box-shadow: 0 0 0 3px rgba(234, 122, 135, 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, 138, 99, 229), 0.2);
 }
 
 .start-btn {
@@ -191,7 +191,7 @@ input:focus {
 
 .form-error-banner {
   padding: 0.65rem 0.9rem;
-  background-color: rgba(234, 122, 135, 0.12);
+  background-color: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
   border: 1.5px solid var(--color-accent, #ea7a87);
   border-radius: 10px;
   color: var(--color-accent, #ea7a87);

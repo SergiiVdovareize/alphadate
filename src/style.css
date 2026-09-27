@@ -5,8 +5,10 @@
   --color-surface-muted: #f3eae3;
   --color-ink: #2d3748;
   --color-ink-muted: #718096;
-  --color-accent: #ea7a87;
-  --color-accent-hover: #dc6876;
+  --color-accent: #d97732;
+  --color-accent-hover: #c26522;
+  --color-accent-dark: #aa5416;
+  --color-accent-rgb: 217, 119, 50;
   --color-accent-confirm: #5ea885;
   --color-accent-confirm-hover: #519675;
   --color-accent-confirm-dark: #2a5943;

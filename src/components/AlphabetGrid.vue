@@ -89,22 +89,16 @@ const handleClick = (item: LetterState) => {
 }
 
 .letter-btn.active {
-  background-color: var(--color-accent, #ea7a87) !important;
+  background-color: var(--color-accent) !important;
   color: #ffffff !important;
   border-color: var(--color-ink, #2d3748) !important;
-  transform: translateY(-2px) scale(1.06);
-  box-shadow:
-    0 5px 0 var(--color-ink, #2d3748),
-    0 0 0 3.5px rgba(234, 122, 135, 0.45) !important;
+  transform: none;
   z-index: 5;
   cursor: default;
 }
 
 .letter-btn.active:hover {
-  transform: translateY(-2px) scale(1.06);
-  box-shadow:
-    0 5px 0 var(--color-ink, #2d3748),
-    0 0 0 3.5px rgba(234, 122, 135, 0.45) !important;
+  transform: none;
 }
 
 .letter-btn:disabled:not(.status-used) {

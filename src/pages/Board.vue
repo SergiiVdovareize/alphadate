@@ -105,6 +105,7 @@ const {
       :letters="letters"
       :selected-letter="selectedHistoryLetter"
       @close="closeHistory"
+      @view-all="openHistory()"
     />
 
     <!-- Board Deletion Modal -->
@@ -139,7 +140,7 @@ const {
 }
 
 .sync-warning-banner {
-  background: rgba(234, 122, 135, 0.12);
+  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
   border: 1.5px solid var(--color-accent, #ea7a87);
   border-radius: 12px;
   padding: 0.65rem 1rem;
@@ -308,7 +309,7 @@ const {
 }
 
 .history-count-pill {
-  background-color: rgba(234, 122, 135, 0.15);
+  background-color: rgba(var(--color-accent-rgb, 138, 99, 229), 0.15);
   color: var(--color-accent, #ea7a87);
   font-size: 0.78rem;
   font-weight: 800;

@@ -183,10 +183,10 @@ const {
 @keyframes pulse-char-color {
   0%,
   100% {
-    color: var(--color-accent, #ea7a87);
+    color: var(--color-accent);
   }
   50% {
-    color: #d65b6b;
+    color: var(--color-accent-dark);
   }
 }
 
@@ -221,15 +221,15 @@ const {
 }
 
 .countdown-badge.is-urgent {
-  background: rgba(234, 122, 135, 0.12);
-  border-color: rgba(234, 122, 135, 0.4);
-  color: var(--color-accent, #ea7a87);
+  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
+  border-color: rgba(var(--color-accent-rgb, 138, 99, 229), 0.4);
+  color: var(--color-accent);
 }
 
 .countdown-badge.is-expired {
-  background: rgba(234, 122, 135, 0.18);
-  border-color: var(--color-accent, #ea7a87);
-  color: var(--color-accent, #ea7a87);
+  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.18);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
   font-weight: 700;
 }
 
@@ -365,8 +365,8 @@ const {
 
 .comment-textarea:focus {
   outline: none;
-  border-color: var(--color-accent, #ea7a87);
-  box-shadow: 0 0 0 3px rgba(234, 122, 135, 0.2);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, 138, 99, 229), 0.2);
 }
 
 .completion-actions {
