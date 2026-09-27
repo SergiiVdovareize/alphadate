@@ -26,7 +26,8 @@ const {
   startCompleting,
   cancelCompleting,
   submitComplete,
-  handleConfirmableAction
+  handleConfirmableAction,
+  cancelConfirmation
 } = useActiveLetterPanel(props, emit);
 </script>
 
@@ -76,23 +77,35 @@ const {
         </div>
       </div>
 
-      <!-- Normal action buttons with inline two-step confirmation -->
+      <!-- Confirmation state for cancel / exclude (expanded full-width with cancel button) -->
+      <div v-else-if="confirmingAction" class="confirmation-actions">
+        <button
+          class="button is-confirming confirm-expanded-btn"
+          @click="handleConfirmableAction(confirmingAction)"
+        >
+          <span>
+            {{ confirmingAction === 'cancel' ? 'Так, обрати іншу' : 'Так, виключити літеру' }}
+          </span>
+          <span class="confirm-progress-bar"></span>
+        </button>
+        <button class="button outline cancel-confirm-btn" @click="cancelConfirmation">
+          <span>Скасувати</span>
+        </button>
+      </div>
+
+      <!-- Normal action buttons -->
       <div v-else class="action-buttons">
         <button
           class="button text close-panel-btn"
-          :class="{ 'is-confirming': confirmingAction === 'cancel' }"
           @click="handleConfirmableAction('cancel')"
         >
-          <span>{{ confirmingAction === 'cancel' ? 'Точно обрати іншу?' : 'Обрати іншу' }}</span>
-          <span v-if="confirmingAction === 'cancel'" class="confirm-progress-bar"></span>
+          <span>Обрати іншу</span>
         </button>
         <button
           class="button danger"
-          :class="{ 'is-confirming': confirmingAction === 'exclude' }"
           @click="handleConfirmableAction('exclude')"
         >
-          <span>{{ confirmingAction === 'exclude' ? 'Точно виключити?' : 'Виключити' }}</span>
-          <span v-if="confirmingAction === 'exclude'" class="confirm-progress-bar"></span>
+          <span>Виключити</span>
         </button>
         <button
           v-if="letter.status !== 'used'"
@@ -416,15 +429,91 @@ const {
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
-/* Inline two-step confirmation state styles */
-.action-buttons button.is-confirming {
-  background-color: var(--color-accent-confirm, #5ea885) !important;
-  color: #ffffff !important;
-  border-color: var(--color-ink, #2d3748) !important;
+/* Confirmation stage styles (Option 3: full width + cancel button) */
+.confirmation-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  animation: confirm-fade-in 0.15s ease-out;
 }
 
-.action-buttons button.is-confirming:hover {
-  background-color: var(--color-accent-confirm-hover, #519675) !important;
+@keyframes confirm-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.confirm-expanded-btn {
+  position: relative;
+  overflow: hidden;
+  padding: 0.85rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 2px solid var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  background-color: var(--color-accent-confirm, #5ea885);
+  color: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
+}
+
+.confirm-expanded-btn:hover {
+  background-color: var(--color-accent-confirm-hover, #519675);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+
+.confirm-expanded-btn:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.confirm-expanded-btn span:not(.confirm-progress-bar) {
+  position: relative;
+  z-index: 1;
+}
+
+.cancel-confirm-btn {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 12px;
+  border: 2px solid var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  background-color: var(--color-surface, #ffffff);
+  color: var(--color-ink, #2d3748);
+  width: 100%;
+  box-sizing: border-box;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
+}
+
+.cancel-confirm-btn:hover {
+  background-color: var(--color-surface-muted, #f3eae3);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+
+.cancel-confirm-btn:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
 .confirm-progress-bar {
@@ -433,7 +522,7 @@ const {
   left: 0;
   width: 100%;
   height: 4px;
-  background-color: var(--color-accent-confirm-dark, #2a5943);
+  background-color: rgba(255, 255, 255, 0.55);
   transform-origin: left center;
   animation: confirm-progress-shrink 4s linear forwards;
   pointer-events: none;
@@ -446,6 +535,15 @@ const {
   }
   to {
     transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirmation-actions {
+    animation: none;
+  }
+  .confirm-progress-bar {
+    animation: none;
   }
 }
 </style>

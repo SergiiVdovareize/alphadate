@@ -90,4 +90,21 @@ describe('useActiveLetterPanel', () => {
     expect(vm.confirmingAction.value).toBeNull();
     expect(emit).not.toHaveBeenCalled();
   });
+
+  it('immediately cancels confirmation when cancelConfirmation is called', () => {
+    const props: ActiveLetterPanelProps = {
+      letter: { letter: 'А', status: 'available' },
+      selectedAt: null,
+      boardId: 'test-board'
+    };
+    const emit = vi.fn();
+    const vm = useActiveLetterPanel(props, emit);
+
+    vm.handleConfirmableAction('cancel');
+    expect(vm.confirmingAction.value).toBe('cancel');
+
+    vm.cancelConfirmation();
+    expect(vm.confirmingAction.value).toBeNull();
+    expect(emit).not.toHaveBeenCalled();
+  });
 });

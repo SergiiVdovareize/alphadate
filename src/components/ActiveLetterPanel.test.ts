@@ -63,4 +63,29 @@ describe('ActiveLetterPanel.vue', () => {
     expect(wrapper.find('.comment-textarea').exists()).toBe(true);
     expect(wrapper.find('.confirm-btn').exists()).toBe(true);
   });
+
+  it('switches to full-width confirmation and supports canceling', async () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(ActiveLetterPanel, {
+      props: {
+        letter: { letter: 'К', status: 'available' },
+        selectedAt: null,
+        boardId: 'test-board',
+        pickRandom
+      }
+    });
+
+    const closeBtn = wrapper.find('.close-panel-btn');
+    await closeBtn.trigger('click');
+
+    expect(wrapper.find('.confirm-expanded-btn').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Так, обрати іншу');
+    expect(wrapper.find('.cancel-confirm-btn').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Скасувати');
+
+    // Click cancel button
+    await wrapper.find('.cancel-confirm-btn').trigger('click');
+    expect(wrapper.find('.confirm-expanded-btn').exists()).toBe(false);
+    expect(wrapper.text()).toContain('Обрати іншу');
+  });
 });

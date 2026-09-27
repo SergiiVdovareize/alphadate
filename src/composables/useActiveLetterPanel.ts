@@ -73,6 +73,11 @@ export function useActiveLetterPanel(props: ActiveLetterPanelProps, emit: Active
     }
   };
 
+  const cancelConfirmation = () => {
+    clearConfirmTimeout();
+    confirmingAction.value = null;
+  };
+
   return {
     countdownInfo,
     isCompleting,
@@ -81,6 +86,7 @@ export function useActiveLetterPanel(props: ActiveLetterPanelProps, emit: Active
     startCompleting,
     cancelCompleting,
     submitComplete,
-    handleConfirmableAction
+    handleConfirmableAction,
+    cancelConfirmation
   };
 }
