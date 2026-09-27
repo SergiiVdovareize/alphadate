@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { reactive, nextTick } from 'vue';
-import { useDateSuggestions } from './useDateSuggestions';
+import { useDateSuggestions, clearSuggestionsCache } from './useDateSuggestions';
 import { api } from '../services/api';
 
 vi.mock('../services/api', () => ({
@@ -12,6 +12,7 @@ vi.mock('../services/api', () => ({
 describe('useDateSuggestions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearSuggestionsCache();
   });
 
   it('initializes with closed state and empty suggestions', () => {

@@ -24,7 +24,7 @@ watch(
   }
 );
 
-const currentSelectedLetter = computed(() => internalLetter.value);
+const currentSelectedLetter = internalLetter;
 
 const handleViewAll = () => {
   internalLetter.value = null;
@@ -67,6 +67,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown);
+  document.body.style.overflow = '';
 });
 
 // Prevent body scroll when modal is open

@@ -42,4 +42,13 @@ describe('DeleteConfirmModal.vue', () => {
     await wrapper.find('.modal-overlay').trigger('click');
     expect(wrapper.emitted('cancel')).toHaveLength(2);
   });
+
+  it('emits cancel when Escape key is pressed while open', async () => {
+    const wrapper = mount(DeleteConfirmModal, {
+      props: { isOpen: true }
+    });
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    expect(wrapper.emitted('cancel')).toHaveLength(1);
+  });
 });

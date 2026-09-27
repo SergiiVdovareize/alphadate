@@ -6,19 +6,24 @@ export interface DateSuggestionsProps {
   letter: string;
 }
 
+const suggestionsCache = new Map<string, DateSuggestion[]>();
+
+export function clearSuggestionsCache() {
+  suggestionsCache.clear();
+}
+
 export function useDateSuggestions(props: DateSuggestionsProps) {
   const isOpen = ref(false);
   const isLoading = ref(false);
   const error = ref<string | null>(null);
   const suggestions = ref<DateSuggestion[]>([]);
-  const cache = new Map<string, DateSuggestion[]>();
 
   const fetchSuggestions = async (force: boolean = false) => {
     if (!props.letter) return;
 
     const cacheKey = `${props.boardId}_${props.letter}`;
-    if (!force && cache.has(cacheKey)) {
-      suggestions.value = cache.get(cacheKey)!;
+    if (!force && suggestionsCache.has(cacheKey)) {
+      suggestions.value = suggestionsCache.get(cacheKey)!;
       error.value = null;
       return;
     }
@@ -30,7 +35,7 @@ export function useDateSuggestions(props: DateSuggestionsProps) {
       const res = await api.getSuggestions(props.boardId, props.letter);
       if (res && Array.isArray(res.suggestions)) {
         suggestions.value = res.suggestions;
-        cache.set(cacheKey, res.suggestions);
+        suggestionsCache.set(cacheKey, res.suggestions);
       } else {
         suggestions.value = [];
       }
@@ -57,8 +62,8 @@ export function useDateSuggestions(props: DateSuggestionsProps) {
           fetchSuggestions();
         } else {
           const cacheKey = `${props.boardId}_${newLetter}`;
-          if (cache.has(cacheKey)) {
-            suggestions.value = cache.get(cacheKey)!;
+          if (suggestionsCache.has(cacheKey)) {
+            suggestions.value = suggestionsCache.get(cacheKey)!;
           } else {
             suggestions.value = [];
           }

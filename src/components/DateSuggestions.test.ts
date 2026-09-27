@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import DateSuggestions from './DateSuggestions.vue';
+import { clearSuggestionsCache } from '../composables/useDateSuggestions';
 import { api } from '../services/api';
 
 vi.mock('../services/api', () => ({
@@ -12,6 +13,7 @@ vi.mock('../services/api', () => ({
 describe('DateSuggestions.vue', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearSuggestionsCache();
   });
 
   it('renders toggle button with letter and initially closed drawer', () => {
