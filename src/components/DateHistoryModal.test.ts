@@ -108,4 +108,24 @@ describe('DateHistoryModal.vue', () => {
 
     expect(wrapper.emitted('close')).toBeTruthy();
   });
+
+  it('emits view-all event and switches to all history when link is clicked', async () => {
+    const wrapper = mount(DateHistoryModal, {
+      props: {
+        isOpen: true,
+        history: sampleHistory,
+        selectedLetter: 'К'
+      }
+    });
+
+    const viewAllBtn = wrapper.find('.view-all-history-link');
+    expect(viewAllBtn.exists()).toBe(true);
+    expect(viewAllBtn.text()).toContain('Відкрити щоденник побачень');
+
+    await viewAllBtn.trigger('click');
+
+    expect(wrapper.emitted('view-all')).toBeTruthy();
+    expect(wrapper.text()).toContain('Щоденник побачень');
+    expect(wrapper.text()).toContain('Андрій');
+  });
 });

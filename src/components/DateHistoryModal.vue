@@ -89,8 +89,14 @@ watch(
     role="dialog"
     aria-modal="true"
     aria-labelledby="history-modal-title"
-    @click.self="emit('close')"
   >
+    <button
+      type="button"
+      class="backdrop-dismiss"
+      aria-label="Закрити модальне вікно"
+      tabindex="-1"
+      @click="emit('close')"
+    ></button>
     <div class="modal-card">
       <header class="modal-header">
         <h3 id="history-modal-title" class="modal-title">
@@ -256,7 +262,20 @@ watch(
   }
 }
 
+.backdrop-dismiss {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  cursor: default;
+  z-index: 1;
+}
+
 .modal-card {
+  position: relative;
+  z-index: 2;
   background: var(--color-surface, #ffffff);
   border: 2px solid var(--color-ink, #2d3748);
   border-radius: 20px;
