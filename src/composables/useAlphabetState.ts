@@ -8,10 +8,7 @@ import type {
   SavedBoard,
   LetterHistoryItem
 } from '../types';
-import { STATUS_UI_STRINGS } from '../types';
-
 export type { LetterStatus, LetterState, BoardMetadata, SavedBoard, LetterHistoryItem };
-export { STATUS_UI_STRINGS };
 
 const UKRAINIAN_ALPHABET = [
   'А',

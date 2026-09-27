@@ -11,7 +11,7 @@ A modern, delightful web application for couples to organize and track alphabet-
 
 ## Features
 
-- **Full Ukrainian Alphabet Support**: Complete set of 33 letters (including **Ґ**, **Є**, **І**, **Ї**). Each letter has an explicit status (*available*, *active*, *used*, *excluded*).
+- **Full Ukrainian Alphabet Support**: Complete set of 33 letters. Each letter has an explicit status (*available*, *active*, *used*, *excluded*).
 - **Interactive Roulette Picker**: Randomly pick the next available letter with a smooth 4-second deceleration animation across remaining candidates and a celebratory winner pulse.
 - **Dynamic Accent Animations**:
   - Smooth reveal of the active letter card with an 800ms perimeter rim light beam when a new letter is selected.
@@ -23,7 +23,7 @@ A modern, delightful web application for couples to organize and track alphabet-
 - **Offline-First & Resilient Sync**:
   - Instant synchronous persistence via `localStorage` (works fully offline).
   - Background REST API synchronization equipped with `AbortController` to prevent race conditions.
-- **Accessibility (a11y) & Responsiveness**: Keyboard accessibility (`Escape` key modal dismiss), mobile-optimized layouts, and full respect for `prefers-reduced-motion`.
+- **Accessibility (a11y) & Responsiveness**: Keyboard accessibility, mobile-optimized layouts, and full respect for `prefers-reduced-motion`.
 
 ---
 

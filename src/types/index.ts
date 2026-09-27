@@ -1,11 +1,5 @@
 export type LetterStatus = 'available' | 'used' | 'excluded' | 'skipped';
 
-export const STATUS_UI_STRINGS: Record<LetterStatus, string> = {
-  available: 'нова',
-  used: 'використана',
-  excluded: 'виключена',
-  skipped: 'пропущена'
-};
 
 export interface LetterState {
   letter: string;
