@@ -76,6 +76,34 @@ describe('useHome', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  it('handles server response with success: false', async () => {
+    vi.mocked(api.createBoard).mockResolvedValue({
+      success: false,
+      key: ''
+    });
+
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = 'couple@example.com';
+
+    await vm.createBoard();
+
+    expect(vm.errorMessage.value).toBe('Не вдалося створити дошку. Спробуйте ще раз.');
+    expect(vm.isLoading.value).toBe(false);
+  });
+
+  it('handles non-Error thrown rejection during board creation', async () => {
+    vi.mocked(api.createBoard).mockRejectedValue('unknown failure');
+
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = 'couple@example.com';
+
+    await vm.createBoard();
+
+    expect(vm.errorMessage.value).toBe('Помилка при створенні дошки. Перевірте зʼєднання з сервером.');
+  });
+
   it('openBoard routes to the board key', () => {
     const vm = useHome();
     vm.openBoard('my-board');

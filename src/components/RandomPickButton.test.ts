@@ -45,4 +45,33 @@ describe('RandomPickButton.vue', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.find('.empty-notice').exists()).toBe(false);
   });
+
+  it('renders disabled state and picking text when isPicking is true', async () => {
+    const pickRandom = vi.fn();
+    const wrapper = mount(RandomPickButton, {
+      props: { pickRandom, isPicking: true }
+    });
+
+    const button = wrapper.find('button');
+    expect(button.attributes('disabled')).toBeDefined();
+    expect(wrapper.find('.picking-label').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Обираємо...');
+    expect(wrapper.text()).toContain('🎲');
+
+    await button.trigger('click');
+    expect(pickRandom).not.toHaveBeenCalled();
+  });
+
+  it('cleans up notice timeout on unmount', async () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(RandomPickButton, {
+      props: { pickRandom }
+    });
+
+    await wrapper.find('button').trigger('click');
+    expect(wrapper.find('.empty-notice').exists()).toBe(true);
+
+    wrapper.unmount();
+    vi.advanceTimersByTime(3000);
+  });
 });

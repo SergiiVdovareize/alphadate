@@ -50,5 +50,29 @@ describe('DeleteConfirmModal.vue', () => {
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     expect(wrapper.emitted('cancel')).toHaveLength(1);
+
+    // Other keys do nothing
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(wrapper.emitted('cancel')).toHaveLength(1);
+  });
+
+  it('updates document body overflow when isOpen changes and cleans up on unmount', async () => {
+    const wrapper = mount(DeleteConfirmModal, {
+      props: { isOpen: false }
+    });
+
+    expect(document.body.style.overflow).toBe('');
+
+    await wrapper.setProps({ isOpen: true });
+    expect(document.body.style.overflow).toBe('hidden');
+
+    await wrapper.setProps({ isOpen: false });
+    expect(document.body.style.overflow).toBe('');
+
+    await wrapper.setProps({ isOpen: true });
+    expect(document.body.style.overflow).toBe('hidden');
+
+    wrapper.unmount();
+    expect(document.body.style.overflow).toBe('');
   });
 });

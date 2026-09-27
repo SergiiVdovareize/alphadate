@@ -88,4 +88,96 @@ describe('ActiveLetterPanel.vue', () => {
     expect(wrapper.find('.confirm-expanded-btn').exists()).toBe(false);
     expect(wrapper.text()).toContain('Обрати іншу');
   });
+
+  it('submits completion note when confirmed', async () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(ActiveLetterPanel, {
+      props: {
+        letter: { letter: 'К', status: 'available' },
+        selectedAt: null,
+        boardId: 'test-board',
+        pickRandom
+      }
+    });
+
+    await wrapper.find('.complete-main-btn').trigger('click');
+    const textarea = wrapper.find('.comment-textarea');
+    await textarea.setValue('Чудова кава та прогулянка');
+    await wrapper.find('.confirm-btn').trigger('click');
+
+    expect(wrapper.emitted('complete')).toBeTruthy();
+    expect(wrapper.emitted('complete')![0]).toEqual(['Чудова кава та прогулянка']);
+    expect(wrapper.find('.completion-form').exists()).toBe(false);
+  });
+
+  it('cancels completion note form', async () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(ActiveLetterPanel, {
+      props: {
+        letter: { letter: 'К', status: 'available' },
+        selectedAt: null,
+        boardId: 'test-board',
+        pickRandom
+      }
+    });
+
+    await wrapper.find('.complete-main-btn').trigger('click');
+    expect(wrapper.find('.completion-form').exists()).toBe(true);
+
+    await wrapper.find('.completion-actions .cancel-btn').trigger('click');
+    expect(wrapper.find('.completion-form').exists()).toBe(false);
+  });
+
+  it('confirms exclusion when exclude button is clicked twice', async () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(ActiveLetterPanel, {
+      props: {
+        letter: { letter: 'К', status: 'available' },
+        selectedAt: null,
+        boardId: 'test-board',
+        pickRandom
+      }
+    });
+
+    await wrapper.find('.action-buttons button.danger').trigger('click');
+    expect(wrapper.text()).toContain('Так, виключити літеру');
+
+    await wrapper.find('.confirm-expanded-btn').trigger('click');
+    expect(wrapper.emitted('exclude')).toBeTruthy();
+  });
+
+  it('confirms cancel when "Обрати іншу" is clicked twice', async () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(ActiveLetterPanel, {
+      props: {
+        letter: { letter: 'К', status: 'available' },
+        selectedAt: null,
+        boardId: 'test-board',
+        pickRandom
+      }
+    });
+
+    await wrapper.find('.close-panel-btn').trigger('click');
+    expect(wrapper.text()).toContain('Так, обрати іншу');
+
+    await wrapper.find('.confirm-expanded-btn').trigger('click');
+    expect(wrapper.emitted('cancel')).toBeTruthy();
+  });
+
+  it('passes isPicking prop to RandomPickButton when no letter is active', () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(ActiveLetterPanel, {
+      props: {
+        letter: null,
+        selectedAt: null,
+        boardId: 'test-board',
+        pickRandom,
+        isPicking: true
+      }
+    });
+
+    const randomPickComponent = wrapper.findComponent({ name: 'RandomPickButton' });
+    expect(randomPickComponent.exists()).toBe(true);
+    expect(randomPickComponent.props('isPicking')).toBe(true);
+  });
 });

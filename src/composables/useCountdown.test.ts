@@ -139,4 +139,50 @@ describe('useCountdown', () => {
     // Must immediately show 29 days 23 hours 59 minutes, NOT 30 0 0
     expect(wrapper.vm.countdown?.text).toBe('Залишилось: 29 дн. 23 год. 59 хв');
   });
+
+  it('formats remaining time when less than 24 hours remain', () => {
+    const fixedNow = new Date('2026-09-30T06:00:00Z').getTime();
+    vi.setSystemTime(fixedNow);
+
+    // 30 days deadline minus 6 hours remaining: selected 29 days and 18 hours ago
+    const selectedAt = new Date('2026-08-31T12:00:00Z').toISOString();
+
+    const TestComponent = defineComponent({
+      setup() {
+        const countdown = useCountdown(() => selectedAt, 30);
+        return { countdown };
+      },
+      template: '<div>{{ countdown?.text }}</div>'
+    });
+
+    const wrapper = mount(TestComponent);
+    expect(wrapper.vm.countdown?.urgent).toBe(true);
+    expect(wrapper.vm.countdown?.text).toContain('год.');
+    expect(wrapper.vm.countdown?.text).toContain('хв');
+    expect(wrapper.vm.countdown?.text).toContain('с');
+    expect(wrapper.vm.countdown?.text).not.toContain('дн.');
+  });
+
+  it('formats remaining time when less than 1 hour remains', () => {
+    const fixedNow = new Date('2026-09-30T11:45:00Z').getTime();
+    vi.setSystemTime(fixedNow);
+
+    // 15 minutes left: selected 29 days, 23 hours and 45 minutes ago
+    const selectedAt = new Date('2026-08-31T12:00:00Z').toISOString();
+
+    const TestComponent = defineComponent({
+      setup() {
+        const countdown = useCountdown(() => selectedAt, 30);
+        return { countdown };
+      },
+      template: '<div>{{ countdown?.text }}</div>'
+    });
+
+    const wrapper = mount(TestComponent);
+    expect(wrapper.vm.countdown?.urgent).toBe(true);
+    expect(wrapper.vm.countdown?.text).toContain('15 хв');
+    expect(wrapper.vm.countdown?.text).toContain('с');
+    expect(wrapper.vm.countdown?.text).not.toContain('год.');
+    expect(wrapper.vm.countdown?.text).not.toContain('дн.');
+  });
 });
