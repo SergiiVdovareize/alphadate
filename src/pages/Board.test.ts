@@ -23,8 +23,13 @@ describe('Board.vue', () => {
         currentLetterSelectedAt: null
       }),
       activeLetter: ref(null),
+      history: ref([]),
       fetchError: ref(null),
       isDeleteModalOpen: ref(false),
+      isHistoryModalOpen: ref(false),
+      selectedHistoryLetter: ref(null),
+      openHistory: vi.fn(),
+      closeHistory: vi.fn(),
       pickRandom: vi.fn(),
       handleCompleteLetter: vi.fn(),
       handleExcludeLetter: vi.fn(),
@@ -41,7 +46,8 @@ describe('Board.vue', () => {
     expect(wrapper.text()).toContain('Андрій');
     expect(wrapper.text()).toContain('Олена');
     expect(wrapper.find('.alphabet-grid').exists()).toBe(true);
-    expect(wrapper.find('.reset-btn').text()).toBe('Видалити дошку');
+    expect(wrapper.find('.history-journal-link').exists()).toBe(true);
+    expect(wrapper.find('.delete-board-link').text()).toBe('Видалити дошку');
 
     wrapper.find('.brand-wrap').trigger('click');
     expect(mockGoHome).toHaveBeenCalled();
@@ -59,8 +65,13 @@ describe('Board.vue', () => {
         currentLetterSelectedAt: null
       }),
       activeLetter: ref(null),
+      history: ref([]),
       fetchError: ref('Сервер недоступний'),
       isDeleteModalOpen: ref(false),
+      isHistoryModalOpen: ref(false),
+      selectedHistoryLetter: ref(null),
+      openHistory: vi.fn(),
+      closeHistory: vi.fn(),
       pickRandom: vi.fn(),
       handleCompleteLetter: vi.fn(),
       handleExcludeLetter: vi.fn(),
@@ -75,5 +86,50 @@ describe('Board.vue', () => {
     const banner = wrapper.find('.sync-warning-banner');
     expect(banner.exists()).toBe(true);
     expect(banner.text()).toContain('Сервер недоступний');
+  });
+
+  it('calls openHistory when history button is clicked', async () => {
+    const mockOpenHistory = vi.fn();
+    vi.mocked(useBoardPage).mockReturnValue({
+      boardId: 'test-board',
+      letters: ref([]),
+      metadata: ref({
+        partners: [],
+        pinHash: null,
+        currentPartnerId: null,
+        currentLetter: null,
+        currentLetterSelectedAt: null
+      }),
+      activeLetter: ref(null),
+      history: ref([
+        {
+          letter: 'А',
+          status: 'used',
+          partnerName: 'Олена',
+          completedAt: '2026-09-25T10:00:00Z'
+        }
+      ]),
+      fetchError: ref(null),
+      isDeleteModalOpen: ref(false),
+      isHistoryModalOpen: ref(false),
+      selectedHistoryLetter: ref(null),
+      openHistory: mockOpenHistory,
+      closeHistory: vi.fn(),
+      pickRandom: vi.fn(),
+      handleCompleteLetter: vi.fn(),
+      handleExcludeLetter: vi.fn(),
+      handleCancelLetter: vi.fn(),
+      handleSelectLetter: vi.fn(),
+      handleDeleteConfirm: vi.fn(),
+      goHome: vi.fn()
+    });
+
+    const wrapper = mount(Board);
+    const historyBtn = wrapper.find('.history-journal-link');
+    expect(historyBtn.exists()).toBe(true);
+    expect(wrapper.find('.history-count-pill').text()).toBe('1');
+
+    await historyBtn.trigger('click');
+    expect(mockOpenHistory).toHaveBeenCalled();
   });
 });

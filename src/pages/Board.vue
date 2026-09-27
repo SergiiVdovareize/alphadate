@@ -2,6 +2,7 @@
 import { useBoardPage } from '../composables/useBoardPage';
 import AlphabetGrid from '../components/AlphabetGrid.vue';
 import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
+import DateHistoryModal from '../components/DateHistoryModal.vue';
 import AppLogo from '../components/AppLogo.vue';
 import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
 
@@ -10,8 +11,13 @@ const {
   letters,
   metadata,
   activeLetter,
+  history,
   fetchError,
   isDeleteModalOpen,
+  isHistoryModalOpen,
+  selectedHistoryLetter,
+  openHistory,
+  closeHistory,
   pickRandom,
   handleCompleteLetter,
   handleExcludeLetter,
@@ -74,6 +80,31 @@ const {
       :active-letter="activeLetter?.letter"
       :disabled="!!activeLetter"
       @select="handleSelectLetter"
+      @view-history="(item) => openHistory(item.letter)"
+    />
+
+    <!-- History Journal Trigger Link -->
+    <div class="history-trigger-section">
+      <button
+        type="button"
+        class="history-journal-link"
+        @click="openHistory()"
+      >
+        <span class="journal-icon" aria-hidden="true">📖</span>
+        <span class="journal-link-text">Щоденник побачень</span>
+        <span v-if="history.length > 0" class="history-count-pill">
+          {{ history.length }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Date History Modal -->
+    <DateHistoryModal
+      :is-open="isHistoryModalOpen"
+      :history="history"
+      :letters="letters"
+      :selected-letter="selectedHistoryLetter"
+      @close="closeHistory"
     />
 
     <!-- Board Deletion Modal -->
@@ -84,7 +115,13 @@ const {
     />
 
     <footer class="footer">
-      <button class="button reset-btn" @click="isDeleteModalOpen = true">Видалити дошку</button>
+      <button
+        type="button"
+        class="delete-board-link"
+        @click="isDeleteModalOpen = true"
+      >
+        Видалити дошку
+      </button>
     </footer>
   </main>
 </template>
@@ -224,39 +261,102 @@ const {
   }
 }
 
-.footer {
-  text-align: center;
-  margin-top: 4rem;
-  margin-bottom: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid var(--color-ink, #2d3748);
+.history-trigger-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
 }
 
-.reset-btn {
-  cursor: pointer;
-  background: var(--color-surface, #ffffff);
+.history-journal-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  padding: 0.45rem 0.85rem;
   color: var(--color-ink-muted, #718096);
-  border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 12px;
-  padding: 0.65rem 1.5rem;
-  font-weight: 700;
-  box-shadow: var(--shadow-3d-sm, 0 2.5px 0 #2d3748);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 10px;
+  box-shadow: none;
+  user-select: none;
   transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease,
-    border-color 0.15s ease,
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.history-journal-link .journal-link-text {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(113, 128, 150, 0.4);
+  transition: text-decoration-color 0.15s ease;
+}
+
+.history-journal-link:hover {
+  color: var(--color-accent, #ea7a87);
+  background-color: var(--color-surface-muted, #f3eae3);
+}
+
+.history-journal-link:hover .journal-link-text {
+  text-decoration-color: var(--color-accent, #ea7a87);
+}
+
+.journal-icon {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.history-count-pill {
+  background-color: rgba(234, 122, 135, 0.15);
+  color: var(--color-accent, #ea7a87);
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  line-height: 1;
+  transition:
+    background-color 0.15s ease,
     color 0.15s ease;
 }
 
-.reset-btn:hover {
-  color: var(--color-accent, #ea7a87);
-  border-color: var(--color-accent, #ea7a87);
-  box-shadow: 0 3px 0 var(--color-accent, #ea7a87);
-  transform: translateY(-1px);
+.history-journal-link:hover .history-count-pill {
+  background-color: var(--color-accent, #ea7a87);
+  color: #ffffff;
 }
 
-.reset-btn:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--color-accent, #ea7a87);
+.footer {
+  text-align: center;
+  max-width: 480px;
+  margin: 2rem auto 0 auto;
+  padding-top: 1.25rem;
+  padding-bottom: 0.5rem;
+  border-top: 1px solid rgba(45, 55, 72, 0.12);
+}
+
+.delete-board-link {
+  background: transparent;
+  border: none;
+  color: #e53e3e;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(229, 62, 62, 0.4);
+  box-shadow: none;
+  user-select: none;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.delete-board-link:hover {
+  color: #c53030;
+  text-decoration-color: #c53030;
+  background-color: rgba(229, 62, 62, 0.08);
 }
 </style>

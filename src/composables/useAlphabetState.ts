@@ -1,9 +1,16 @@
 import { ref, watch } from 'vue';
 import { api } from '../services/api';
-import type { LetterStatus, LetterState, Partner, BoardMetadata, SavedBoard } from '../types';
+import type {
+  LetterStatus,
+  LetterState,
+  Partner,
+  BoardMetadata,
+  SavedBoard,
+  LetterHistoryItem
+} from '../types';
 import { STATUS_UI_STRINGS } from '../types';
 
-export type { LetterStatus, LetterState, BoardMetadata, SavedBoard };
+export type { LetterStatus, LetterState, BoardMetadata, SavedBoard, LetterHistoryItem };
 export { STATUS_UI_STRINGS };
 
 const UKRAINIAN_ALPHABET = [
@@ -84,6 +91,7 @@ export function useAlphabetState(boardId: string) {
     currentLetter: null,
     currentLetterSelectedAt: null
   });
+  const history = ref<LetterHistoryItem[]>([]);
   const activeLetter = ref<LetterState | null>(null);
   const fetchError = ref<string | null>(null);
   const isLoadingBackend = ref(boardId !== 'default');
@@ -140,6 +148,12 @@ export function useAlphabetState(boardId: string) {
           letters.value = structuredClone(defaultState);
         }
 
+        if (parsed && parsed.history && Array.isArray(parsed.history)) {
+          history.value = parsed.history;
+        } else {
+          history.value = [];
+        }
+
         // Resolve activeLetter from currentLetter
         if (metadata.value.currentLetter) {
           activeLetter.value =
@@ -147,9 +161,11 @@ export function useAlphabetState(boardId: string) {
         }
       } catch (e) {
         letters.value = structuredClone(defaultState);
+        history.value = [];
       }
     } else {
       letters.value = structuredClone(defaultState);
+      history.value = [];
     }
   };
 
@@ -168,6 +184,9 @@ export function useAlphabetState(boardId: string) {
       const data = await api.getBoard(boardId);
       if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
         letters.value = data.letters;
+        if (data.history && Array.isArray(data.history)) {
+          history.value = data.history;
+        }
         if (data.metadata) {
           metadata.value = {
             ...data.metadata,
@@ -208,13 +227,14 @@ export function useAlphabetState(boardId: string) {
 
   // Watch for changes and save to local storage
   watch(
-    [letters, metadata],
+    [letters, metadata, history],
     () => {
       localStorage.setItem(
         LOCAL_STORAGE_KEY,
         JSON.stringify({
           metadata: metadata.value,
-          letters: letters.value
+          letters: letters.value,
+          history: history.value
         })
       );
     },
@@ -291,6 +311,21 @@ export function useAlphabetState(boardId: string) {
       if (note !== undefined) {
         item.note = note.trim() || undefined;
       }
+      if (status === 'used') {
+        const currentPartner = metadata.value.partners.find(
+          (p) => p.id === metadata.value.currentPartnerId
+        );
+        history.value.unshift({
+          letter: letterChar,
+          partnerId: currentPartner?.id,
+          partnerName: currentPartner?.name || 'Партнер',
+          playerId: (currentPartner as { playerId?: number | null })?.playerId ?? null,
+          status: 'used',
+          note: note?.trim() || undefined,
+          selectedAt: metadata.value.currentLetterSelectedAt,
+          completedAt: new Date().toISOString()
+        });
+      }
     }
     if (clearActive && metadata.value.currentLetter === letterChar) {
       activeLetter.value = null;
@@ -311,6 +346,7 @@ export function useAlphabetState(boardId: string) {
 
   const resetState = () => {
     letters.value = structuredClone(defaultState);
+    history.value = [];
     syncWithBackend();
   };
 
@@ -334,6 +370,7 @@ export function useAlphabetState(boardId: string) {
     letters,
     metadata,
     activeLetter,
+    history,
     fetchError,
     isLoadingBackend,
     isSyncing,

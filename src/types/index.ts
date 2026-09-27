@@ -37,10 +37,22 @@ export interface CreateBoardResponse {
   key: string;
 }
 
+export interface LetterHistoryItem {
+  letter: string;
+  partnerId?: number;
+  partnerName?: string;
+  playerId?: number | null;
+  status: 'used';
+  note?: string;
+  selectedAt?: string | null;
+  completedAt: string;
+}
+
 export interface BoardResponse {
   success: boolean;
   letters: LetterState[];
   metadata: BoardMetadata;
+  history?: LetterHistoryItem[];
 }
 
 export interface UpdateBoardResponse {

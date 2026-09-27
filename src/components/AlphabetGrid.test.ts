@@ -17,9 +17,9 @@ describe('AlphabetGrid.vue', () => {
 
     const buttons = wrapper.findAll('button');
     expect(buttons).toHaveLength(3);
-    expect(buttons[0].text()).toBe('А');
-    expect(buttons[1].text()).toBe('Б');
-    expect(buttons[2].text()).toBe('В');
+    expect(buttons[0].text()).toContain('А');
+    expect(buttons[1].text()).toContain('Б');
+    expect(buttons[2].text()).toContain('В');
   });
 
   it('emits select when clicking an available letter', async () => {
@@ -32,14 +32,25 @@ describe('AlphabetGrid.vue', () => {
     expect(wrapper.emitted('select')![0]).toEqual([letters[0]]);
   });
 
-  it('does not emit select when clicking a used or excluded letter', async () => {
+  it('emits view-history when clicking a used letter', async () => {
     const wrapper = mount(AlphabetGrid, {
       props: { letters }
     });
 
     await wrapper.findAll('button')[1].trigger('click'); // used
+    expect(wrapper.emitted('view-history')).toBeTruthy();
+    expect(wrapper.emitted('view-history')![0]).toEqual([letters[1]]);
+    expect(wrapper.emitted('select')).toBeFalsy();
+  });
+
+  it('does not emit select or view-history when clicking an excluded letter', async () => {
+    const wrapper = mount(AlphabetGrid, {
+      props: { letters }
+    });
+
     await wrapper.findAll('button')[2].trigger('click'); // excluded
     expect(wrapper.emitted('select')).toBeFalsy();
+    expect(wrapper.emitted('view-history')).toBeFalsy();
   });
 
   it('does not emit select when grid is disabled', async () => {

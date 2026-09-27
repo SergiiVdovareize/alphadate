@@ -16,10 +16,23 @@ export function useBoardPage() {
     deleteBoardState,
     activeLetter,
     selectLetter,
-    fetchError
+    fetchError,
+    history
   } = useAlphabetState(boardId);
 
   const isDeleteModalOpen = ref(false);
+  const isHistoryModalOpen = ref(false);
+  const selectedHistoryLetter = ref<string | null>(null);
+
+  const openHistory = (letterChar?: string) => {
+    selectedHistoryLetter.value = letterChar || null;
+    isHistoryModalOpen.value = true;
+  };
+
+  const closeHistory = () => {
+    isHistoryModalOpen.value = false;
+    selectedHistoryLetter.value = null;
+  };
 
   const handleCompleteLetter = (note: string) => {
     if (!activeLetter.value) return;
@@ -55,8 +68,13 @@ export function useBoardPage() {
     letters,
     metadata,
     activeLetter,
+    history,
     fetchError,
     isDeleteModalOpen,
+    isHistoryModalOpen,
+    selectedHistoryLetter,
+    openHistory,
+    closeHistory,
     pickRandom,
     handleCompleteLetter,
     handleExcludeLetter,

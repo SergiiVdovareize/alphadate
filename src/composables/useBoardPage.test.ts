@@ -23,6 +23,7 @@ vi.mock('./useAlphabetState', () => ({
   useAlphabetState: vi.fn(() => ({
     letters: ref([]),
     metadata: ref({ partners: [] }),
+    history: ref([]),
     markAsStatus: mockMarkAsStatus,
     pickRandom: mockPickRandom,
     deleteBoardState: mockDeleteBoardState,
@@ -91,5 +92,23 @@ describe('useBoardPage', () => {
     expect(mockDeleteBoardState).toHaveBeenCalled();
     expect(vm.isDeleteModalOpen.value).toBe(false);
     expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
+  it('manages history modal state and selected letter', () => {
+    const vm = useBoardPage();
+    expect(vm.isHistoryModalOpen.value).toBe(false);
+    expect(vm.selectedHistoryLetter.value).toBeNull();
+
+    vm.openHistory('Л');
+    expect(vm.isHistoryModalOpen.value).toBe(true);
+    expect(vm.selectedHistoryLetter.value).toBe('Л');
+
+    vm.closeHistory();
+    expect(vm.isHistoryModalOpen.value).toBe(false);
+    expect(vm.selectedHistoryLetter.value).toBeNull();
+
+    vm.openHistory();
+    expect(vm.isHistoryModalOpen.value).toBe(true);
+    expect(vm.selectedHistoryLetter.value).toBeNull();
   });
 });

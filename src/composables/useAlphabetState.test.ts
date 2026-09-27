@@ -51,6 +51,9 @@ describe('useAlphabetState', () => {
     expect(updatedB?.note).toBe('Сходили в боулінг');
     expect(state.activeLetter.value).toBeNull();
     expect(state.metadata.value.currentLetter).toBeNull();
+    expect(state.history.value).toHaveLength(1);
+    expect(state.history.value[0].letter).toBe('Б');
+    expect(state.history.value[0].note).toBe('Сходили в боулінг');
   });
 
   it('pickRandom selects an available letter or returns null if all used', () => {
