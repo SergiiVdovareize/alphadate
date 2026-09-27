@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { STATUS_UI_STRINGS } from '../composables/useAlphabetState';
 import type { LetterState } from '../composables/useAlphabetState';
 
 const props = defineProps<{
@@ -35,9 +34,7 @@ const handleClick = (item: LetterState) => {
       :title="
         item.status === 'used'
           ? `Переглянути спогад про літеру «${item.letter}»`
-          : disabled && item.letter !== activeLetter
-            ? 'Завершіть або скасуйте поточну літеру'
-            : `Статус: ${STATUS_UI_STRINGS[item.status]}`
+          : undefined
       "
       @click="handleClick(item)"
     >
