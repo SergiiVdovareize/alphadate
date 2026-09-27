@@ -44,10 +44,14 @@ export function useCountdown(
       };
     }
 
-    const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
+    // Prevent visual jump from 30 0 0 on initial open by offsetting by 5 seconds
+    const maxRemaining = totalDays * 24 * 60 * 60 * 1000 - 5 * 1000;
+    const effectiveRemaining = Math.min(remaining, maxRemaining);
+
+    const days = Math.floor(effectiveRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((effectiveRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((effectiveRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((effectiveRemaining % (1000 * 60)) / 1000);
 
     const urgent = days < 3;
 

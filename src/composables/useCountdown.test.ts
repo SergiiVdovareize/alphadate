@@ -119,4 +119,24 @@ describe('useCountdown', () => {
     // Advance timers after unmount should not cause errors
     vi.advanceTimersByTime(5000);
   });
+
+  it('caps initial remaining countdown so opening immediately shows 29 days 23 hours 59 minutes instead of 30 0 0', () => {
+    const fixedNow = new Date('2026-09-01T12:00:00Z').getTime();
+    vi.setSystemTime(fixedNow);
+
+    // Selected at this exact second
+    const selectedAt = new Date('2026-09-01T12:00:00Z').toISOString();
+
+    const TestComponent = defineComponent({
+      setup() {
+        const countdown = useCountdown(() => selectedAt, 30);
+        return { countdown };
+      },
+      template: '<div>{{ countdown?.text }}</div>'
+    });
+
+    const wrapper = mount(TestComponent);
+    // Must immediately show 29 days 23 hours 59 minutes, NOT 30 0 0
+    expect(wrapper.vm.countdown?.text).toBe('Залишилось: 29 дн. 23 год. 59 хв');
+  });
 });

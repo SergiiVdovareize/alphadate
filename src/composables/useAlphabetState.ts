@@ -263,7 +263,7 @@ export function useAlphabetState(boardId: string) {
     metadata.value.currentLetter = letter ? letter.letter : null;
     if (letter) {
       if (!metadata.value.currentLetterSelectedAt) {
-        metadata.value.currentLetterSelectedAt = new Date().toISOString();
+        metadata.value.currentLetterSelectedAt = new Date(Date.now() - 5 * 1000).toISOString();
       }
     } else {
       metadata.value.currentLetterSelectedAt = null;

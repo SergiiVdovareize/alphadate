@@ -163,6 +163,24 @@ const {
   margin: 0;
   line-height: 1;
   color: var(--color-accent, #ea7a87);
+  display: inline-block;
+  animation: pulse-char-color 3.6s ease-in-out infinite;
+}
+
+@keyframes pulse-char-color {
+  0%,
+  100% {
+    color: var(--color-accent, #ea7a87);
+  }
+  50% {
+    color: #d65b6b;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-letter-char {
+    animation: none;
+  }
 }
 
 .countdown-badge {

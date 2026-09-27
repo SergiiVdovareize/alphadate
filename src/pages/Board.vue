@@ -204,6 +204,24 @@ const {
   background-color: var(--color-accent, #ea7a87);
   display: inline-block;
   flex-shrink: 0;
+  animation: dot-pulse 2.2s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+@keyframes dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.35);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-dot {
+    animation: none;
+  }
 }
 
 .footer {
