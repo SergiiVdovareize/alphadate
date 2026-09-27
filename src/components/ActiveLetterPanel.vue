@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch, onUnmounted } from 'vue';
 import { useActiveLetterPanel } from '../composables/useActiveLetterPanel';
 import DateSuggestions from './DateSuggestions.vue';
 import RandomPickButton from './RandomPickButton.vue';
@@ -9,6 +10,7 @@ const props = defineProps<{
   selectedAt?: string | null;
   boardId: string;
   pickRandom: () => LetterState | null;
+  isPicking?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -29,17 +31,110 @@ const {
   handleConfirmableAction,
   cancelConfirmation
 } = useActiveLetterPanel(props, emit);
+
+const showTimer = ref(false);
+let timerTimeout: ReturnType<typeof setTimeout> | null = null;
+const showRimAnimation = ref(false);
+let rimTimeout: ReturnType<typeof setTimeout> | null = null;
+let isInitial = true;
+
+const checkTimerVisibility = (newLetter: string | undefined) => {
+  if (timerTimeout) {
+    clearTimeout(timerTimeout);
+    timerTimeout = null;
+  }
+
+  if (!newLetter) {
+    showTimer.value = false;
+    return;
+  }
+
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (prefersReducedMotion) {
+    showTimer.value = true;
+    return;
+  }
+
+  showTimer.value = false;
+  timerTimeout = setTimeout(() => {
+    showTimer.value = true;
+  }, 450); // Matches letter entrance pop duration
+};
+
+const triggerRimAnimation = () => {
+  if (rimTimeout) {
+    clearTimeout(rimTimeout);
+    rimTimeout = null;
+  }
+
+  const prefersReducedMotion =
+    typeof window !== 'undefined' &&
+    window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (prefersReducedMotion) {
+    showRimAnimation.value = false;
+    return;
+  }
+
+  showRimAnimation.value = true;
+  rimTimeout = setTimeout(() => {
+    showRimAnimation.value = false;
+  }, 850);
+};
+
+watch(
+  () => props.letter?.letter,
+  (newVal, oldVal) => {
+    checkTimerVisibility(newVal);
+
+    if (isInitial) {
+      isInitial = false;
+      return;
+    }
+
+    if (newVal && newVal !== oldVal) {
+      triggerRimAnimation();
+    } else if (!newVal) {
+      showRimAnimation.value = false;
+    }
+  },
+  { immediate: true }
+);
+
+onUnmounted(() => {
+  if (timerTimeout) {
+    clearTimeout(timerTimeout);
+    timerTimeout = null;
+  }
+  if (rimTimeout) {
+    clearTimeout(rimTimeout);
+    rimTimeout = null;
+  }
+});
 </script>
 
 <template>
-  <div class="active-letter-panel">
+  <div class="active-letter-panel" :class="{ 'has-active-letter': !!letter }">
+    <div v-if="letter && showRimAnimation" class="panel-rim-beam" aria-hidden="true">
+      <div class="rim-beam-spinner"></div>
+    </div>
+
     <div v-if="letter" class="panel-content">
       <div class="letter-display-wrap">
         <h2 class="active-letter-char">{{ letter.letter }}</h2>
         <div
           v-if="countdownInfo"
           class="countdown-badge"
-          :class="{ 'is-urgent': countdownInfo.urgent, 'is-expired': countdownInfo.expired }"
+          :class="{
+            'is-urgent': countdownInfo.urgent,
+            'is-expired': countdownInfo.expired,
+            'is-visible': showTimer
+          }"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -122,13 +217,18 @@ const {
 
     <div v-else class="panel-placeholder">
       <p>Оберіть літеру вручну на дошці або натисніть кнопку випадкового вибору.</p>
-      <RandomPickButton :pick-random="pickRandom" @pick="(item) => emit('pick', item)" />
+      <RandomPickButton
+        :pick-random="pickRandom"
+        :is-picking="isPicking"
+        @pick="(item) => emit('pick', item)"
+      />
     </div>
   </div>
 </template>
 
 <style scoped>
 .active-letter-panel {
+  position: relative;
   margin: 2rem 0;
   padding: 2rem;
   border-radius: 22px;
@@ -136,9 +236,80 @@ const {
   border: 1.5px solid #dfd5ca;
   box-shadow: inset 0 2px 6px rgba(45, 55, 72, 0.06);
   text-align: center;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.active-letter-panel.has-active-letter {
+  border-color: rgba(234, 122, 135, 0.25);
+  box-shadow:
+    inset 0 2px 6px rgba(45, 55, 72, 0.04),
+    0 10px 28px -10px rgba(234, 122, 135, 0.18);
+}
+
+.panel-rim-beam {
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 22px;
+  padding: 2.5px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: rim-beam-fade 800ms ease-out forwards;
+}
+
+@keyframes rim-beam-fade {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.rim-beam-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%) rotate(0deg);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 65deg,
+    rgba(234, 122, 135, 0.2) 80deg,
+    var(--color-accent, #ea7a87) 95deg,
+    #f4a261 105deg,
+    rgba(244, 162, 97, 0.3) 115deg,
+    transparent 130deg,
+    transparent 360deg
+  );
+  animation: rim-spin 800ms linear forwards;
+  transform-origin: center center;
+}
+
+@keyframes rim-spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
 }
 
 .panel-placeholder {
+  position: relative;
+  z-index: 1;
   color: var(--color-ink, #2d3748);
   font-size: 1rem;
   padding: 0.5rem 0;
@@ -156,11 +327,25 @@ const {
 }
 
 .panel-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
   width: 100%;
+  animation: panel-reveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes panel-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .letter-display-wrap {
@@ -170,6 +355,20 @@ const {
   gap: 0.5rem;
 }
 
+@keyframes letter-pop-in {
+  0% {
+    transform: scale(0.65);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 .active-letter-char {
   font-size: 4rem;
   font-weight: 900;
@@ -177,7 +376,9 @@ const {
   line-height: 1;
   color: var(--color-accent, #ea7a87);
   display: inline-block;
-  animation: pulse-char-color 3.6s ease-in-out infinite;
+  animation:
+    letter-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    pulse-char-color 3.6s ease-in-out 0.45s infinite;
 }
 
 @keyframes pulse-char-color {
@@ -191,8 +392,14 @@ const {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .active-letter-char {
+  .panel-content,
+  .letter-display-wrap,
+  .active-letter-char,
+  .countdown-badge,
+  .panel-rim-beam,
+  .rim-beam-spinner {
     animation: none;
+    transition: none;
   }
 }
 
@@ -211,6 +418,14 @@ const {
   margin-top: 0.5rem;
   cursor: default;
   user-select: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.countdown-badge.is-visible {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .countdown-icon {

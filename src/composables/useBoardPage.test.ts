@@ -111,4 +111,48 @@ describe('useBoardPage', () => {
     expect(vm.isHistoryModalOpen.value).toBe(true);
     expect(vm.selectedHistoryLetter.value).toBeNull();
   });
+
+  it('runs roulette animation across available letters when handlePickRandom is called', () => {
+    vi.useFakeTimers();
+    const vm = useBoardPage();
+    vm.letters.value = [
+      { letter: 'А', status: 'available' },
+      { letter: 'Б', status: 'available' },
+      { letter: 'В', status: 'available' }
+    ];
+
+    vm.handlePickRandom({ letter: 'В', status: 'available' });
+
+    expect(vm.isPickingRandom.value).toBe(true);
+    expect(mockSelectLetter).not.toHaveBeenCalled();
+
+    // Advance halfway through roulette
+    vi.advanceTimersByTime(300);
+    expect(vm.isPickingRandom.value).toBe(true);
+    expect(vm.highlightedLetter.value).toBeTruthy();
+
+    // Advance to final hop
+    vi.advanceTimersByTime(3800);
+    expect(vm.isWinner.value).toBe(true);
+    expect(vm.highlightedLetter.value).toBe('В');
+
+    // Advance to end of roulette
+    vi.runAllTimers();
+    expect(vm.isPickingRandom.value).toBe(false);
+    expect(vm.isWinner.value).toBe(false);
+    expect(vm.highlightedLetter.value).toBeNull();
+    expect(mockSelectLetter).toHaveBeenCalledWith({ letter: 'В', status: 'available' });
+
+    vi.useRealTimers();
+  });
+
+  it('selects immediately when only 1 available letter exists', () => {
+    const vm = useBoardPage();
+    vm.letters.value = [{ letter: 'Я', status: 'available' }];
+
+    vm.handlePickRandom({ letter: 'Я', status: 'available' });
+
+    expect(vm.isPickingRandom.value).toBe(false);
+    expect(mockSelectLetter).toHaveBeenCalledWith({ letter: 'Я', status: 'available' });
+  });
 });

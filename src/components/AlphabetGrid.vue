@@ -4,6 +4,8 @@ import type { LetterState } from '../composables/useAlphabetState';
 const props = defineProps<{
   letters: LetterState[];
   activeLetter?: string;
+  highlightedLetter?: string | null;
+  isWinner?: boolean;
   disabled?: boolean;
 }>();
 
@@ -29,8 +31,20 @@ const handleClick = (item: LetterState) => {
       v-for="item in letters"
       :key="item.letter"
       class="letter-btn"
-      :class="[`status-${item.status}`, { active: item.letter === activeLetter }]"
-      :disabled="disabled && item.letter !== activeLetter && item.status !== 'used'"
+      :class="[
+        `status-${item.status}`,
+        {
+          active: item.letter === activeLetter,
+          'is-highlighted': item.letter === highlightedLetter && !isWinner,
+          'is-winner': isWinner && item.letter === highlightedLetter
+        }
+      ]"
+      :disabled="
+        disabled &&
+        item.letter !== activeLetter &&
+        item.status !== 'used' &&
+        item.letter !== highlightedLetter
+      "
       :title="
         item.status === 'used'
           ? `Переглянути спогад про літеру «${item.letter}»`
@@ -96,6 +110,77 @@ const handleClick = (item: LetterState) => {
 
 .letter-btn.active:hover {
   transform: none;
+}
+
+.letter-btn.is-highlighted {
+  background-color: var(--color-accent) !important;
+  color: #ffffff !important;
+  border-color: var(--color-ink, #2d3748) !important;
+  transform: translateY(-4px) scale(1.14);
+  box-shadow: 0 7px 0 var(--color-ink, #2d3748) !important;
+  z-index: 10;
+  transition:
+    transform 0.05s ease,
+    background-color 0.05s ease;
+  animation: roulette-pop 0.15s ease-out;
+}
+
+@keyframes roulette-pop {
+  0% {
+    transform: scale(0.96);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.18);
+  }
+  100% {
+    transform: translateY(-4px) scale(1.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter-btn.is-highlighted {
+    animation: none;
+    transform: none;
+  }
+}
+
+.letter-btn.is-winner {
+  background-color: var(--color-accent) !important;
+  color: #ffffff !important;
+  border-color: var(--color-ink, #2d3748) !important;
+  z-index: 15;
+  animation: winner-celebrate 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+}
+
+@keyframes winner-celebrate {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 0 var(--color-ink, #2d3748);
+  }
+  35% {
+    transform: translateY(-8px) scale(1.24);
+    box-shadow:
+      0 12px 0 var(--color-ink, #2d3748),
+      0 0 0 4px rgba(var(--color-accent-rgb), 0.5),
+      0 0 20px rgba(var(--color-accent-rgb), 0.4);
+  }
+  65% {
+    transform: translateY(-2px) scale(1.08);
+    box-shadow:
+      0 6px 0 var(--color-ink, #2d3748),
+      0 0 0 2px rgba(var(--color-accent-rgb), 0.3);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .letter-btn.is-winner {
+    animation: none;
+    transform: none;
+  }
 }
 
 .letter-btn:disabled:not(.status-used) {

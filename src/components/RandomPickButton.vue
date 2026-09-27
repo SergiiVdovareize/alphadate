@@ -4,6 +4,7 @@ import type { LetterState } from '../composables/useAlphabetState';
 
 const props = defineProps<{
   pickRandom: () => LetterState | null;
+  isPicking?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -21,6 +22,7 @@ onUnmounted(() => {
 });
 
 const handleRandomPick = () => {
+  if (props.isPicking) return;
   const result = props.pickRandom();
   if (result) {
     isEmptyNotice.value = false;
@@ -37,8 +39,17 @@ const handleRandomPick = () => {
 
 <template>
   <div class="selector-container">
-    <button class="button primary large random-btn" @click="handleRandomPick">
-      Випадкова літера
+    <button
+      class="button primary large random-btn"
+      :class="{ 'is-picking': isPicking }"
+      :disabled="isPicking"
+      @click="handleRandomPick"
+    >
+      <span v-if="isPicking" class="picking-label">
+        <span class="dice-icon" aria-hidden="true">🎲</span>
+        Обираємо...
+      </span>
+      <span v-else>Випадкова літера</span>
     </button>
     <p v-if="isEmptyNotice" class="empty-notice" role="alert">
       Усі літери вже використано або виключено!
@@ -89,5 +100,42 @@ const handleRandomPick = () => {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--color-accent, #ea7a87);
+}
+
+.random-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748) !important;
+}
+
+.picking-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dice-icon {
+  display: inline-block;
+  animation: dice-wobble 0.6s ease-in-out infinite;
+}
+
+@keyframes dice-wobble {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-18deg) scale(1.15);
+  }
+  75% {
+    transform: rotate(18deg) scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dice-icon {
+    animation: none;
+  }
 }
 </style>

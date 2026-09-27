@@ -19,6 +19,10 @@ const {
   openHistory,
   closeHistory,
   pickRandom,
+  highlightedLetter,
+  isPickingRandom,
+  isWinner,
+  handlePickRandom,
   handleCompleteLetter,
   handleExcludeLetter,
   handleCancelLetter,
@@ -54,6 +58,14 @@ const {
         >
           <span
             v-if="partner.id === metadata.currentPartnerId"
+            :key="'rim-' + partner.id"
+            class="partner-rim-beam"
+            aria-hidden="true"
+          >
+            <span class="partner-rim-spinner"></span>
+          </span>
+          <span
+            v-if="partner.id === metadata.currentPartnerId"
             class="active-dot"
             aria-hidden="true"
           ></span>
@@ -68,17 +80,20 @@ const {
       :selected-at="metadata.currentLetterSelectedAt"
       :board-id="boardId"
       :pick-random="pickRandom"
+      :is-picking="isPickingRandom"
       @complete="handleCompleteLetter"
       @exclude="handleExcludeLetter"
       @cancel="handleCancelLetter"
-      @pick="handleSelectLetter"
+      @pick="handlePickRandom"
     />
 
     <!-- Alphabet Letter Grid -->
     <AlphabetGrid
       :letters="letters"
       :active-letter="activeLetter?.letter"
-      :disabled="!!activeLetter"
+      :highlighted-letter="highlightedLetter"
+      :is-winner="isWinner"
+      :disabled="!!activeLetter || isPickingRandom"
       @select="handleSelectLetter"
       @view-history="(item) => openHistory(item.letter)"
     />
@@ -210,6 +225,7 @@ const {
 }
 
 .partner-badge {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -231,8 +247,75 @@ const {
   border-color: var(--color-accent, #ea7a87);
   color: var(--color-ink, #2d3748);
   font-weight: 700;
-  box-shadow: none;
+  box-shadow: 0 4px 14px -4px rgba(234, 122, 135, 0.25);
   transform: none;
+}
+
+.partner-rim-beam {
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 9999px;
+  padding: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: partner-rim-fade 800ms ease-out forwards;
+}
+
+@keyframes partner-rim-fade {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.partner-rim-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260%;
+  aspect-ratio: 1 / 1;
+  transform: translate(-50%, -50%) rotate(0deg);
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 65deg,
+    rgba(74, 46, 27, 0.25) 80deg,
+    #4a2e1b 95deg,
+    #633e25 105deg,
+    rgba(99, 62, 37, 0.35) 115deg,
+    transparent 130deg,
+    transparent 360deg
+  );
+  animation: partner-rim-spin 800ms linear forwards;
+  transform-origin: center center;
+}
+
+@keyframes partner-rim-spin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.active-dot,
+.partner-name {
+  position: relative;
+  z-index: 1;
 }
 
 .active-dot {
@@ -257,7 +340,9 @@ const {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .active-dot {
+  .active-dot,
+  .partner-rim-beam,
+  .partner-rim-spinner {
     animation: none;
   }
 }
