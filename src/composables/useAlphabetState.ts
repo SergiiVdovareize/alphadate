@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue';
-import { api } from '../services/api';
+import { api, ApiError, setStoredPin, clearStoredPin } from '../services/api';
 import type {
   LetterStatus,
   LetterState,
@@ -93,6 +93,8 @@ export function useAlphabetState(boardId: string) {
   const fetchError = ref<string | null>(null);
   const isLoadingBackend = ref(boardId !== 'default');
   const isSyncing = ref(false);
+  const isPinRequired = ref(false);
+  const pinError = ref<string | null>(null);
 
   let currentSyncController: AbortController | null = null;
 
@@ -121,6 +123,7 @@ export function useAlphabetState(boardId: string) {
                   { id: 2, name: parsed.metadata.partner2 || '' }
                 ].filter((p) => p.name),
                 pinHash: parsed.metadata.pinHash || null,
+                hasPin: parsed.metadata.hasPin,
                 currentPartnerId: 1,
                 currentLetter: parsed.metadata.currentLetter || null,
                 currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
@@ -135,6 +138,7 @@ export function useAlphabetState(boardId: string) {
               metadata.value = {
                 partners: mappedPartners,
                 pinHash: parsed.metadata.pinHash || null,
+                hasPin: parsed.metadata.hasPin,
                 currentPartnerId: parsed.metadata.currentPartnerId || mappedPartners[0]?.id || null,
                 currentLetter: parsed.metadata.currentLetter || null,
                 currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
@@ -179,6 +183,8 @@ export function useAlphabetState(boardId: string) {
 
     try {
       const data = await api.getBoard(boardId);
+      isPinRequired.value = false;
+      pinError.value = null;
       if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
         letters.value = data.letters;
         if (data.history && Array.isArray(data.history)) {
@@ -213,8 +219,66 @@ export function useAlphabetState(boardId: string) {
         }
       }
     } catch (e: unknown) {
-      console.error('Failed to sync state from backend:', e);
-      fetchError.value = e instanceof Error ? e.message : 'Не вдалося завантажити дошку з сервера.';
+      const is401 =
+        e instanceof ApiError
+          ? e.status === 401
+          : Boolean(e && typeof e === 'object' && 'status' in e && (e as { status: unknown }).status === 401);
+      const isPinFlag = Boolean(
+        e &&
+          typeof e === 'object' &&
+          'responseBody' in e &&
+          (e as { responseBody?: { isPinRequired?: boolean } }).responseBody?.isPinRequired
+      );
+
+      if (is401 || isPinFlag) {
+        isPinRequired.value = true;
+        clearStoredPin(boardId);
+        fetchError.value = null;
+      } else {
+        console.error('Failed to sync state from backend:', e);
+        fetchError.value = e instanceof Error ? e.message : 'Не вдалося завантажити дошку з сервера.';
+      }
+    } finally {
+      isLoadingBackend.value = false;
+    }
+  };
+
+  const unlockWithPin = async (enteredPin: string): Promise<boolean> => {
+    const trimmed = enteredPin.trim();
+    if (!/^\d{4}$/.test(trimmed)) {
+      pinError.value = 'PIN-код повинен складатися рівно з 4 цифр.';
+      return false;
+    }
+
+    isLoadingBackend.value = true;
+    pinError.value = null;
+    try {
+      const data = await api.getBoard(boardId, undefined, trimmed);
+      await setStoredPin(boardId, trimmed);
+      isPinRequired.value = false;
+      pinError.value = null;
+      fetchError.value = null;
+
+      if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
+        letters.value = data.letters;
+        if (data.history && Array.isArray(data.history)) {
+          history.value = data.history;
+        }
+        if (data.metadata) {
+          metadata.value = {
+            ...data.metadata,
+            currentLetterSelectedAt: data.metadata.currentLetterSelectedAt || null
+          };
+          activeLetter.value = data.metadata.currentLetter
+            ? letters.value.find((l) => l.letter === data.metadata.currentLetter) || null
+            : null;
+        }
+      }
+      return true;
+    } catch (e: unknown) {
+      clearStoredPin(boardId);
+      pinError.value = e instanceof Error ? e.message : 'Невірний PIN-код. Спробуйте ще раз.';
+      return false;
     } finally {
       isLoadingBackend.value = false;
     }
@@ -351,6 +415,7 @@ export function useAlphabetState(boardId: string) {
     if (boardId === 'default') return;
     try {
       await api.deleteBoard(boardId);
+      clearStoredPin(boardId);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
 
       // Cleanup from history list
@@ -371,6 +436,8 @@ export function useAlphabetState(boardId: string) {
     fetchError,
     isLoadingBackend,
     isSyncing,
+    isPinRequired,
+    pinError,
     fetchState,
     markAsStatus,
     pickRandom,
@@ -378,6 +445,7 @@ export function useAlphabetState(boardId: string) {
     initBoardMetadata,
     deleteBoardState,
     selectLetter,
-    reloadBackendState: fetchBackendState
+    reloadBackendState: fetchBackendState,
+    unlockWithPin
   };
 }

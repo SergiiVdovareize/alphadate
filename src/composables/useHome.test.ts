@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useHome } from './useHome';
-import { api } from '../services/api';
+import { api, getStoredPin } from '../services/api';
 
 const mockPush = vi.fn();
 vi.mock('vue-router', () => ({
@@ -9,11 +9,15 @@ vi.mock('vue-router', () => ({
   })
 }));
 
-vi.mock('../services/api', () => ({
-  api: {
-    createBoard: vi.fn()
-  }
-}));
+vi.mock('../services/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/api')>();
+  return {
+    ...actual,
+    api: {
+      createBoard: vi.fn()
+    }
+  };
+});
 
 describe('useHome', () => {
   beforeEach(() => {
@@ -41,6 +45,21 @@ describe('useHome', () => {
     expect(api.createBoard).not.toHaveBeenCalled();
   });
 
+  it('validates 4-digit format for PIN if provided', async () => {
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = 'couple@example.com';
+    vm.pin.value = '123'; // invalid length
+
+    await vm.createBoard();
+    expect(vm.errorMessage.value).toBe('PIN-код повинен складатися рівно з 4 цифр.');
+    expect(api.createBoard).not.toHaveBeenCalled();
+
+    vm.pin.value = '12ab'; // non-digit
+    await vm.createBoard();
+    expect(vm.errorMessage.value).toBe('PIN-код повинен складатися рівно з 4 цифр.');
+  });
+
   it('creates board, saves to localStorage, and navigates on success', async () => {
     vi.mocked(api.createBoard).mockResolvedValue({
       success: true,
@@ -50,16 +69,23 @@ describe('useHome', () => {
     const vm = useHome();
     vm.partners.value = ['Оля', 'Максим'];
     vm.email.value = 'couple@example.com';
+    vm.pin.value = '1234';
 
     await vm.createBoard();
 
-    expect(api.createBoard).toHaveBeenCalledWith(['Оля', 'Максим'], 'couple@example.com');
+    expect(api.createBoard).toHaveBeenCalledWith(['Оля', 'Максим'], 'couple@example.com', '1234');
     expect(mockPush).toHaveBeenCalledWith('/new-board-key');
 
     const saved = JSON.parse(localStorage.getItem('alphadate_saved_boards') || '[]');
     expect(saved).toHaveLength(1);
     expect(saved[0].key).toBe('new-board-key');
     expect(saved[0].partners).toEqual(['Оля', 'Максим']);
+
+    // Check stored pin is encrypted in localStorage and can be decrypted
+    const rawPin = localStorage.getItem('alphadate_pin_new-board-key');
+    expect(rawPin).not.toBeNull();
+    expect(rawPin).not.toBe('1234');
+    expect(await getStoredPin('new-board-key')).toBe('1234');
   });
 
   it('handles server failure during board creation', async () => {

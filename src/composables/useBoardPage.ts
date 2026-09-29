@@ -17,7 +17,11 @@ export function useBoardPage() {
     activeLetter,
     selectLetter,
     fetchError,
-    history
+    history,
+    isPinRequired,
+    pinError,
+    unlockWithPin,
+    isLoadingBackend
   } = useAlphabetState(boardId);
 
   const isDeleteModalOpen = ref(false);
@@ -138,6 +142,14 @@ export function useBoardPage() {
     goHome();
   };
 
+  const handleUnlockPin = async (pin: string) => {
+    await unlockWithPin(pin);
+  };
+
+  const handleCancelPin = () => {
+    goHome();
+  };
+
   const goHome = () => {
     router.push('/');
   };
@@ -155,6 +167,11 @@ export function useBoardPage() {
     highlightedLetter,
     isPickingRandom,
     isWinner,
+    isPinRequired,
+    pinError,
+    isLoadingBackend,
+    handleUnlockPin,
+    handleCancelPin,
     handlePickRandom,
     openHistory,
     closeHistory,

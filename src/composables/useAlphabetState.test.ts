@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAlphabetState, initBoardLocalStorage } from './useAlphabetState';
-import { api } from '../services/api';
+import { api, ApiError, getStoredPin } from '../services/api';
 
-vi.mock('../services/api', () => ({
-  api: {
-    getBoard: vi.fn(),
-    updateBoard: vi.fn(),
-    deleteBoard: vi.fn()
-  }
-}));
+vi.mock('../services/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../services/api')>();
+  return {
+    ...actual,
+    api: {
+      getBoard: vi.fn(),
+      updateBoard: vi.fn(),
+      deleteBoard: vi.fn()
+    }
+  };
+});
 
 describe('useAlphabetState', () => {
   beforeEach(() => {
@@ -125,5 +129,69 @@ describe('useAlphabetState', () => {
       { id: 1, name: 'Катя' },
       { id: 2, name: 'Дмитро' }
     ]);
+  });
+
+  it('sets isPinRequired to true when backend responds with 401 PIN required', async () => {
+    const error = new ApiError(401, 'Board is protected by PIN code', { isPinRequired: true });
+    vi.mocked(api.getBoard).mockRejectedValue(error);
+
+    const state = useAlphabetState('pin-protected');
+    await vi.waitFor(() => expect(state.isLoadingBackend.value).toBe(false));
+
+    expect(state.isPinRequired.value).toBe(true);
+    expect(state.fetchError.value).toBeNull();
+  });
+
+  it('unlockWithPin validates PIN length, attempts unlock, and stores PIN on success', async () => {
+    const state = useAlphabetState('pin-board');
+
+    // Invalid format
+    const invalidResult = await state.unlockWithPin('12');
+    expect(invalidResult).toBe(false);
+    expect(state.pinError.value).toBe('PIN-код повинен складатися рівно з 4 цифр.');
+
+    // Successful unlock
+    vi.mocked(api.getBoard).mockResolvedValue({
+      success: true,
+      letters: [{ letter: 'А', status: 'available' }],
+      metadata: {
+        partners: [{ id: 1, name: 'Олег' }],
+        pinHash: 'hash',
+        hasPin: true,
+        currentPartnerId: 1,
+        currentLetter: 'А',
+        currentLetterSelectedAt: null
+      }
+    });
+
+    const success = await state.unlockWithPin('1234');
+    expect(success).toBe(true);
+    expect(state.isPinRequired.value).toBe(false);
+    const stored = localStorage.getItem('alphadate_pin_pin-board');
+    expect(stored).not.toBeNull();
+    expect(stored).not.toBe('1234');
+    expect(await getStoredPin('pin-board')).toBe('1234');
+  });
+
+  it('unlockWithPin handles incorrect PIN rejection', async () => {
+    const state = useAlphabetState('pin-board-fail');
+
+    vi.mocked(api.getBoard).mockRejectedValue(new Error('Invalid PIN code'));
+
+    const success = await state.unlockWithPin('0000');
+    expect(success).toBe(false);
+    expect(state.pinError.value).toBe('Invalid PIN code');
+  });
+
+  it('deleteBoardState deletes board and cleans up storage and PIN', async () => {
+    localStorage.setItem('alphadate_pin_delete-board', '1234');
+    localStorage.setItem('alphadate_state_delete-board', '{}');
+
+    const state = useAlphabetState('delete-board');
+    await state.deleteBoardState();
+
+    expect(api.deleteBoard).toHaveBeenCalledWith('delete-board');
+    expect(localStorage.getItem('alphadate_pin_delete-board')).toBeNull();
+    expect(localStorage.getItem('alphadate_state_delete-board')).toBeNull();
   });
 });

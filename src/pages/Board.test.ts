@@ -18,6 +18,7 @@ describe('Board.vue', () => {
           { id: 2, name: 'Олена' }
         ],
         pinHash: null,
+        hasPin: true,
         currentPartnerId: 1,
         currentLetter: null,
         currentLetterSelectedAt: null
@@ -31,6 +32,11 @@ describe('Board.vue', () => {
       highlightedLetter: ref(null),
       isPickingRandom: ref(false),
       isWinner: ref(false),
+      isPinRequired: ref(false),
+      pinError: ref(null),
+      isLoadingBackend: ref(false),
+      handleUnlockPin: vi.fn(),
+      handleCancelPin: vi.fn(),
       handlePickRandom: vi.fn(),
       openHistory: vi.fn(),
       closeHistory: vi.fn(),
@@ -77,6 +83,11 @@ describe('Board.vue', () => {
       highlightedLetter: ref(null),
       isPickingRandom: ref(false),
       isWinner: ref(false),
+      isPinRequired: ref(false),
+      pinError: ref(null),
+      isLoadingBackend: ref(false),
+      handleUnlockPin: vi.fn(),
+      handleCancelPin: vi.fn(),
       handlePickRandom: vi.fn(),
       openHistory: vi.fn(),
       closeHistory: vi.fn(),
@@ -124,6 +135,11 @@ describe('Board.vue', () => {
       highlightedLetter: ref(null),
       isPickingRandom: ref(false),
       isWinner: ref(false),
+      isPinRequired: ref(false),
+      pinError: ref(null),
+      isLoadingBackend: ref(false),
+      handleUnlockPin: vi.fn(),
+      handleCancelPin: vi.fn(),
       handlePickRandom: vi.fn(),
       openHistory: mockOpenHistory,
       closeHistory: vi.fn(),
@@ -143,5 +159,62 @@ describe('Board.vue', () => {
 
     await historyBtn.trigger('click');
     expect(mockOpenHistory).toHaveBeenCalled();
+  });
+
+  it('renders PinModal when isPinRequired is true', () => {
+    vi.mocked(useBoardPage).mockReturnValue({
+      boardId: 'test-board',
+      letters: ref([]),
+      metadata: ref({
+        partners: [],
+        pinHash: null,
+        currentPartnerId: null,
+        currentLetter: null,
+        currentLetterSelectedAt: null
+      }),
+      activeLetter: ref(null),
+      history: ref([]),
+      fetchError: ref(null),
+      isDeleteModalOpen: ref(false),
+      isHistoryModalOpen: ref(false),
+      selectedHistoryLetter: ref(null),
+      highlightedLetter: ref(null),
+      isPickingRandom: ref(false),
+      isWinner: ref(false),
+      isPinRequired: ref(true),
+      pinError: ref('Невірний PIN-код'),
+      isLoadingBackend: ref(false),
+      handleUnlockPin: vi.fn(),
+      handleCancelPin: vi.fn(),
+      handlePickRandom: vi.fn(),
+      openHistory: vi.fn(),
+      closeHistory: vi.fn(),
+      pickRandom: vi.fn(),
+      handleCompleteLetter: vi.fn(),
+      handleExcludeLetter: vi.fn(),
+      handleCancelLetter: vi.fn(),
+      handleSelectLetter: vi.fn(),
+      handleDeleteConfirm: vi.fn(),
+      goHome: vi.fn()
+    });
+
+    const wrapper = mount(Board);
+    expect(wrapper.findComponent({ name: 'PinModal' }).exists()).toBe(true);
+    expect(wrapper.text()).toContain('Доступ захищено');
+    expect(wrapper.text()).toContain('Невірний PIN-код');
+
+    // Only logo and project name should be rendered on background
+    expect(wrapper.find('.brand-wrap').exists()).toBe(true);
+    expect(wrapper.findComponent({ name: 'AppLogo' }).exists()).toBe(true);
+    expect(wrapper.find('.brand-title').text()).toBe('AlphaDate');
+
+    // All other board elements must be hidden
+    expect(wrapper.findComponent({ name: 'AlphabetGrid' }).exists()).toBe(false);
+    expect(wrapper.findComponent({ name: 'ActiveLetterPanel' }).exists()).toBe(false);
+    expect(wrapper.findComponent({ name: 'DateHistoryModal' }).exists()).toBe(false);
+    expect(wrapper.findComponent({ name: 'DeleteConfirmModal' }).exists()).toBe(false);
+    expect(wrapper.find('.turn-container').exists()).toBe(false);
+    expect(wrapper.find('.history-trigger-section').exists()).toBe(false);
+    expect(wrapper.find('.footer').exists()).toBe(false);
   });
 });

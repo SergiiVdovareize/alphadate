@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { api, ApiError } from './api';
+import { api, ApiError, getStoredPin, setStoredPin, clearStoredPin } from './api';
 
 describe('ApiError', () => {
   it('instantiates with status, message, and responseBody', () => {
@@ -17,27 +17,44 @@ describe('api service', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+    localStorage.clear();
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
+    localStorage.clear();
   });
 
-  it('createBoard makes a POST request and returns data', async () => {
+  it('manages PIN storage helpers with encryption', async () => {
+    expect(await getStoredPin('board-1')).toBeNull();
+    await setStoredPin('board-1', '1234');
+    expect(await getStoredPin('board-1')).toBe('1234');
+
+    // Confirm that the value stored in localStorage is encrypted and not plaintext
+    const rawStored = localStorage.getItem('alphadate_pin_board-1');
+    expect(rawStored).not.toBe('1234');
+    expect(rawStored).toContain('"iv"');
+    expect(rawStored).toContain('"data"');
+
+    clearStoredPin('board-1');
+    expect(await getStoredPin('board-1')).toBeNull();
+  });
+
+  it('createBoard makes a POST request with optional PIN and returns data', async () => {
     const mockData = { success: true, key: 'abc-123' };
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => mockData
     } as Response);
 
-    const result = await api.createBoard(['Саша', 'Юля'], 'test@example.com');
+    const result = await api.createBoard(['Саша', 'Юля'], 'test@example.com', '1234');
     expect(result).toEqual(mockData);
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/alphadate'),
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ partners: ['Саша', 'Юля'], email: 'test@example.com' })
+        body: JSON.stringify({ partners: ['Саша', 'Юля'], email: 'test@example.com', pin: '1234' })
       })
     );
   });
@@ -64,6 +81,33 @@ describe('api service', () => {
     expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/alphadate/key%2Fwith%20spaces'),
       expect.objectContaining({ method: 'GET' })
+    );
+  });
+
+  it('includes x-board-pin header when pin is passed or stored in localStorage', async () => {
+    const mockBoard = { success: true, letters: [], metadata: { partners: [] } };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockBoard
+    } as Response);
+
+    // Explicit pin argument
+    await api.getBoard('protected-board', undefined, '5678');
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/alphadate/protected-board'),
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'x-board-pin': '5678' })
+      })
+    );
+
+    // Stored pin fallback
+    await setStoredPin('stored-board', '9999');
+    await api.getBoard('stored-board');
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/alphadate/stored-board'),
+      expect.objectContaining({
+        headers: expect.objectContaining({ 'x-board-pin': '9999' })
+      })
     );
   });
 

@@ -17,6 +17,7 @@ const mockMarkAsStatus = vi.fn();
 const mockPickRandom = vi.fn();
 const mockDeleteBoardState = vi.fn().mockResolvedValue(undefined);
 const mockSelectLetter = vi.fn();
+const mockUnlockWithPin = vi.fn().mockResolvedValue(true);
 const mockActiveLetter = ref<{ letter: string; status: 'available' } | null>(null);
 
 vi.mock('./useAlphabetState', () => ({
@@ -29,7 +30,11 @@ vi.mock('./useAlphabetState', () => ({
     deleteBoardState: mockDeleteBoardState,
     activeLetter: mockActiveLetter,
     selectLetter: mockSelectLetter,
-    fetchError: ref(null)
+    fetchError: ref(null),
+    isPinRequired: ref(false),
+    pinError: ref(null),
+    isLoadingBackend: ref(false),
+    unlockWithPin: mockUnlockWithPin
   }))
 }));
 
@@ -154,5 +159,17 @@ describe('useBoardPage', () => {
 
     expect(vm.isPickingRandom.value).toBe(false);
     expect(mockSelectLetter).toHaveBeenCalledWith({ letter: 'Я', status: 'available' });
+  });
+
+  it('handleUnlockPin delegates to unlockWithPin', async () => {
+    const vm = useBoardPage();
+    await vm.handleUnlockPin('1234');
+    expect(mockUnlockWithPin).toHaveBeenCalledWith('1234');
+  });
+
+  it('handleCancelPin navigates home', () => {
+    const vm = useBoardPage();
+    vm.handleCancelPin();
+    expect(mockPush).toHaveBeenCalledWith('/');
   });
 });

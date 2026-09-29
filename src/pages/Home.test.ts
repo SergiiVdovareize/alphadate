@@ -12,6 +12,7 @@ describe('Home.vue', () => {
     vi.mocked(useHome).mockReturnValue({
       partners: ref(['Олег', 'Катя']),
       email: ref('test@example.com'),
+      pin: ref(''),
       isLoading: ref(false),
       errorMessage: ref(null),
       savedBoards: ref([]),
@@ -23,7 +24,8 @@ describe('Home.vue', () => {
 
     expect(wrapper.find('h1').text()).toBe('AlphaDate');
     const inputs = wrapper.findAll('input');
-    expect(inputs).toHaveLength(3); // 2 partner inputs + 1 email input
+    expect(inputs).toHaveLength(4); // 2 partner inputs + 1 email input + 1 PIN input
+    expect(wrapper.find('#board-pin').exists()).toBe(true);
     expect(wrapper.find('button[type="submit"]').text()).toBe('Створити спільну дошку');
   });
 
@@ -32,6 +34,7 @@ describe('Home.vue', () => {
     vi.mocked(useHome).mockReturnValue({
       partners: ref(['', '']),
       email: ref(''),
+      pin: ref(''),
       isLoading: ref(false),
       errorMessage: ref(null),
       savedBoards: ref([
@@ -59,6 +62,7 @@ describe('Home.vue', () => {
     vi.mocked(useHome).mockReturnValue({
       partners: ref(['', '']),
       email: ref(''),
+      pin: ref(''),
       isLoading: ref(false),
       errorMessage: ref('Помилка сервера'),
       savedBoards: ref([]),

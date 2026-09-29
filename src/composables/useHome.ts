@@ -1,13 +1,14 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { initBoardLocalStorage, type SavedBoard } from './useAlphabetState';
-import { api } from '../services/api';
+import { api, setStoredPin } from '../services/api';
 
 export function useHome() {
   const router = useRouter();
 
   const partners = ref(['', '']);
   const email = ref('');
+  const pin = ref('');
   const isLoading = ref(false);
   const errorMessage = ref<string | null>(null);
   const savedBoards = ref<SavedBoard[]>([]);
@@ -42,10 +43,20 @@ export function useHome() {
       return;
     }
 
+    const trimmedPin = pin.value.trim();
+    if (trimmedPin && !/^\d{4}$/.test(trimmedPin)) {
+      errorMessage.value = 'PIN-код повинен складатися рівно з 4 цифр.';
+      return;
+    }
+
     isLoading.value = true;
     try {
-      const data = await api.createBoard(validPartners, trimmedEmail);
+      const data = await api.createBoard(validPartners, trimmedEmail, trimmedPin || undefined);
       if (data.success && data.key) {
+        if (trimmedPin) {
+          await setStoredPin(data.key, trimmedPin);
+        }
+
         // Save board details to localStorage history list
         const savedKey = 'alphadate_saved_boards';
         const existingList: SavedBoard[] = JSON.parse(localStorage.getItem(savedKey) || '[]');
@@ -78,6 +89,7 @@ export function useHome() {
   return {
     partners,
     email,
+    pin,
     isLoading,
     errorMessage,
     savedBoards,

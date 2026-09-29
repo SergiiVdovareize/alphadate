@@ -22,6 +22,7 @@ A modern, delightful web application for couples to organize and track alphabet-
 - **Non-Intrusive Countdown Timer**: 30-day date countdown that renders in place and fades in smoothly without layout shifts.
 - **Date Suggestions Drawer**: Expandable panel with curated activity ideas for each letter, backed by a module-level cache to eliminate duplicate network requests.
 - **Date History Journal**: Chronological log of completed dates featuring notes, dates, and author tags with instant filtering.
+- **Optional PIN Protection**: Couples can protect their shared boards with an optional 4-digit PIN code. Protected boards enforce authentication via `x-board-pin` headers and a dedicated unlocking modal dialog.
 - **Offline-First & Resilient Sync**:
   - Instant synchronous persistence via `localStorage` (works fully offline).
   - Background REST API synchronization equipped with `AbortController` to prevent race conditions.
@@ -38,7 +39,7 @@ A modern, delightful web application for couples to organize and track alphabet-
 | **Routing** | [Vue Router 4](https://router.vuejs.org/) (`createWebHashHistory` for seamless deployment without server rewrites) |
 | **Build & Dev Server** | [Vite 5](https://vitejs.dev/) + [vue-tsc](https://github.com/vuejs/language-tools) |
 | **Styling & UI System** | Vanilla CSS + custom design tokens (pastel palette, Flat 3D Raised Depth, oat.ink principles, GPU-accelerated motion) |
-| **Testing** | [Vitest](https://vitest.dev/) (19 test suites, 88 unit tests) + [@vue/test-utils](https://test-utils.vuejs.org/) |
+| **Testing** | [Vitest](https://vitest.dev/) (20 test suites, 119 unit tests, >93% coverage) + [@vue/test-utils](https://test-utils.vuejs.org/) |
 | **Linting & Formatting** | [ESLint](https://eslint.org/) (`eslint-plugin-vue`, `eslint-plugin-vuejs-accessibility`), [Prettier](https://prettier.io/) |
 | **Quality & Bundle Analysis** | [dpdm](https://github.com/acrazing/dpdm) (circular dependency detection), [knip](https://knip.dev/) (dead code analysis), [size-limit](https://github.com/ai/size-limit) (bundle budget enforcement) |
 | **Network Layer** | Typed native `fetch` client with `AbortSignal` cancellation and custom `ApiError` hierarchy |

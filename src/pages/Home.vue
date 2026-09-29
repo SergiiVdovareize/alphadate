@@ -2,7 +2,7 @@
 import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
 
-const { partners, email, isLoading, errorMessage, savedBoards, openBoard, createBoard } = useHome();
+const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, createBoard } = useHome();
 </script>
 
 <template>
@@ -61,6 +61,23 @@ const { partners, email, isLoading, errorMessage, savedBoards, openBoard, create
             type="email"
             required
             placeholder="Наприклад: email@example.com"
+          />
+        </div>
+
+        <div class="input-group">
+          <div class="label-with-hint">
+            <label for="board-pin">PIN-код для захисту</label>
+            <span class="hint-text">необов'язково</span>
+          </div>
+          <input
+            id="board-pin"
+            v-model="pin"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="4"
+            placeholder="4 цифри (наприклад: 1234)"
+            autocomplete="new-password"
           />
         </div>
 
@@ -134,6 +151,18 @@ label {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-ink, #2d3748);
+}
+
+.label-with-hint {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.hint-text {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-ink-muted, #718096);
 }
 
 input {

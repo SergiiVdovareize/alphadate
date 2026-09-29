@@ -5,6 +5,7 @@ import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import DateHistoryModal from '../components/DateHistoryModal.vue';
 import AppLogo from '../components/AppLogo.vue';
 import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
+import PinModal from '../components/PinModal.vue';
 
 const {
   boardId,
@@ -22,6 +23,11 @@ const {
   highlightedLetter,
   isPickingRandom,
   isWinner,
+  isPinRequired,
+  pinError,
+  isLoadingBackend,
+  handleUnlockPin,
+  handleCancelPin,
   handlePickRandom,
   handleCompleteLetter,
   handleExcludeLetter,
@@ -41,104 +47,115 @@ const {
       </button>
     </header>
 
-    <!-- Sync error notification banner -->
-    <div v-if="fetchError" class="sync-warning-banner" role="alert">
-      <span>⚠️ {{ fetchError }} (показано локальні дані)</span>
-    </div>
-
-    <!-- Partner turns banner -->
-    <div v-if="metadata.partners && metadata.partners.length > 0" class="turn-container">
-      <span class="turn-label">Черга організовувати побачення</span>
-      <div class="turn-badges">
-        <span
-          v-for="partner in metadata.partners"
-          :key="partner.id"
-          class="partner-badge"
-          :class="{ active: partner.id === metadata.currentPartnerId }"
-        >
-          <span
-            v-if="partner.id === metadata.currentPartnerId"
-            :key="'rim-' + partner.id"
-            class="partner-rim-beam"
-            aria-hidden="true"
-          >
-            <span class="partner-rim-spinner"></span>
-          </span>
-          <span
-            v-if="partner.id === metadata.currentPartnerId"
-            class="active-dot"
-            aria-hidden="true"
-          ></span>
-          <span class="partner-name">{{ partner.name }}</span>
-        </span>
+    <template v-if="!isPinRequired">
+      <!-- Sync error notification banner -->
+      <div v-if="fetchError" class="sync-warning-banner" role="alert">
+        <span>⚠️ {{ fetchError }} (показано локальні дані)</span>
       </div>
-    </div>
 
-    <!-- Active Letter Action Panel Component -->
-    <ActiveLetterPanel
-      :letter="activeLetter"
-      :selected-at="metadata.currentLetterSelectedAt"
-      :board-id="boardId"
-      :pick-random="pickRandom"
-      :is-picking="isPickingRandom"
-      @complete="handleCompleteLetter"
-      @exclude="handleExcludeLetter"
-      @cancel="handleCancelLetter"
-      @pick="handlePickRandom"
+      <!-- Partner turns banner -->
+      <div v-if="metadata.partners && metadata.partners.length > 0" class="turn-container">
+        <span class="turn-label">Черга організовувати побачення</span>
+        <div class="turn-badges">
+          <span
+            v-for="partner in metadata.partners"
+            :key="partner.id"
+            class="partner-badge"
+            :class="{ active: partner.id === metadata.currentPartnerId }"
+          >
+            <span
+              v-if="partner.id === metadata.currentPartnerId"
+              :key="'rim-' + partner.id"
+              class="partner-rim-beam"
+              aria-hidden="true"
+            >
+              <span class="partner-rim-spinner"></span>
+            </span>
+            <span
+              v-if="partner.id === metadata.currentPartnerId"
+              class="active-dot"
+              aria-hidden="true"
+            ></span>
+            <span class="partner-name">{{ partner.name }}</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Active Letter Action Panel Component -->
+      <ActiveLetterPanel
+        :letter="activeLetter"
+        :selected-at="metadata.currentLetterSelectedAt"
+        :board-id="boardId"
+        :pick-random="pickRandom"
+        :is-picking="isPickingRandom"
+        @complete="handleCompleteLetter"
+        @exclude="handleExcludeLetter"
+        @cancel="handleCancelLetter"
+        @pick="handlePickRandom"
+      />
+
+      <!-- Alphabet Letter Grid -->
+      <AlphabetGrid
+        :letters="letters"
+        :active-letter="activeLetter?.letter"
+        :highlighted-letter="highlightedLetter"
+        :is-winner="isWinner"
+        :disabled="!!activeLetter || isPickingRandom"
+        @select="handleSelectLetter"
+        @view-history="(item) => openHistory(item.letter)"
+      />
+
+      <!-- History Journal Trigger Link -->
+      <div class="history-trigger-section">
+        <button
+          type="button"
+          class="history-journal-link"
+          @click="openHistory()"
+        >
+          <span class="journal-icon" aria-hidden="true">📖</span>
+          <span class="journal-link-text">Щоденник побачень</span>
+          <span v-if="history.length > 0" class="history-count-pill">
+            {{ history.length }}
+          </span>
+        </button>
+      </div>
+
+      <!-- Date History Modal -->
+      <DateHistoryModal
+        :is-open="isHistoryModalOpen"
+        :history="history"
+        :letters="letters"
+        :selected-letter="selectedHistoryLetter"
+        @close="closeHistory"
+        @view-all="openHistory()"
+      />
+
+      <!-- Board Deletion Modal -->
+      <DeleteConfirmModal
+        :is-open="isDeleteModalOpen"
+        @confirm="handleDeleteConfirm"
+        @cancel="isDeleteModalOpen = false"
+      />
+
+      <footer class="footer">
+        <button
+          type="button"
+          class="delete-board-link"
+          @click="isDeleteModalOpen = true"
+        >
+          Видалити дошку
+        </button>
+      </footer>
+    </template>
+
+    <!-- Board PIN Code Modal -->
+    <PinModal
+      :is-open="isPinRequired"
+      :error="pinError"
+      :is-loading="isLoadingBackend"
+      @unlock="handleUnlockPin"
+      @cancel="handleCancelPin"
     />
-
-    <!-- Alphabet Letter Grid -->
-    <AlphabetGrid
-      :letters="letters"
-      :active-letter="activeLetter?.letter"
-      :highlighted-letter="highlightedLetter"
-      :is-winner="isWinner"
-      :disabled="!!activeLetter || isPickingRandom"
-      @select="handleSelectLetter"
-      @view-history="(item) => openHistory(item.letter)"
-    />
-
-    <!-- History Journal Trigger Link -->
-    <div class="history-trigger-section">
-      <button
-        type="button"
-        class="history-journal-link"
-        @click="openHistory()"
-      >
-        <span class="journal-icon" aria-hidden="true">📖</span>
-        <span class="journal-link-text">Щоденник побачень</span>
-        <span v-if="history.length > 0" class="history-count-pill">
-          {{ history.length }}
-        </span>
-      </button>
-    </div>
-
-    <!-- Date History Modal -->
-    <DateHistoryModal
-      :is-open="isHistoryModalOpen"
-      :history="history"
-      :letters="letters"
-      :selected-letter="selectedHistoryLetter"
-      @close="closeHistory"
-      @view-all="openHistory()"
-    />
-
-    <!-- Board Deletion Modal -->
-    <DeleteConfirmModal
-      :is-open="isDeleteModalOpen"
-      @confirm="handleDeleteConfirm"
-      @cancel="isDeleteModalOpen = false"
-    />
-
-    <footer class="footer">
-      <button
-        type="button"
-        class="delete-board-link"
-        @click="isDeleteModalOpen = true"
-      >
-        Видалити дошку
-      </button>
-    </footer>
   </main>
 </template>
 

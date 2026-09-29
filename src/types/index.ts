@@ -14,7 +14,8 @@ export interface Partner {
 
 export interface BoardMetadata {
   partners: Partner[];
-  pinHash: string | null;
+  pinHash?: string | null;
+  hasPin?: boolean;
   currentPartnerId: number | null;
   currentLetter: string | null;
   currentLetterSelectedAt: string | null;
