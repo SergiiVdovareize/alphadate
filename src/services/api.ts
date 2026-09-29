@@ -129,13 +129,18 @@ export const api = {
     letters: LetterState[],
     currentLetter: string | null,
     signal?: AbortSignal,
-    pin?: string
+    pin?: string,
+    metadata?: { partners?: string[]; pin?: string | null }
   ): Promise<UpdateBoardResponse> {
     const headers = await buildHeaders(key, pin);
+    const body: Record<string, unknown> = { letters, currentLetter };
+    if (metadata) {
+      body.metadata = metadata;
+    }
     return request<UpdateBoardResponse>(`/alphadate/${encodeURIComponent(key)}`, {
       method: 'PUT',
       headers,
-      body: JSON.stringify({ letters, currentLetter }),
+      body: JSON.stringify(body),
       signal
     });
   },

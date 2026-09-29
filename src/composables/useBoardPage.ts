@@ -1,4 +1,4 @@
-import { ref, onUnmounted } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAlphabetState, type LetterState } from './useAlphabetState';
 
@@ -21,12 +21,72 @@ export function useBoardPage() {
     isPinRequired,
     pinError,
     unlockWithPin,
+    setBoardPin,
     isLoadingBackend
   } = useAlphabetState(boardId);
 
   const isDeleteModalOpen = ref(false);
   const isHistoryModalOpen = ref(false);
+  const isSetPinModalOpen = ref(false);
+  const setPinError = ref<string | null>(null);
   const selectedHistoryLetter = ref<string | null>(null);
+
+  const ONE_HOUR_MS = 60 * 60 * 1000;
+  const FIRST_SEEN_KEY = `alphadate_pin_first_seen_${boardId}`;
+  const DISMISSED_KEY = `alphadate_pin_dismissed_${boardId}`;
+
+  const isPinPromptDismissed = ref(false);
+  const isPinPromptExpired = ref(false);
+  let pinPromptExpiryTimer: ReturnType<typeof setTimeout> | null = null;
+
+  if (typeof window !== 'undefined' && window.localStorage) {
+    if (localStorage.getItem(DISMISSED_KEY) === 'true') {
+      isPinPromptDismissed.value = true;
+    }
+  }
+
+  const checkPinPromptExpiry = (firstSeen: number) => {
+    if (pinPromptExpiryTimer) {
+      clearTimeout(pinPromptExpiryTimer);
+      pinPromptExpiryTimer = null;
+    }
+    const elapsed = Date.now() - firstSeen;
+    if (elapsed >= ONE_HOUR_MS) {
+      isPinPromptExpired.value = true;
+    } else {
+      isPinPromptExpired.value = false;
+      pinPromptExpiryTimer = setTimeout(() => {
+        isPinPromptExpired.value = true;
+      }, ONE_HOUR_MS - elapsed);
+    }
+  };
+
+  watch(
+    [() => metadata.value.hasPin, () => isPinRequired.value],
+    ([hasPin, pinRequired]) => {
+      if (typeof window === 'undefined' || !window.localStorage) return;
+      if (hasPin || pinRequired || isPinPromptDismissed.value) return;
+
+      const stored = localStorage.getItem(FIRST_SEEN_KEY);
+      const now = Date.now();
+      let firstSeen = now;
+      if (!stored) {
+        localStorage.setItem(FIRST_SEEN_KEY, String(now));
+      } else {
+        const parsed = parseInt(stored, 10);
+        firstSeen = isNaN(parsed) ? now : parsed;
+      }
+      checkPinPromptExpiry(firstSeen);
+    },
+    { immediate: true }
+  );
+
+  const isPinPromptVisible = computed(() => {
+    if (metadata.value.hasPin || isPinRequired.value || isPinPromptDismissed.value || isPinPromptExpired.value) {
+      return false;
+    }
+    return true;
+  });
 
   const highlightedLetter = ref<string | null>(null);
   const isPickingRandom = ref(false);
@@ -43,6 +103,10 @@ export function useBoardPage() {
 
   onUnmounted(() => {
     clearRoulette();
+    if (pinPromptExpiryTimer) {
+      clearTimeout(pinPromptExpiryTimer);
+      pinPromptExpiryTimer = null;
+    }
   });
 
   const handlePickRandom = (targetLetter: LetterState) => {
@@ -150,6 +214,30 @@ export function useBoardPage() {
     goHome();
   };
 
+  const handleOpenSetPin = () => {
+    setPinError.value = null;
+    isSetPinModalOpen.value = true;
+  };
+
+  const handleCloseSetPin = () => {
+    isSetPinModalOpen.value = false;
+    setPinError.value = null;
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(DISMISSED_KEY, 'true');
+    }
+    isPinPromptDismissed.value = true;
+  };
+
+  const handleSetPin = async (newPin: string) => {
+    setPinError.value = null;
+    const success = await setBoardPin(newPin);
+    if (success) {
+      isSetPinModalOpen.value = false;
+    } else {
+      setPinError.value = pinError.value || 'Не вдалося встановити PIN-код.';
+    }
+  };
+
   const goHome = () => {
     router.push('/');
   };
@@ -163,6 +251,9 @@ export function useBoardPage() {
     fetchError,
     isDeleteModalOpen,
     isHistoryModalOpen,
+    isSetPinModalOpen,
+    setPinError,
+    isPinPromptVisible,
     selectedHistoryLetter,
     highlightedLetter,
     isPickingRandom,
@@ -172,6 +263,9 @@ export function useBoardPage() {
     isLoadingBackend,
     handleUnlockPin,
     handleCancelPin,
+    handleOpenSetPin,
+    handleCloseSetPin,
+    handleSetPin,
     handlePickRandom,
     openHistory,
     closeHistory,

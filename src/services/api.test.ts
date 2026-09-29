@@ -132,6 +132,35 @@ describe('api service', () => {
     );
   });
 
+  it('updateBoard passes metadata (such as PIN) when provided', async () => {
+    const mockResponse = { success: true, currentPartnerId: 1 };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    } as Response);
+
+    const result = await api.updateBoard(
+      'board-1',
+      [{ letter: 'А', status: 'used' }],
+      'Б',
+      undefined,
+      undefined,
+      { pin: '9999' }
+    );
+    expect(result).toEqual(mockResponse);
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/alphadate/board-1'),
+      expect.objectContaining({
+        method: 'PUT',
+        body: JSON.stringify({
+          letters: [{ letter: 'А', status: 'used' }],
+          currentLetter: 'Б',
+          metadata: { pin: '9999' }
+        })
+      })
+    );
+  });
+
   it('deleteBoard makes a DELETE request', async () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,

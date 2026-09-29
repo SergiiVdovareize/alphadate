@@ -186,6 +186,8 @@ describe('useAlphabetState', () => {
   it('deleteBoardState deletes board and cleans up storage and PIN', async () => {
     localStorage.setItem('alphadate_pin_delete-board', '1234');
     localStorage.setItem('alphadate_state_delete-board', '{}');
+    localStorage.setItem('alphadate_pin_first_seen_delete-board', '1234567890');
+    localStorage.setItem('alphadate_pin_dismissed_delete-board', 'true');
 
     const state = useAlphabetState('delete-board');
     await state.deleteBoardState();
@@ -193,5 +195,50 @@ describe('useAlphabetState', () => {
     expect(api.deleteBoard).toHaveBeenCalledWith('delete-board');
     expect(localStorage.getItem('alphadate_pin_delete-board')).toBeNull();
     expect(localStorage.getItem('alphadate_state_delete-board')).toBeNull();
+    expect(localStorage.getItem('alphadate_pin_first_seen_delete-board')).toBeNull();
+    expect(localStorage.getItem('alphadate_pin_dismissed_delete-board')).toBeNull();
+  });
+
+  it('setBoardPin validates 4-digit requirement', async () => {
+    const state = useAlphabetState('pin-set-board');
+    const result = await state.setBoardPin('12');
+    expect(result).toBe(false);
+    expect(state.pinError.value).toBe('PIN-код повинен складатися рівно з 4 цифр.');
+  });
+
+  it('setBoardPin sets PIN, updates board on backend and saves encrypted pin', async () => {
+    const state = useAlphabetState('pin-set-board');
+    vi.mocked(api.updateBoard).mockResolvedValue({
+      success: true,
+      currentPartnerId: 1
+    });
+
+    const result = await state.setBoardPin('5678');
+    expect(result).toBe(true);
+    expect(api.updateBoard).toHaveBeenCalledWith(
+      'pin-set-board',
+      expect.any(Array),
+      null,
+      undefined,
+      undefined,
+      { pin: '5678' }
+    );
+    expect(state.metadata.value.hasPin).toBe(true);
+    expect(await getStoredPin('pin-set-board')).toBe('5678');
+  });
+
+  it('setBoardPin handles api rejection gracefully', async () => {
+    const state = useAlphabetState('pin-set-board');
+    vi.mocked(api.updateBoard).mockRejectedValue(new Error('Network error'));
+
+    const result = await state.setBoardPin('5678');
+    expect(result).toBe(false);
+    expect(state.pinError.value).toBe('Network error');
+  });
+
+  it('initBoardLocalStorage respects hasPin parameter', () => {
+    initBoardLocalStorage('test-has-pin', ['Оля', 'Ігор'], true);
+    const stored = JSON.parse(localStorage.getItem('alphadate_state_test-has-pin') || '{}');
+    expect(stored.metadata.hasPin).toBe(true);
   });
 });

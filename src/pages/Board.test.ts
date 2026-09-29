@@ -1,53 +1,64 @@
 import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import Board from './Board.vue';
 import { useBoardPage } from '../composables/useBoardPage';
 
 vi.mock('../composables/useBoardPage');
 
+function createMockBoardPage(overrides: Partial<ReturnType<typeof useBoardPage>> = {}) {
+  return {
+    boardId: 'test-board',
+    letters: ref([{ letter: 'А', status: 'available' }]),
+    metadata: ref({
+      partners: [
+        { id: 1, name: 'Андрій' },
+        { id: 2, name: 'Олена' }
+      ],
+      pinHash: null,
+      hasPin: true,
+      currentPartnerId: 1,
+      currentLetter: null,
+      currentLetterSelectedAt: null
+    }),
+    activeLetter: ref(null),
+    history: ref([]),
+    fetchError: ref(null),
+    isDeleteModalOpen: ref(false),
+    isHistoryModalOpen: ref(false),
+    isSetPinModalOpen: ref(false),
+    setPinError: ref(null),
+    isPinPromptVisible: computed(() => false),
+    selectedHistoryLetter: ref(null),
+    highlightedLetter: ref(null),
+    isPickingRandom: ref(false),
+    isWinner: ref(false),
+    isPinRequired: ref(false),
+    pinError: ref(null),
+    isLoadingBackend: ref(false),
+    handleUnlockPin: vi.fn(),
+    handleCancelPin: vi.fn(),
+    handleOpenSetPin: vi.fn(),
+    handleCloseSetPin: vi.fn(),
+    handleSetPin: vi.fn(),
+    handlePickRandom: vi.fn(),
+    openHistory: vi.fn(),
+    closeHistory: vi.fn(),
+    pickRandom: vi.fn(),
+    handleCompleteLetter: vi.fn(),
+    handleExcludeLetter: vi.fn(),
+    handleCancelLetter: vi.fn(),
+    handleSelectLetter: vi.fn(),
+    handleDeleteConfirm: vi.fn(),
+    goHome: vi.fn(),
+    ...overrides
+  } as unknown as ReturnType<typeof useBoardPage>;
+}
+
 describe('Board.vue', () => {
   it('renders header, turns, active panel, alphabet grid and delete button', () => {
     const mockGoHome = vi.fn();
-    vi.mocked(useBoardPage).mockReturnValue({
-      boardId: 'test-board',
-      letters: ref([{ letter: 'А', status: 'available' }]),
-      metadata: ref({
-        partners: [
-          { id: 1, name: 'Андрій' },
-          { id: 2, name: 'Олена' }
-        ],
-        pinHash: null,
-        hasPin: true,
-        currentPartnerId: 1,
-        currentLetter: null,
-        currentLetterSelectedAt: null
-      }),
-      activeLetter: ref(null),
-      history: ref([]),
-      fetchError: ref(null),
-      isDeleteModalOpen: ref(false),
-      isHistoryModalOpen: ref(false),
-      selectedHistoryLetter: ref(null),
-      highlightedLetter: ref(null),
-      isPickingRandom: ref(false),
-      isWinner: ref(false),
-      isPinRequired: ref(false),
-      pinError: ref(null),
-      isLoadingBackend: ref(false),
-      handleUnlockPin: vi.fn(),
-      handleCancelPin: vi.fn(),
-      handlePickRandom: vi.fn(),
-      openHistory: vi.fn(),
-      closeHistory: vi.fn(),
-      pickRandom: vi.fn(),
-      handleCompleteLetter: vi.fn(),
-      handleExcludeLetter: vi.fn(),
-      handleCancelLetter: vi.fn(),
-      handleSelectLetter: vi.fn(),
-      handleDeleteConfirm: vi.fn(),
-      goHome: mockGoHome
-    });
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({ goHome: mockGoHome }));
 
     const wrapper = mount(Board);
 
@@ -64,41 +75,9 @@ describe('Board.vue', () => {
   });
 
   it('renders sync error banner when fetchError is present', () => {
-    vi.mocked(useBoardPage).mockReturnValue({
-      boardId: 'test-board',
-      letters: ref([]),
-      metadata: ref({
-        partners: [],
-        pinHash: null,
-        currentPartnerId: null,
-        currentLetter: null,
-        currentLetterSelectedAt: null
-      }),
-      activeLetter: ref(null),
-      history: ref([]),
-      fetchError: ref('Сервер недоступний'),
-      isDeleteModalOpen: ref(false),
-      isHistoryModalOpen: ref(false),
-      selectedHistoryLetter: ref(null),
-      highlightedLetter: ref(null),
-      isPickingRandom: ref(false),
-      isWinner: ref(false),
-      isPinRequired: ref(false),
-      pinError: ref(null),
-      isLoadingBackend: ref(false),
-      handleUnlockPin: vi.fn(),
-      handleCancelPin: vi.fn(),
-      handlePickRandom: vi.fn(),
-      openHistory: vi.fn(),
-      closeHistory: vi.fn(),
-      pickRandom: vi.fn(),
-      handleCompleteLetter: vi.fn(),
-      handleExcludeLetter: vi.fn(),
-      handleCancelLetter: vi.fn(),
-      handleSelectLetter: vi.fn(),
-      handleDeleteConfirm: vi.fn(),
-      goHome: vi.fn()
-    });
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
+      fetchError: ref('Сервер недоступний')
+    }));
 
     const wrapper = mount(Board);
 
@@ -109,17 +88,7 @@ describe('Board.vue', () => {
 
   it('calls openHistory when history button is clicked', async () => {
     const mockOpenHistory = vi.fn();
-    vi.mocked(useBoardPage).mockReturnValue({
-      boardId: 'test-board',
-      letters: ref([]),
-      metadata: ref({
-        partners: [],
-        pinHash: null,
-        currentPartnerId: null,
-        currentLetter: null,
-        currentLetterSelectedAt: null
-      }),
-      activeLetter: ref(null),
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
       history: ref([
         {
           letter: 'А',
@@ -128,29 +97,8 @@ describe('Board.vue', () => {
           completedAt: '2026-09-25T10:00:00Z'
         }
       ]),
-      fetchError: ref(null),
-      isDeleteModalOpen: ref(false),
-      isHistoryModalOpen: ref(false),
-      selectedHistoryLetter: ref(null),
-      highlightedLetter: ref(null),
-      isPickingRandom: ref(false),
-      isWinner: ref(false),
-      isPinRequired: ref(false),
-      pinError: ref(null),
-      isLoadingBackend: ref(false),
-      handleUnlockPin: vi.fn(),
-      handleCancelPin: vi.fn(),
-      handlePickRandom: vi.fn(),
-      openHistory: mockOpenHistory,
-      closeHistory: vi.fn(),
-      pickRandom: vi.fn(),
-      handleCompleteLetter: vi.fn(),
-      handleExcludeLetter: vi.fn(),
-      handleCancelLetter: vi.fn(),
-      handleSelectLetter: vi.fn(),
-      handleDeleteConfirm: vi.fn(),
-      goHome: vi.fn()
-    });
+      openHistory: mockOpenHistory
+    }));
 
     const wrapper = mount(Board);
     const historyBtn = wrapper.find('.history-journal-link');
@@ -162,41 +110,10 @@ describe('Board.vue', () => {
   });
 
   it('renders PinModal when isPinRequired is true', () => {
-    vi.mocked(useBoardPage).mockReturnValue({
-      boardId: 'test-board',
-      letters: ref([]),
-      metadata: ref({
-        partners: [],
-        pinHash: null,
-        currentPartnerId: null,
-        currentLetter: null,
-        currentLetterSelectedAt: null
-      }),
-      activeLetter: ref(null),
-      history: ref([]),
-      fetchError: ref(null),
-      isDeleteModalOpen: ref(false),
-      isHistoryModalOpen: ref(false),
-      selectedHistoryLetter: ref(null),
-      highlightedLetter: ref(null),
-      isPickingRandom: ref(false),
-      isWinner: ref(false),
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
       isPinRequired: ref(true),
-      pinError: ref('Невірний PIN-код'),
-      isLoadingBackend: ref(false),
-      handleUnlockPin: vi.fn(),
-      handleCancelPin: vi.fn(),
-      handlePickRandom: vi.fn(),
-      openHistory: vi.fn(),
-      closeHistory: vi.fn(),
-      pickRandom: vi.fn(),
-      handleCompleteLetter: vi.fn(),
-      handleExcludeLetter: vi.fn(),
-      handleCancelLetter: vi.fn(),
-      handleSelectLetter: vi.fn(),
-      handleDeleteConfirm: vi.fn(),
-      goHome: vi.fn()
-    });
+      pinError: ref('Невірний PIN-код')
+    }));
 
     const wrapper = mount(Board);
     expect(wrapper.findComponent({ name: 'PinModal' }).exists()).toBe(true);
@@ -216,5 +133,30 @@ describe('Board.vue', () => {
     expect(wrapper.find('.turn-container').exists()).toBe(false);
     expect(wrapper.find('.history-trigger-section').exists()).toBe(false);
     expect(wrapper.find('.footer').exists()).toBe(false);
+    expect(wrapper.find('.pin-attention-btn').exists()).toBe(false);
+  });
+
+  it('renders pin-attention-btn when isPinPromptVisible is true and triggers handleOpenSetPin on click', async () => {
+    const mockOpenSetPin = vi.fn();
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
+      isPinPromptVisible: computed(() => true),
+      handleOpenSetPin: mockOpenSetPin
+    }));
+
+    const wrapper = mount(Board);
+    const attentionBtn = wrapper.find('.pin-attention-btn');
+    expect(attentionBtn.exists()).toBe(true);
+
+    await attentionBtn.trigger('click');
+    expect(mockOpenSetPin).toHaveBeenCalled();
+  });
+
+  it('does not render pin-attention-btn when isPinPromptVisible is false', () => {
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
+      isPinPromptVisible: computed(() => false)
+    }));
+
+    const wrapper = mount(Board);
+    expect(wrapper.find('.pin-attention-btn').exists()).toBe(false);
   });
 });

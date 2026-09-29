@@ -6,6 +6,7 @@ import DateHistoryModal from '../components/DateHistoryModal.vue';
 import AppLogo from '../components/AppLogo.vue';
 import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
 import PinModal from '../components/PinModal.vue';
+import SetPinModal from '../components/SetPinModal.vue';
 
 const {
   boardId,
@@ -16,6 +17,9 @@ const {
   fetchError,
   isDeleteModalOpen,
   isHistoryModalOpen,
+  isSetPinModalOpen,
+  setPinError,
+  isPinPromptVisible,
   selectedHistoryLetter,
   openHistory,
   closeHistory,
@@ -28,6 +32,9 @@ const {
   isLoadingBackend,
   handleUnlockPin,
   handleCancelPin,
+  handleOpenSetPin,
+  handleCloseSetPin,
+  handleSetPin,
   handlePickRandom,
   handleCompleteLetter,
   handleExcludeLetter,
@@ -44,6 +51,30 @@ const {
       <button type="button" class="brand-wrap" title="Повернутися на головну" @click="goHome">
         <AppLogo :size="38" />
         <h1 class="brand-title">AlphaDate</h1>
+      </button>
+
+      <button
+        v-if="isPinPromptVisible"
+        type="button"
+        class="pin-attention-btn"
+        aria-label="Захистити дошку PIN-кодом"
+        @click="handleOpenSetPin"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="attention-icon"
+          aria-hidden="true"
+        >
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="3" />
+        </svg>
       </button>
     </header>
 
@@ -156,6 +187,15 @@ const {
       @unlock="handleUnlockPin"
       @cancel="handleCancelPin"
     />
+
+    <!-- Set Board PIN Code Modal -->
+    <SetPinModal
+      :is-open="isSetPinModalOpen"
+      :error="setPinError"
+      :is-loading="isLoadingBackend"
+      @set-pin="handleSetPin"
+      @close="handleCloseSetPin"
+    />
   </main>
 </template>
 
@@ -167,8 +207,60 @@ const {
 }
 
 .header {
+  position: relative;
   text-align: center;
   margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pin-attention-btn {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0.4rem;
+  color: var(--color-accent, #ea7a87);
+  cursor: pointer;
+  transition: color 0.2s ease, filter 0.2s ease;
+  animation: floatBob 2.4s ease-in-out infinite;
+}
+
+.pin-attention-btn:hover {
+  color: #e65100;
+  filter: drop-shadow(0 2px 6px rgba(234, 122, 135, 0.5));
+}
+
+.pin-attention-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #ea7a87);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.attention-icon {
+  width: 28px;
+  height: 28px;
+}
+
+@keyframes floatBob {
+  0%, 100% {
+    transform: translateY(-50%);
+  }
+  50% {
+    transform: translateY(calc(-50% - 6px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pin-attention-btn {
+    animation: none;
+  }
 }
 
 .sync-warning-banner {

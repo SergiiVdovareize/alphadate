@@ -45,11 +45,6 @@ const handleClick = (item: LetterState) => {
         item.status !== 'used' &&
         item.letter !== highlightedLetter
       "
-      :title="
-        item.status === 'used'
-          ? `Переглянути спогад про літеру «${item.letter}»`
-          : undefined
-      "
       @click="handleClick(item)"
     >
       <span>{{ item.letter }}</span>

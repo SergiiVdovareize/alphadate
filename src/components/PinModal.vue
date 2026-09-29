@@ -170,20 +170,21 @@ onUnmounted(() => {
 }
 
 .icon-wrap {
-  width: 52px;
-  height: 52px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  background: rgba(var(--color-accent-rgb, 234, 122, 135), 0.12);
+  background: rgba(var(--color-accent-rgb, 234, 122, 135), 0.15);
+  border: 2px solid var(--color-accent, #ea7a87);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin: 0 auto 1.25rem;
   color: var(--color-accent, #ea7a87);
 }
 
 .lock-icon {
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
 }
 
 .modal-content h2 {
@@ -211,15 +212,15 @@ onUnmounted(() => {
 }
 
 .pin-input {
-  width: 180px;
+  width: 200px;
   text-align: center;
-  font-size: 2rem;
-  letter-spacing: 0.4em;
-  padding: 0.5rem 0.5rem 0.5rem 0.9em;
+  font-size: 2.3rem;
+  letter-spacing: 0.45em;
+  padding: 0.6rem 0.6rem 0.6rem 0.9em;
   font-family: monospace, inherit;
   font-weight: 700;
   border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--color-surface, #ffffff);
   color: var(--color-ink, #2d3748);
   box-shadow: inset 0 2px 4px rgba(45, 55, 72, 0.06);

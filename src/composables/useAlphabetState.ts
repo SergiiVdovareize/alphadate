@@ -54,7 +54,7 @@ const defaultState: LetterState[] = UKRAINIAN_ALPHABET.map((letter) => ({
 /**
  * Initializes localStorage for a new board key without triggering component reactive watchers.
  */
-export function initBoardLocalStorage(boardId: string, partnersArray: string[]): void {
+export function initBoardLocalStorage(boardId: string, partnersArray: string[], hasPin = false): void {
   const LOCAL_STORAGE_KEY = `alphadate_state_${boardId}`;
   const mappedPartners: Partner[] = partnersArray.map((name, index) => ({
     id: index + 1,
@@ -64,6 +64,7 @@ export function initBoardLocalStorage(boardId: string, partnersArray: string[]):
   const initialMetadata: BoardMetadata = {
     partners: mappedPartners,
     pinHash: null,
+    hasPin,
     currentPartnerId: 1,
     currentLetter: null,
     currentLetterSelectedAt: null
@@ -84,6 +85,7 @@ export function useAlphabetState(boardId: string) {
   const metadata = ref<BoardMetadata>({
     partners: [],
     pinHash: null,
+    hasPin: false,
     currentPartnerId: null,
     currentLetter: null,
     currentLetterSelectedAt: null
@@ -284,6 +286,40 @@ export function useAlphabetState(boardId: string) {
     }
   };
 
+  const setBoardPin = async (newPin: string): Promise<boolean> => {
+    const trimmed = newPin.trim();
+    if (!/^\d{4}$/.test(trimmed)) {
+      pinError.value = 'PIN-код повинен складатися рівно з 4 цифр.';
+      return false;
+    }
+
+    isLoadingBackend.value = true;
+    pinError.value = null;
+    try {
+      if (boardId !== 'default') {
+        await api.updateBoard(
+          boardId,
+          letters.value,
+          metadata.value.currentLetter,
+          undefined,
+          undefined,
+          { pin: trimmed }
+        );
+      }
+      await setStoredPin(boardId, trimmed);
+      metadata.value = {
+        ...metadata.value,
+        hasPin: true
+      };
+      return true;
+    } catch (e: unknown) {
+      pinError.value = e instanceof Error ? e.message : 'Не вдалося встановити PIN-код.';
+      return false;
+    } finally {
+      isLoadingBackend.value = false;
+    }
+  };
+
   fetchBackendState();
 
   // Watch for changes and save to local storage
@@ -417,6 +453,8 @@ export function useAlphabetState(boardId: string) {
       await api.deleteBoard(boardId);
       clearStoredPin(boardId);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.removeItem(`alphadate_pin_first_seen_${boardId}`);
+      localStorage.removeItem(`alphadate_pin_dismissed_${boardId}`);
 
       // Cleanup from history list
       const savedKey = 'alphadate_saved_boards';
@@ -446,6 +484,7 @@ export function useAlphabetState(boardId: string) {
     deleteBoardState,
     selectLetter,
     reloadBackendState: fetchBackendState,
-    unlockWithPin
+    unlockWithPin,
+    setBoardPin
   };
 }

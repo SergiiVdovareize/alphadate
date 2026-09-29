@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ref } from 'vue';
 import { useBoardPage } from './useBoardPage';
 import { useAlphabetState } from './useAlphabetState';
+import type { Partner } from '../types';
 
 const mockPush = vi.fn();
 vi.mock('vue-router', () => ({
@@ -18,12 +19,15 @@ const mockPickRandom = vi.fn();
 const mockDeleteBoardState = vi.fn().mockResolvedValue(undefined);
 const mockSelectLetter = vi.fn();
 const mockUnlockWithPin = vi.fn().mockResolvedValue(true);
+const mockSetBoardPin = vi.fn().mockResolvedValue(true);
 const mockActiveLetter = ref<{ letter: string; status: 'available' } | null>(null);
+let currentMetadata: { partners: Partner[]; hasPin?: boolean } = { partners: [] };
+let currentIsPinRequired = false;
 
 vi.mock('./useAlphabetState', () => ({
   useAlphabetState: vi.fn(() => ({
     letters: ref([]),
-    metadata: ref({ partners: [] }),
+    metadata: ref(structuredClone(currentMetadata)),
     history: ref([]),
     markAsStatus: mockMarkAsStatus,
     pickRandom: mockPickRandom,
@@ -31,10 +35,11 @@ vi.mock('./useAlphabetState', () => ({
     activeLetter: mockActiveLetter,
     selectLetter: mockSelectLetter,
     fetchError: ref(null),
-    isPinRequired: ref(false),
+    isPinRequired: ref(currentIsPinRequired),
     pinError: ref(null),
     isLoadingBackend: ref(false),
-    unlockWithPin: mockUnlockWithPin
+    unlockWithPin: mockUnlockWithPin,
+    setBoardPin: mockSetBoardPin
   }))
 }));
 
@@ -42,6 +47,9 @@ describe('useBoardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockActiveLetter.value = null;
+    currentMetadata = { partners: [] };
+    currentIsPinRequired = false;
+    localStorage.clear();
   });
 
   it('initializes with route boardId and delegates to useAlphabetState', () => {
@@ -171,5 +179,98 @@ describe('useBoardPage', () => {
     const vm = useBoardPage();
     vm.handleCancelPin();
     expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
+  it('handleOpenSetPin and handleCloseSetPin toggle modal state', () => {
+    const vm = useBoardPage();
+    expect(vm.isSetPinModalOpen.value).toBe(false);
+
+    vm.handleOpenSetPin();
+    expect(vm.isSetPinModalOpen.value).toBe(true);
+
+    vm.handleCloseSetPin();
+    expect(vm.isSetPinModalOpen.value).toBe(false);
+  });
+
+  it('handleSetPin closes modal on success and sets error on failure', async () => {
+    const vm = useBoardPage();
+    vm.handleOpenSetPin();
+
+    mockSetBoardPin.mockResolvedValueOnce(true);
+    await vm.handleSetPin('4321');
+    expect(mockSetBoardPin).toHaveBeenCalledWith('4321');
+    expect(vm.isSetPinModalOpen.value).toBe(false);
+
+    // Failure case
+    vm.handleOpenSetPin();
+    mockSetBoardPin.mockResolvedValueOnce(false);
+    await vm.handleSetPin('0000');
+    expect(vm.isSetPinModalOpen.value).toBe(true);
+    expect(vm.setPinError.value).toBe('Не вдалося встановити PIN-код.');
+  });
+
+  describe('PIN prompt attention visibility and expiry', () => {
+    it('sets first seen timestamp in localStorage and isPinPromptVisible is true on first eligible view', () => {
+      const vm = useBoardPage();
+      const firstSeen = localStorage.getItem('alphadate_pin_first_seen_test-board-42');
+
+      expect(firstSeen).toBeTruthy();
+      expect(Number(firstSeen)).toBeGreaterThan(0);
+      expect(vm.isPinPromptVisible.value).toBe(true);
+    });
+
+    it('hides pin prompt and saves dismissed flag to localStorage when modal is closed', () => {
+      const vm = useBoardPage();
+      expect(vm.isPinPromptVisible.value).toBe(true);
+
+      vm.handleOpenSetPin();
+      vm.handleCloseSetPin();
+
+      expect(localStorage.getItem('alphadate_pin_dismissed_test-board-42')).toBe('true');
+      expect(vm.isPinPromptVisible.value).toBe(false);
+    });
+
+    it('hides pin prompt on init if already dismissed in localStorage', () => {
+      localStorage.setItem('alphadate_pin_dismissed_test-board-42', 'true');
+      const vm = useBoardPage();
+
+      expect(vm.isPinPromptVisible.value).toBe(false);
+    });
+
+    it('hides pin prompt if first seen was more than 1 hour ago', () => {
+      const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+      localStorage.setItem('alphadate_pin_first_seen_test-board-42', String(twoHoursAgo));
+
+      const vm = useBoardPage();
+      expect(vm.isPinPromptVisible.value).toBe(false);
+    });
+
+    it('dynamically hides pin prompt after 1 hour passes', () => {
+      vi.useFakeTimers();
+      const vm = useBoardPage();
+      expect(vm.isPinPromptVisible.value).toBe(true);
+
+      // Fast forward 1 hour + 1 second
+      vi.advanceTimersByTime(60 * 60 * 1000 + 1000);
+      expect(vm.isPinPromptVisible.value).toBe(false);
+
+      vi.useRealTimers();
+    });
+
+    it('does not record first seen and keeps pin prompt hidden if board already has a PIN', () => {
+      currentMetadata = { partners: [], hasPin: true };
+      const vm = useBoardPage();
+
+      expect(localStorage.getItem('alphadate_pin_first_seen_test-board-42')).toBeNull();
+      expect(vm.isPinPromptVisible.value).toBe(false);
+    });
+
+    it('keeps pin prompt hidden if isPinRequired is true', () => {
+      currentIsPinRequired = true;
+      const vm = useBoardPage();
+
+      expect(localStorage.getItem('alphadate_pin_first_seen_test-board-42')).toBeNull();
+      expect(vm.isPinPromptVisible.value).toBe(false);
+    });
   });
 });

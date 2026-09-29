@@ -69,7 +69,7 @@ export function useHome() {
         localStorage.setItem(savedKey, JSON.stringify(updated));
 
         // Initialize the board metadata safely into localStorage without triggering out-of-context watchers
-        initBoardLocalStorage(data.key, validPartners);
+        initBoardLocalStorage(data.key, validPartners, Boolean(trimmedPin));
 
         router.push(`/${data.key}`);
       } else {
