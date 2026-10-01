@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { PIN_LENGTH } from '../constants';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -15,16 +16,11 @@ const emit = defineEmits<{
 const pinInput = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('cancel');
-  }
-};
 
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
-  // Keep only digits and max 4 chars
-  const sanitized = target.value.replace(/\D/g, '').slice(0, 4);
+  // Keep only digits and max PIN_LENGTH chars
+  const sanitized = target.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
   pinInput.value = sanitized;
   if (target.value !== sanitized) {
     target.value = sanitized;
@@ -32,7 +28,7 @@ const handleInput = (event: Event) => {
 };
 
 const submitPin = () => {
-  if (pinInput.value.length === 4 && !props.isLoading) {
+  if (pinInput.value.length === PIN_LENGTH && !props.isLoading) {
     emit('unlock', pinInput.value);
   }
 };
@@ -55,14 +51,12 @@ watch(
 );
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
   if (props.isOpen) {
     inputRef.value?.focus();
   }
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
   document.body.style.overflow = '';
 });
 </script>
@@ -98,7 +92,7 @@ onUnmounted(() => {
               type="password"
               inputmode="numeric"
               pattern="[0-9]*"
-              maxlength="4"
+              :maxlength="PIN_LENGTH"
               class="pin-input"
               placeholder="••••"
               autocomplete="current-password"
@@ -116,7 +110,7 @@ onUnmounted(() => {
             <button
               type="submit"
               class="button primary unlock-btn"
-              :disabled="pinInput.length !== 4 || isLoading"
+              :disabled="pinInput.length !== PIN_LENGTH || isLoading"
             >
               {{ isLoading ? 'Перевірка...' : 'Розблокувати' }}
             </button>
@@ -135,7 +129,6 @@ onUnmounted(() => {
     <div
       class="modal-overlay"
       aria-hidden="true"
-      @click="emit('cancel')"
     ></div>
   </div>
 </template>

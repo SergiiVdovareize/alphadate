@@ -3,6 +3,7 @@ import { ref, watch, onUnmounted } from 'vue';
 import { useActiveLetterPanel } from '../composables/useActiveLetterPanel';
 import DateSuggestions from './DateSuggestions.vue';
 import RandomPickButton from './RandomPickButton.vue';
+import { LETTER_POP_ENTRANCE_DELAY_MS, RIM_ANIMATION_DURATION_MS } from '../constants';
 import type { LetterState } from '../composables/useAlphabetState';
 
 const props = defineProps<{
@@ -11,6 +12,7 @@ const props = defineProps<{
   boardId: string;
   pickRandom: () => LetterState | null;
   isPicking?: boolean;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -62,7 +64,7 @@ const checkTimerVisibility = (newLetter: string | undefined) => {
   showTimer.value = false;
   timerTimeout = setTimeout(() => {
     showTimer.value = true;
-  }, 450); // Matches letter entrance pop duration
+  }, LETTER_POP_ENTRANCE_DELAY_MS);
 };
 
 const triggerRimAnimation = () => {
@@ -84,7 +86,7 @@ const triggerRimAnimation = () => {
   showRimAnimation.value = true;
   rimTimeout = setTimeout(() => {
     showRimAnimation.value = false;
-  }, 850);
+  }, RIM_ANIMATION_DURATION_MS);
 };
 
 watch(
@@ -220,6 +222,7 @@ onUnmounted(() => {
       <RandomPickButton
         :pick-random="pickRandom"
         :is-picking="isPicking"
+        :disabled="disabled"
         @pick="(item) => emit('pick', item)"
       />
     </div>

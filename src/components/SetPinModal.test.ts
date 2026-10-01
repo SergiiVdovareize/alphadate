@@ -76,13 +76,13 @@ describe('SetPinModal.vue', () => {
     expect(wrapper.emitted('close')).toHaveLength(1);
   });
 
-  it('emits close event when overlay is clicked', async () => {
+  it('does not emit close event when overlay is clicked', async () => {
     const wrapper = mount(SetPinModal, {
       props: { isOpen: true }
     });
 
     await wrapper.find('.modal-overlay').trigger('click');
-    expect(wrapper.emitted('close')).toBeTruthy();
+    expect(wrapper.emitted('close')).toBeFalsy();
   });
 
   it('displays error prop when provided', () => {
@@ -93,12 +93,12 @@ describe('SetPinModal.vue', () => {
     expect(wrapper.find('.pin-error').text()).toBe('Помилка збереження PIN-коду');
   });
 
-  it('closes on Escape key press', async () => {
+  it('does not close on Escape key press', async () => {
     const wrapper = mount(SetPinModal, {
       props: { isOpen: true }
     });
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(wrapper.emitted('close')).toBeTruthy();
+    expect(wrapper.emitted('close')).toBeFalsy();
   });
 });

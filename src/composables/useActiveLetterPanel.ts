@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from 'vue';
 import { useCountdown } from './useCountdown';
+import { ACTION_CONFIRMATION_TIMEOUT_MS } from '../constants';
 import type { LetterState } from './useAlphabetState';
 
 export interface ActiveLetterPanelProps {
@@ -69,7 +70,7 @@ export function useActiveLetterPanel(props: ActiveLetterPanelProps, emit: Active
       confirmingAction.value = action;
       confirmTimeout = setTimeout(() => {
         confirmingAction.value = null;
-      }, 4000);
+      }, ACTION_CONFIRMATION_TIMEOUT_MS);
     }
   };
 

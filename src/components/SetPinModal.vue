@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { PIN_LENGTH } from '../constants';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -16,15 +17,10 @@ const pinInput = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
 const localError = ref<string | null>(null);
 
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('close');
-  }
-};
 
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
-  const sanitized = target.value.replace(/\D/g, '').slice(0, 4);
+  const sanitized = target.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
   pinInput.value = sanitized;
   localError.value = null;
   if (target.value !== sanitized) {
@@ -33,7 +29,7 @@ const handleInput = (event: Event) => {
 };
 
 const submitPin = () => {
-  if (pinInput.value.length !== 4) {
+  if (pinInput.value.length !== PIN_LENGTH) {
     localError.value = 'PIN-код повинен складатися рівно з 4 цифр.';
     return;
   }
@@ -62,14 +58,12 @@ watch(
 );
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
   if (props.isOpen) {
     inputRef.value?.focus();
   }
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
   document.body.style.overflow = '';
 });
 </script>
@@ -109,7 +103,7 @@ onUnmounted(() => {
               type="password"
               inputmode="numeric"
               pattern="[0-9]*"
-              maxlength="4"
+              :maxlength="PIN_LENGTH"
               autocomplete="one-time-code"
               class="pin-hidden-input"
               aria-label="Введіть 4-значний PIN-код"
@@ -118,7 +112,7 @@ onUnmounted(() => {
             />
             <div class="pin-dots-display" aria-hidden="true" @click="inputRef?.focus()">
               <div
-                v-for="i in 4"
+                v-for="i in PIN_LENGTH"
                 :key="i"
                 class="pin-dot-box"
                 :class="{ filled: pinInput.length >= i, focused: pinInput.length === i - 1 }"
@@ -136,7 +130,7 @@ onUnmounted(() => {
             <button
               type="submit"
               class="button primary submit-btn"
-              :disabled="pinInput.length !== 4 || isLoading"
+              :disabled="pinInput.length !== PIN_LENGTH || isLoading"
             >
               <span v-if="isLoading" class="spinner" aria-hidden="true"></span>
               <span v-else>Встановити PIN</span>
@@ -153,12 +147,10 @@ onUnmounted(() => {
         </form>
       </div>
     </dialog>
-    <button
-      type="button"
+    <div
       class="modal-overlay"
-      aria-label="Закрити модальне вікно"
-      @click="emit('close')"
-    ></button>
+      aria-hidden="true"
+    ></div>
   </div>
 </template>
 
@@ -193,8 +185,6 @@ onUnmounted(() => {
   background: rgba(45, 55, 72, 0.5);
   backdrop-filter: blur(2px);
   z-index: 999;
-  border: none;
-  cursor: pointer;
 }
 
 .icon-wrap {

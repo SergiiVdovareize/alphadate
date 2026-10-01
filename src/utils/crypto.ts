@@ -4,11 +4,18 @@
  * Key is stored as non-extractable CryptoKey in IndexedDB, with PBKDF2 device-salt fallback.
  */
 
-const DB_NAME = 'alphadate_keystore';
-const DB_VERSION = 1;
-const STORE_NAME = 'keys';
-const KEY_NAME = 'device_pin_key';
-const FALLBACK_SECRET_KEY = 'alphadate_sec_salt';
+import {
+  CRYPTO_KEYSTORE_CONFIG,
+  CRYPTO_CIPHER_CONFIG,
+  STORAGE_KEYS,
+  PIN_REGEX
+} from '../constants';
+
+const DB_NAME = CRYPTO_KEYSTORE_CONFIG.DB_NAME;
+const DB_VERSION = CRYPTO_KEYSTORE_CONFIG.DB_VERSION;
+const STORE_NAME = CRYPTO_KEYSTORE_CONFIG.STORE_NAME;
+const KEY_NAME = CRYPTO_KEYSTORE_CONFIG.KEY_NAME;
+const FALLBACK_SECRET_KEY = STORAGE_KEYS.DEVICE_SALT;
 
 let inMemoryKey: CryptoKey | null = null;
 
@@ -92,7 +99,7 @@ async function getOrGenerateDeviceKey(): Promise<CryptoKey> {
         return keyFromDb;
       }
       const newKey = await crypto.subtle.generateKey(
-        { name: 'AES-GCM', length: 256 },
+        { name: 'AES-GCM', length: CRYPTO_CIPHER_CONFIG.AES_GCM_KEY_LENGTH },
         false, // non-extractable
         ['encrypt', 'decrypt']
       );
@@ -107,7 +114,7 @@ async function getOrGenerateDeviceKey(): Promise<CryptoKey> {
   // 2. Fallback: PBKDF2 derived from persistent device salt in localStorage
   let salt = typeof localStorage !== 'undefined' ? localStorage.getItem(FALLBACK_SECRET_KEY) : null;
   if (!salt) {
-    const rawSalt = crypto.getRandomValues(new Uint8Array(32));
+    const rawSalt = crypto.getRandomValues(new Uint8Array(CRYPTO_CIPHER_CONFIG.SALT_LENGTH_BYTES));
     salt = bufferToBase64(rawSalt);
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(FALLBACK_SECRET_KEY, salt);
@@ -127,11 +134,11 @@ async function getOrGenerateDeviceKey(): Promise<CryptoKey> {
     {
       name: 'PBKDF2',
       salt: new TextEncoder().encode('alphadate_pin_encryption_v1'),
-      iterations: 100000,
-      hash: 'SHA-256'
+      iterations: CRYPTO_CIPHER_CONFIG.PBKDF2_ITERATIONS,
+      hash: CRYPTO_CIPHER_CONFIG.PBKDF2_HASH
     },
     baseKey,
-    { name: 'AES-GCM', length: 256 },
+    { name: 'AES-GCM', length: CRYPTO_CIPHER_CONFIG.AES_GCM_KEY_LENGTH },
     false,
     ['encrypt', 'decrypt']
   );
@@ -151,7 +158,7 @@ interface EncryptedPinPayload {
  */
 export async function encryptPin(pin: string): Promise<string> {
   const key = await getOrGenerateDeviceKey();
-  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iv = crypto.getRandomValues(new Uint8Array(CRYPTO_CIPHER_CONFIG.IV_LENGTH_BYTES));
   const encoded = new TextEncoder().encode(pin);
   const encrypted = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
@@ -174,7 +181,7 @@ export async function decryptPin(storedValue: string): Promise<string | null> {
   if (!storedValue) return null;
 
   // Backward compatibility: If 4 digits plain text was stored
-  if (/^\d{4}$/.test(storedValue)) {
+  if (PIN_REGEX.test(storedValue)) {
     return storedValue;
   }
 

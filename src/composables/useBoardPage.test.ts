@@ -23,6 +23,10 @@ const mockSetBoardPin = vi.fn().mockResolvedValue(true);
 const mockActiveLetter = ref<{ letter: string; status: 'available' } | null>(null);
 let currentMetadata: { partners: Partner[]; hasPin?: boolean } = { partners: [] };
 let currentIsPinRequired = false;
+const mockIsSyncing = ref(false);
+const mockIsLoadingBackend = ref(false);
+const mockIsBackgroundRefreshing = ref(false);
+const mockRefreshBackgroundState = vi.fn();
 
 vi.mock('./useAlphabetState', () => ({
   useAlphabetState: vi.fn(() => ({
@@ -37,7 +41,10 @@ vi.mock('./useAlphabetState', () => ({
     fetchError: ref(null),
     isPinRequired: ref(currentIsPinRequired),
     pinError: ref(null),
-    isLoadingBackend: ref(false),
+    isLoadingBackend: mockIsLoadingBackend,
+    isSyncing: mockIsSyncing,
+    isBackgroundRefreshing: mockIsBackgroundRefreshing,
+    refreshBackgroundState: mockRefreshBackgroundState,
     unlockWithPin: mockUnlockWithPin,
     setBoardPin: mockSetBoardPin
   }))
@@ -49,6 +56,10 @@ describe('useBoardPage', () => {
     mockActiveLetter.value = null;
     currentMetadata = { partners: [] };
     currentIsPinRequired = false;
+    mockIsSyncing.value = false;
+    mockIsLoadingBackend.value = false;
+    mockIsBackgroundRefreshing.value = false;
+    mockRefreshBackgroundState.mockReset();
     localStorage.clear();
   });
 
@@ -209,13 +220,9 @@ describe('useBoardPage', () => {
     expect(vm.setPinError.value).toBe('Не вдалося встановити PIN-код.');
   });
 
-  describe('PIN prompt attention visibility and expiry', () => {
-    it('sets first seen timestamp in localStorage and isPinPromptVisible is true on first eligible view', () => {
+  describe('PIN prompt attention visibility', () => {
+    it('isPinPromptVisible is true on eligible view when not dismissed', () => {
       const vm = useBoardPage();
-      const firstSeen = localStorage.getItem('alphadate_pin_first_seen_test-board-42');
-
-      expect(firstSeen).toBeTruthy();
-      expect(Number(firstSeen)).toBeGreaterThan(0);
       expect(vm.isPinPromptVisible.value).toBe(true);
     });
 
@@ -237,31 +244,33 @@ describe('useBoardPage', () => {
       expect(vm.isPinPromptVisible.value).toBe(false);
     });
 
-    it('hides pin prompt if first seen was more than 1 hour ago', () => {
-      const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
-      localStorage.setItem('alphadate_pin_first_seen_test-board-42', String(twoHoursAgo));
-
-      const vm = useBoardPage();
-      expect(vm.isPinPromptVisible.value).toBe(false);
-    });
-
-    it('dynamically hides pin prompt after 1 hour passes', () => {
+    it('does not hide pin prompt by timer (stays visible over time)', () => {
       vi.useFakeTimers();
       const vm = useBoardPage();
       expect(vm.isPinPromptVisible.value).toBe(true);
 
-      // Fast forward 1 hour + 1 second
-      vi.advanceTimersByTime(60 * 60 * 1000 + 1000);
-      expect(vm.isPinPromptVisible.value).toBe(false);
+      // Fast forward 5 hours
+      vi.advanceTimersByTime(5 * 60 * 60 * 1000);
+      expect(vm.isPinPromptVisible.value).toBe(true);
 
       vi.useRealTimers();
     });
 
-    it('does not record first seen and keeps pin prompt hidden if board already has a PIN', () => {
+    it('hides pin prompt while isBackgroundRefreshing is true', () => {
+      const vm = useBoardPage();
+      expect(vm.isPinPromptVisible.value).toBe(true);
+
+      mockIsBackgroundRefreshing.value = true;
+      expect(vm.isPinPromptVisible.value).toBe(false);
+
+      mockIsBackgroundRefreshing.value = false;
+      expect(vm.isPinPromptVisible.value).toBe(true);
+    });
+
+    it('keeps pin prompt hidden if board already has a PIN', () => {
       currentMetadata = { partners: [], hasPin: true };
       const vm = useBoardPage();
 
-      expect(localStorage.getItem('alphadate_pin_first_seen_test-board-42')).toBeNull();
       expect(vm.isPinPromptVisible.value).toBe(false);
     });
 
@@ -269,8 +278,141 @@ describe('useBoardPage', () => {
       currentIsPinRequired = true;
       const vm = useBoardPage();
 
-      expect(localStorage.getItem('alphadate_pin_first_seen_test-board-42')).toBeNull();
       expect(vm.isPinPromptVisible.value).toBe(false);
+    });
+  });
+
+  describe('Page loader and sync/marking guards', () => {
+    it('shows page loader with initial message when isLoadingBackend is true', () => {
+      mockIsLoadingBackend.value = true;
+      const vm = useBoardPage();
+
+      expect(vm.isPageLoaderVisible.value).toBe(true);
+      expect(vm.pageLoaderMessage.value).toBe('Завантажуємо дошку... 💕');
+      expect(vm.pageLoaderSubmessage.value).toBe('Синхронізуємо ваші побачення з сервером...');
+    });
+
+    it('does not show page loader if isPinRequired is true even when isLoadingBackend is true', () => {
+      mockIsLoadingBackend.value = true;
+      currentIsPinRequired = true;
+      const vm = useBoardPage();
+
+      expect(vm.isPageLoaderVisible.value).toBe(false);
+    });
+
+    it('sets isMarkingLetter and custom message during handleCompleteLetter', async () => {
+      mockActiveLetter.value = { letter: 'К', status: 'available' };
+      let resolveMock: () => void;
+      mockMarkAsStatus.mockImplementationOnce(() => new Promise<void>((resolve) => {
+        resolveMock = resolve;
+      }));
+
+      const vm = useBoardPage();
+      const completePromise = vm.handleCompleteLetter('Класна кава');
+
+      expect(vm.isMarkingLetter.value).toBe(true);
+      expect(vm.isPageLoaderVisible.value).toBe(true);
+      expect(vm.pageLoaderMessage.value).toBe('Зберігаємо побачення... 💕');
+      expect(vm.pageLoaderSubmessage.value).toBe('Синхронізуємо ваші спогади з сервером...');
+
+      resolveMock!();
+      await completePromise;
+
+      expect(vm.isMarkingLetter.value).toBe(false);
+      expect(vm.isPageLoaderVisible.value).toBe(false);
+      expect(mockMarkAsStatus).toHaveBeenCalledWith('К', 'used', 'Класна кава');
+    });
+
+    it('sets isMarkingLetter and custom message during handleExcludeLetter', async () => {
+      mockActiveLetter.value = { letter: 'Ь', status: 'available' };
+      let resolveMock: () => void;
+      mockMarkAsStatus.mockImplementationOnce(() => new Promise<void>((resolve) => {
+        resolveMock = resolve;
+      }));
+
+      const vm = useBoardPage();
+      const excludePromise = vm.handleExcludeLetter();
+
+      expect(vm.isMarkingLetter.value).toBe(true);
+      expect(vm.isPageLoaderVisible.value).toBe(true);
+      expect(vm.pageLoaderMessage.value).toBe('Оновлюємо дошку... ✨');
+
+      resolveMock!();
+      await excludePromise;
+
+      expect(vm.isMarkingLetter.value).toBe(false);
+      expect(vm.isPageLoaderVisible.value).toBe(false);
+      expect(mockMarkAsStatus).toHaveBeenCalledWith('Ь', 'excluded');
+    });
+
+    it('blocks handleSelectLetter when isSyncing is true', () => {
+      mockIsSyncing.value = true;
+      const vm = useBoardPage();
+
+      vm.handleSelectLetter({ letter: 'Д', status: 'available' });
+      expect(mockSelectLetter).not.toHaveBeenCalled();
+    });
+
+    it('blocks handlePickRandom when isSyncing is true', () => {
+      mockIsSyncing.value = true;
+      const vm = useBoardPage();
+
+      vm.handlePickRandom({ letter: 'Д', status: 'available' });
+      expect(mockSelectLetter).not.toHaveBeenCalled();
+      expect(vm.isPickingRandom.value).toBe(false);
+    });
+
+    it('triggers refreshBackgroundState on visibilitychange when visible and idle', () => {
+      useBoardPage();
+
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true
+      });
+
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(mockRefreshBackgroundState).toHaveBeenCalled();
+    });
+
+    it('does not trigger refreshBackgroundState on visibilitychange when hidden', () => {
+      useBoardPage();
+
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'hidden',
+        configurable: true
+      });
+
+      mockRefreshBackgroundState.mockClear();
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(mockRefreshBackgroundState).not.toHaveBeenCalled();
+    });
+
+    it('triggers refreshBackgroundState on window focus after blur', () => {
+      useBoardPage();
+
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true
+      });
+
+      mockRefreshBackgroundState.mockClear();
+      window.dispatchEvent(new Event('blur'));
+      window.dispatchEvent(new Event('focus'));
+      expect(mockRefreshBackgroundState).toHaveBeenCalled();
+    });
+
+    it('triggers refreshBackgroundState on window focusin after blur', () => {
+      useBoardPage();
+
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true
+      });
+
+      mockRefreshBackgroundState.mockClear();
+      window.dispatchEvent(new Event('blur'));
+      window.dispatchEvent(new Event('focusin'));
+      expect(mockRefreshBackgroundState).toHaveBeenCalled();
     });
   });
 });

@@ -7,6 +7,14 @@ import type {
   DateSuggestionsResponse
 } from '../types';
 import { getDefaultBoardSuggestions } from './mocks/defaultSuggestions';
+import {
+  DEFAULT_BOARD_ID,
+  DEFAULT_PROD_API_URL,
+  DEFAULT_DEV_API_URL,
+  HTTP_HEADERS,
+  getBoardPinStorageKey
+} from '../constants';
+import { encryptPin, decryptPin } from '../utils/crypto';
 
 export class ApiError extends Error {
   constructor(
@@ -21,11 +29,8 @@ export class ApiError extends Error {
 
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
-  (import.meta.env.PROD ? 'https://api.vdovareize.me' : 'http://localhost:3000');
+  (import.meta.env.PROD ? DEFAULT_PROD_API_URL : DEFAULT_DEV_API_URL);
 
-import { encryptPin, decryptPin } from '../utils/crypto';
-
-const PIN_STORAGE_PREFIX = 'alphadate_pin_';
 const pinMemoryCache = new Map<string, string>();
 
 export async function getStoredPin(boardId: string): Promise<string | null> {
@@ -34,7 +39,7 @@ export async function getStoredPin(boardId: string): Promise<string | null> {
   }
   if (typeof window === 'undefined' || !window.localStorage) return null;
 
-  const raw = localStorage.getItem(`${PIN_STORAGE_PREFIX}${boardId}`);
+  const raw = localStorage.getItem(getBoardPinStorageKey(boardId));
   if (!raw) return null;
 
   const decrypted = await decryptPin(raw);
@@ -53,20 +58,20 @@ export async function setStoredPin(boardId: string, pin: string): Promise<void> 
   if (typeof window === 'undefined' || !window.localStorage) return;
 
   const encrypted = await encryptPin(pin);
-  localStorage.setItem(`${PIN_STORAGE_PREFIX}${boardId}`, encrypted);
+  localStorage.setItem(getBoardPinStorageKey(boardId), encrypted);
 }
 
 export function clearStoredPin(boardId: string): void {
   pinMemoryCache.delete(boardId);
   if (typeof window === 'undefined' || !window.localStorage) return;
-  localStorage.removeItem(`${PIN_STORAGE_PREFIX}${boardId}`);
+  localStorage.removeItem(getBoardPinStorageKey(boardId));
 }
 
 async function buildHeaders(boardKey?: string, pinOverride?: string): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
   const pin = pinOverride || (boardKey ? await getStoredPin(boardKey) : null);
   if (pin) {
-    headers['x-board-pin'] = pin;
+    headers[HTTP_HEADERS.BOARD_PIN] = pin;
   }
   return headers;
 }
@@ -159,7 +164,7 @@ export const api = {
     signal?: AbortSignal,
     pin?: string
   ): Promise<DateSuggestionsResponse> {
-    if (key === 'default') {
+    if (key === DEFAULT_BOARD_ID) {
       return {
         success: true,
         letter,

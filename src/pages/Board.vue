@@ -7,6 +7,7 @@ import AppLogo from '../components/AppLogo.vue';
 import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
 import PinModal from '../components/PinModal.vue';
 import SetPinModal from '../components/SetPinModal.vue';
+import RomanticLoader from '../components/RomanticLoader.vue';
 
 const {
   boardId,
@@ -30,6 +31,11 @@ const {
   isPinRequired,
   pinError,
   isLoadingBackend,
+  isSyncing,
+  isBackgroundRefreshing,
+  isPageLoaderVisible,
+  pageLoaderMessage,
+  pageLoaderSubmessage,
   handleUnlockPin,
   handleCancelPin,
   handleOpenSetPin,
@@ -53,29 +59,58 @@ const {
         <h1 class="brand-title">AlphaDate</h1>
       </button>
 
-      <button
-        v-if="isPinPromptVisible"
-        type="button"
-        class="pin-attention-btn"
-        aria-label="Захистити дошку PIN-кодом"
-        @click="handleOpenSetPin"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2.3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="attention-icon"
-          aria-hidden="true"
+      <!-- Top right indicators: background refreshing spinner OR pin attention icon -->
+      <Transition name="sync-fade" mode="out-in">
+        <div
+          v-if="isBackgroundRefreshing"
+          key="sync-indicator"
+          class="header-sync-indicator"
+          aria-label="Оновлення даних..."
+          role="status"
         >
-          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-          <line x1="12" y1="9" x2="12" y2="13" />
-          <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="3" />
-        </svg>
-      </button>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="sync-spinner-icon"
+            aria-hidden="true"
+          >
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+            <path d="M8 16H3v5" />
+          </svg>
+        </div>
+
+        <button
+          v-else-if="isPinPromptVisible"
+          key="pin-attention-btn"
+          type="button"
+          class="pin-attention-btn"
+          aria-label="Захистити дошку PIN-кодом"
+          @click="handleOpenSetPin"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="attention-icon"
+            aria-hidden="true"
+          >
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="3" />
+          </svg>
+        </button>
+      </Transition>
     </header>
 
     <template v-if="!isPinRequired">
@@ -119,6 +154,7 @@ const {
         :board-id="boardId"
         :pick-random="pickRandom"
         :is-picking="isPickingRandom"
+        :disabled="isSyncing || isPageLoaderVisible"
         @complete="handleCompleteLetter"
         @exclude="handleExcludeLetter"
         @cancel="handleCancelLetter"
@@ -131,7 +167,7 @@ const {
         :active-letter="activeLetter?.letter"
         :highlighted-letter="highlightedLetter"
         :is-winner="isWinner"
-        :disabled="!!activeLetter || isPickingRandom"
+        :disabled="!!activeLetter || isPickingRandom || isSyncing || isPageLoaderVisible"
         @select="handleSelectLetter"
         @view-history="(item) => openHistory(item.letter)"
       />
@@ -196,6 +232,13 @@ const {
       @set-pin="handleSetPin"
       @close="handleCloseSetPin"
     />
+
+    <!-- Romantic Thematic Loader for initial load and syncing / marking letters -->
+    <RomanticLoader
+      :visible="isPageLoaderVisible"
+      :message="pageLoaderMessage"
+      :submessage="pageLoaderSubmessage"
+    />
   </main>
 </template>
 
@@ -213,6 +256,57 @@ const {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.header-sync-indicator {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem;
+  color: var(--color-accent, #ea7a87);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.sync-spinner-icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+  transform-origin: center;
+  animation: spinSync 1.2s linear infinite;
+}
+
+@keyframes spinSync {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sync-fade-enter-active,
+.sync-fade-leave-active {
+  transition: opacity 300ms ease;
+}
+
+.sync-fade-enter-from,
+.sync-fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sync-spinner-icon {
+    animation-duration: 2.5s;
+  }
+  .sync-fade-enter-active,
+  .sync-fade-leave-active {
+    transition: none;
+  }
 }
 
 .pin-attention-btn {

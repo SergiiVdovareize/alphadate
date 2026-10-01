@@ -65,28 +65,28 @@ describe('PinModal.vue', () => {
     expect(wrapper.emitted('unlock')![0]).toEqual(['4321']);
   });
 
-  it('emits cancel on cancel button or overlay click', async () => {
+  it('emits cancel on cancel button click only, not on overlay click', async () => {
     const wrapper = mount(PinModal, {
       props: { isOpen: true }
     });
 
+    await wrapper.find('.modal-overlay').trigger('click');
+    expect(wrapper.emitted('cancel')).toBeFalsy();
+
     await wrapper.find('.cancel-btn').trigger('click');
     expect(wrapper.emitted('cancel')).toHaveLength(1);
-
-    await wrapper.find('.modal-overlay').trigger('click');
-    expect(wrapper.emitted('cancel')).toHaveLength(2);
   });
 
-  it('emits cancel when Escape is pressed while open', async () => {
+  it('does not emit cancel when Escape is pressed while open', async () => {
     const wrapper = mount(PinModal, {
       props: { isOpen: true }
     });
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
-    expect(wrapper.emitted('cancel')).toHaveLength(1);
+    expect(wrapper.emitted('cancel')).toBeFalsy();
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-    expect(wrapper.emitted('cancel')).toHaveLength(1);
+    expect(wrapper.emitted('cancel')).toBeFalsy();
   });
 
   it('displays error message when error prop is present', () => {

@@ -1,3 +1,5 @@
+import { MS_PER_HOUR, MS_PER_DAY, DAYS_PER_WEEK, UKRAINIAN_MONTHS } from '../constants';
+
 export function formatDurationBetween(
   selectedAt?: string | null,
   completedAt?: string | null
@@ -14,8 +16,8 @@ export function formatDurationBetween(
   }
 
   const diffMs = Math.max(0, end - start);
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor(diffMs / MS_PER_HOUR);
+  const diffDays = Math.floor(diffMs / MS_PER_DAY);
 
   if (diffHours < 1) {
     return 'менше 1 години';
@@ -25,12 +27,12 @@ export function formatDurationBetween(
     return pluralizeHours(diffHours);
   }
 
-  if (diffDays < 7) {
+  if (diffDays < DAYS_PER_WEEK) {
     return pluralizeDays(diffDays);
   }
 
-  const weeks = Math.floor(diffDays / 7);
-  const remDays = diffDays % 7;
+  const weeks = Math.floor(diffDays / DAYS_PER_WEEK);
+  const remDays = diffDays % DAYS_PER_WEEK;
   const weeksStr = pluralizeWeeks(weeks);
 
   if (remDays === 0) {
@@ -45,23 +47,8 @@ export function formatCompletionDate(isoString?: string | null): string {
   const date = new Date(isoString);
   if (isNaN(date.getTime())) return '';
 
-  const monthsUk = [
-    'січня',
-    'лютого',
-    'березня',
-    'квітня',
-    'травня',
-    'червня',
-    'липня',
-    'серпня',
-    'вересня',
-    'жовтня',
-    'листопада',
-    'грудня'
-  ];
-
   const day = date.getDate();
-  const month = monthsUk[date.getMonth()];
+  const month = UKRAINIAN_MONTHS[date.getMonth()];
   const year = date.getFullYear();
 
   return `${day} ${month} ${year}`;

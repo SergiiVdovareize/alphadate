@@ -36,6 +36,14 @@ function createMockBoardPage(overrides: Partial<ReturnType<typeof useBoardPage>>
     isPinRequired: ref(false),
     pinError: ref(null),
     isLoadingBackend: ref(false),
+    isSyncing: ref(false),
+    isBackgroundRefreshing: ref(false),
+    refreshBackgroundState: vi.fn(),
+    isMarkingLetter: ref(false),
+    markingLetterMessage: ref(''),
+    isPageLoaderVisible: computed(() => false),
+    pageLoaderMessage: computed(() => 'Завантажуємо дошку... 💕'),
+    pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...'),
     handleUnlockPin: vi.fn(),
     handleCancelPin: vi.fn(),
     handleOpenSetPin: vi.fn(),
@@ -158,5 +166,55 @@ describe('Board.vue', () => {
 
     const wrapper = mount(Board);
     expect(wrapper.find('.pin-attention-btn').exists()).toBe(false);
+  });
+
+  it('renders header-sync-indicator and hides pin-attention-btn when isBackgroundRefreshing is true', () => {
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
+      isBackgroundRefreshing: ref(true),
+      isPinPromptVisible: computed(() => true)
+    }));
+
+    const wrapper = mount(Board);
+    expect(wrapper.find('.header-sync-indicator').exists()).toBe(true);
+    expect(wrapper.find('.pin-attention-btn').exists()).toBe(false);
+  });
+
+  it('renders pin-attention-btn and hides header-sync-indicator when isBackgroundRefreshing is false and isPinPromptVisible is true', () => {
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
+      isBackgroundRefreshing: ref(false),
+      isPinPromptVisible: computed(() => true)
+    }));
+
+    const wrapper = mount(Board);
+    expect(wrapper.find('.header-sync-indicator').exists()).toBe(false);
+    expect(wrapper.find('.pin-attention-btn').exists()).toBe(true);
+  });
+
+  it('renders RomanticLoader when isPageLoaderVisible is true and passes message and submessage', () => {
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
+      isPageLoaderVisible: computed(() => true),
+      pageLoaderMessage: computed(() => 'Завантажуємо дошку... 💕'),
+      pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...')
+    }));
+
+    const wrapper = mount(Board);
+    const loader = wrapper.findComponent({ name: 'RomanticLoader' });
+    expect(loader.exists()).toBe(true);
+    expect(loader.props('visible')).toBe(true);
+    expect(loader.props('message')).toBe('Завантажуємо дошку... 💕');
+    expect(loader.props('submessage')).toBe('Синхронізуємо ваші побачення з сервером...');
+  });
+
+  it('disables AlphabetGrid and ActiveLetterPanel when isSyncing or isPageLoaderVisible is true', () => {
+    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
+      isSyncing: ref(true),
+      isPageLoaderVisible: computed(() => false)
+    }));
+
+    const wrapper = mount(Board);
+    const grid = wrapper.findComponent({ name: 'AlphabetGrid' });
+    expect(grid.props('disabled')).toBe(true);
+    const panel = wrapper.findComponent({ name: 'ActiveLetterPanel' });
+    expect(panel.props('disabled')).toBe(true);
   });
 });

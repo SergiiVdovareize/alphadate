@@ -118,6 +118,33 @@ describe('useAlphabetState', () => {
     expect(state.activeLetter.value?.letter).toBe('В');
   });
 
+  it('refreshBackgroundState silently fetches updates in background without setting isLoadingBackend', async () => {
+    const state = useAlphabetState('silent-board');
+    await vi.waitFor(() => expect(state.isLoadingBackend.value).toBe(false));
+
+    vi.mocked(api.getBoard).mockResolvedValueOnce({
+      success: true,
+      letters: [{ letter: 'Г', status: 'available' }],
+      metadata: {
+        partners: [{ id: 1, name: 'Світлана' }],
+        pinHash: null,
+        currentPartnerId: 1,
+        currentLetter: null,
+        currentLetterSelectedAt: null
+      }
+    });
+
+    const refreshPromise = state.refreshBackgroundState();
+    expect(state.isBackgroundRefreshing.value).toBe(true);
+    expect(state.isLoadingBackend.value).toBe(false);
+
+    await refreshPromise;
+    expect(state.isBackgroundRefreshing.value).toBe(false);
+    expect(state.isLoadingBackend.value).toBe(false);
+    expect(state.letters.value[0].letter).toBe('Г');
+    expect(state.metadata.value.partners[0].name).toBe('Світлана');
+  });
+
   it('initBoardLocalStorage safely pre-initializes board storage', () => {
     initBoardLocalStorage('pre-init-board', ['Катя', 'Дмитро']);
 

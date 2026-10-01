@@ -74,4 +74,17 @@ describe('RandomPickButton.vue', () => {
     wrapper.unmount();
     vi.advanceTimersByTime(3000);
   });
+
+  it('renders disabled state and ignores clicks when disabled is true', async () => {
+    const pickRandom = vi.fn();
+    const wrapper = mount(RandomPickButton, {
+      props: { pickRandom, disabled: true }
+    });
+
+    const button = wrapper.find('button');
+    expect(button.attributes('disabled')).toBeDefined();
+
+    await button.trigger('click');
+    expect(pickRandom).not.toHaveBeenCalled();
+  });
 });

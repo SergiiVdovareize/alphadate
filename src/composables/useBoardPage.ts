@@ -1,12 +1,18 @@
-import { ref, computed, watch, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAlphabetState, type LetterState } from './useAlphabetState';
+import {
+  DEFAULT_BOARD_ID,
+  getPinDismissedStorageKey,
+  ROULETTE_CONFIG,
+  VISIBILITY_REFRESH_COOLDOWN_MS
+} from '../constants';
 
 export function useBoardPage() {
   const route = useRoute();
   const router = useRouter();
 
-  const boardId = (route.params.id as string) || 'default';
+  const boardId = (route.params.id as string) || DEFAULT_BOARD_ID;
 
   const {
     letters,
@@ -22,8 +28,14 @@ export function useBoardPage() {
     pinError,
     unlockWithPin,
     setBoardPin,
-    isLoadingBackend
+    isLoadingBackend,
+    isSyncing,
+    isBackgroundRefreshing,
+    refreshBackgroundState
   } = useAlphabetState(boardId);
+
+  const isMarkingLetter = ref(false);
+  const markingLetterMessage = ref('');
 
   const isDeleteModalOpen = ref(false);
   const isHistoryModalOpen = ref(false);
@@ -31,13 +43,9 @@ export function useBoardPage() {
   const setPinError = ref<string | null>(null);
   const selectedHistoryLetter = ref<string | null>(null);
 
-  const ONE_HOUR_MS = 60 * 60 * 1000;
-  const FIRST_SEEN_KEY = `alphadate_pin_first_seen_${boardId}`;
-  const DISMISSED_KEY = `alphadate_pin_dismissed_${boardId}`;
+  const DISMISSED_KEY = getPinDismissedStorageKey(boardId);
 
   const isPinPromptDismissed = ref(false);
-  const isPinPromptExpired = ref(false);
-  let pinPromptExpiryTimer: ReturnType<typeof setTimeout> | null = null;
 
   if (typeof window !== 'undefined' && window.localStorage) {
     if (localStorage.getItem(DISMISSED_KEY) === 'true') {
@@ -45,44 +53,13 @@ export function useBoardPage() {
     }
   }
 
-  const checkPinPromptExpiry = (firstSeen: number) => {
-    if (pinPromptExpiryTimer) {
-      clearTimeout(pinPromptExpiryTimer);
-      pinPromptExpiryTimer = null;
-    }
-    const elapsed = Date.now() - firstSeen;
-    if (elapsed >= ONE_HOUR_MS) {
-      isPinPromptExpired.value = true;
-    } else {
-      isPinPromptExpired.value = false;
-      pinPromptExpiryTimer = setTimeout(() => {
-        isPinPromptExpired.value = true;
-      }, ONE_HOUR_MS - elapsed);
-    }
-  };
-
-  watch(
-    [() => metadata.value.hasPin, () => isPinRequired.value],
-    ([hasPin, pinRequired]) => {
-      if (typeof window === 'undefined' || !window.localStorage) return;
-      if (hasPin || pinRequired || isPinPromptDismissed.value) return;
-
-      const stored = localStorage.getItem(FIRST_SEEN_KEY);
-      const now = Date.now();
-      let firstSeen = now;
-      if (!stored) {
-        localStorage.setItem(FIRST_SEEN_KEY, String(now));
-      } else {
-        const parsed = parseInt(stored, 10);
-        firstSeen = isNaN(parsed) ? now : parsed;
-      }
-      checkPinPromptExpiry(firstSeen);
-    },
-    { immediate: true }
-  );
-
   const isPinPromptVisible = computed(() => {
-    if (metadata.value.hasPin || isPinRequired.value || isPinPromptDismissed.value || isPinPromptExpired.value) {
+    if (
+      metadata.value.hasPin ||
+      isPinRequired.value ||
+      isPinPromptDismissed.value ||
+      isBackgroundRefreshing.value
+    ) {
       return false;
     }
     return true;
@@ -101,16 +78,70 @@ export function useBoardPage() {
     isWinner.value = false;
   };
 
+  let lastRefreshedAt = 0;
+  let isWindowFocused = typeof document !== 'undefined' ? document.hasFocus() : true;
+
+  const triggerBackgroundRefreshIfNeeded = () => {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastRefreshedAt < VISIBILITY_REFRESH_COOLDOWN_MS) {
+      return;
+    }
+    if (
+      !isBackgroundRefreshing.value &&
+      !isLoadingBackend.value &&
+      !isSyncing.value &&
+      !isMarkingLetter.value &&
+      !isPickingRandom.value &&
+      !isPinRequired.value &&
+      boardId !== DEFAULT_BOARD_ID
+    ) {
+      lastRefreshedAt = now;
+      refreshBackgroundState();
+    }
+  };
+
+  const handleVisibilityChange = () => {
+    triggerBackgroundRefreshIfNeeded();
+  };
+
+  const handleWindowBlur = () => {
+    isWindowFocused = false;
+  };
+
+  const handleWindowFocus = () => {
+    const wasUnfocused = !isWindowFocused;
+    isWindowFocused = true;
+    if (wasUnfocused) {
+      triggerBackgroundRefreshIfNeeded();
+    }
+  };
+
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+  }
+  if (typeof window !== 'undefined') {
+    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('blur', handleWindowBlur);
+    window.addEventListener('focusin', handleWindowFocus);
+  }
+
   onUnmounted(() => {
     clearRoulette();
-    if (pinPromptExpiryTimer) {
-      clearTimeout(pinPromptExpiryTimer);
-      pinPromptExpiryTimer = null;
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('focus', handleWindowFocus);
+      window.removeEventListener('blur', handleWindowBlur);
+      window.removeEventListener('focusin', handleWindowFocus);
     }
   });
 
   const handlePickRandom = (targetLetter: LetterState) => {
-    if (activeLetter.value || isPickingRandom.value) return;
+    if (activeLetter.value || isPickingRandom.value || isSyncing.value || isMarkingLetter.value) return;
 
     const available = letters.value.filter((l) => l.status === 'available');
 
@@ -127,8 +158,8 @@ export function useBoardPage() {
     clearRoulette();
     isPickingRandom.value = true;
 
-    // Build jump sequence across available letters (22 hops for ~4s duration)
-    const hopsCount = 22;
+    // Build jump sequence across available letters
+    const hopsCount = ROULETTE_CONFIG.HOPS_COUNT;
     const hops: string[] = [];
     let lastChar = '';
 
@@ -141,12 +172,8 @@ export function useBoardPage() {
     // Final hop stops on the chosen winner
     hops.push(targetLetter.letter);
 
-    // Deceleration delay curve (ms) across 22 hops = ~3.9s
-    const delays = [
-      45, 45, 45, 45, 50, 50, 55, 60, 65, 75,
-      85, 100, 120, 145, 175, 210, 255, 310, 375, 455,
-      550, 660
-    ];
+    // Deceleration delay curve (ms)
+    const delays = ROULETTE_CONFIG.DELAYS;
 
     let accumulatedTime = 0;
     hops.forEach((letterChar, idx) => {
@@ -162,8 +189,8 @@ export function useBoardPage() {
       rouletteTimers.push(timer);
     });
 
-    // Pause while the one-time winner celebration pulse plays (650ms), then activate
-    accumulatedTime += 650;
+    // Pause while the one-time winner celebration pulse plays, then activate
+    accumulatedTime += ROULETTE_CONFIG.CELEBRATION_PAUSE_MS;
     const finalTimer = setTimeout(() => {
       clearRoulette();
       selectLetter(targetLetter);
@@ -181,14 +208,28 @@ export function useBoardPage() {
     selectedHistoryLetter.value = null;
   };
 
-  const handleCompleteLetter = (note: string) => {
-    if (!activeLetter.value) return;
-    markAsStatus(activeLetter.value.letter, 'used', note);
+  const handleCompleteLetter = async (note: string) => {
+    if (!activeLetter.value || isMarkingLetter.value || isSyncing.value) return;
+    isMarkingLetter.value = true;
+    markingLetterMessage.value = 'Зберігаємо побачення... 💕';
+    try {
+      await markAsStatus(activeLetter.value.letter, 'used', note);
+    } finally {
+      isMarkingLetter.value = false;
+      markingLetterMessage.value = '';
+    }
   };
 
-  const handleExcludeLetter = () => {
-    if (!activeLetter.value) return;
-    markAsStatus(activeLetter.value.letter, 'excluded');
+  const handleExcludeLetter = async () => {
+    if (!activeLetter.value || isMarkingLetter.value || isSyncing.value) return;
+    isMarkingLetter.value = true;
+    markingLetterMessage.value = 'Оновлюємо дошку... ✨';
+    try {
+      await markAsStatus(activeLetter.value.letter, 'excluded');
+    } finally {
+      isMarkingLetter.value = false;
+      markingLetterMessage.value = '';
+    }
   };
 
   const handleCancelLetter = () => {
@@ -196,7 +237,7 @@ export function useBoardPage() {
   };
 
   const handleSelectLetter = (letter: LetterState) => {
-    if (activeLetter.value || isPickingRandom.value) return;
+    if (activeLetter.value || isPickingRandom.value || isSyncing.value || isMarkingLetter.value) return;
     selectLetter(letter);
   };
 
@@ -238,6 +279,25 @@ export function useBoardPage() {
     }
   };
 
+  const isPageLoaderVisible = computed(() => {
+    if (isPinRequired.value) return false;
+    return isMarkingLetter.value || isLoadingBackend.value;
+  });
+
+  const pageLoaderMessage = computed(() => {
+    if (isMarkingLetter.value) {
+      return markingLetterMessage.value || 'Зберігаємо побачення... 💕';
+    }
+    return 'Завантажуємо дошку... 💕';
+  });
+
+  const pageLoaderSubmessage = computed(() => {
+    if (isMarkingLetter.value) {
+      return 'Синхронізуємо ваші спогади з сервером...';
+    }
+    return 'Синхронізуємо ваші побачення з сервером...';
+  });
+
   const goHome = () => {
     router.push('/');
   };
@@ -261,6 +321,14 @@ export function useBoardPage() {
     isPinRequired,
     pinError,
     isLoadingBackend,
+    isSyncing,
+    isBackgroundRefreshing,
+    refreshBackgroundState,
+    isMarkingLetter,
+    markingLetterMessage,
+    isPageLoaderVisible,
+    pageLoaderMessage,
+    pageLoaderSubmessage,
     handleUnlockPin,
     handleCancelPin,
     handleOpenSetPin,
@@ -275,6 +343,9 @@ export function useBoardPage() {
     handleCancelLetter,
     handleSelectLetter,
     handleDeleteConfirm,
+    handleVisibilityChange,
+    handleWindowFocus,
+    handleWindowBlur,
     goHome
   };
 }

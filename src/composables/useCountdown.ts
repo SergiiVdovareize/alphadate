@@ -1,4 +1,14 @@
 import { ref, computed, onMounted, onUnmounted, type ComputedRef } from 'vue';
+import {
+  DEFAULT_COUNTDOWN_DAYS,
+  URGENT_DAYS_THRESHOLD,
+  INITIAL_SELECTION_OFFSET_MS,
+  COUNTDOWN_TICK_INTERVAL_MS,
+  MS_PER_DAY,
+  MS_PER_HOUR,
+  MS_PER_MINUTE,
+  MS_PER_SECOND
+} from '../constants';
 
 export interface CountdownInfo {
   expired: boolean;
@@ -8,7 +18,7 @@ export interface CountdownInfo {
 
 export function useCountdown(
   selectedAtGetter: () => string | null | undefined,
-  totalDays: number = 30
+  totalDays: number = DEFAULT_COUNTDOWN_DAYS
 ): ComputedRef<CountdownInfo | null> {
   const now = ref(Date.now());
   let interval: ReturnType<typeof setInterval> | null = null;
@@ -16,7 +26,7 @@ export function useCountdown(
   onMounted(() => {
     interval = setInterval(() => {
       now.value = Date.now();
-    }, 1000);
+    }, COUNTDOWN_TICK_INTERVAL_MS);
   });
 
   onUnmounted(() => {
@@ -33,7 +43,7 @@ export function useCountdown(
     const selectedTime = new Date(selectedAt).getTime();
     if (isNaN(selectedTime)) return null;
 
-    const deadline = selectedTime + totalDays * 24 * 60 * 60 * 1000;
+    const deadline = selectedTime + totalDays * MS_PER_DAY;
     const remaining = deadline - now.value;
 
     if (remaining <= 0) {
@@ -44,16 +54,16 @@ export function useCountdown(
       };
     }
 
-    // Prevent visual jump from 30 0 0 on initial open by offsetting by 5 seconds
-    const maxRemaining = totalDays * 24 * 60 * 60 * 1000 - 5 * 1000;
+    // Prevent visual jump from 30 0 0 on initial open by offsetting initial seconds
+    const maxRemaining = totalDays * MS_PER_DAY - INITIAL_SELECTION_OFFSET_MS;
     const effectiveRemaining = Math.min(remaining, maxRemaining);
 
-    const days = Math.floor(effectiveRemaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((effectiveRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((effectiveRemaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((effectiveRemaining % (1000 * 60)) / 1000);
+    const days = Math.floor(effectiveRemaining / MS_PER_DAY);
+    const hours = Math.floor((effectiveRemaining % MS_PER_DAY) / MS_PER_HOUR);
+    const minutes = Math.floor((effectiveRemaining % MS_PER_HOUR) / MS_PER_MINUTE);
+    const seconds = Math.floor((effectiveRemaining % MS_PER_MINUTE) / MS_PER_SECOND);
 
-    const urgent = days < 3;
+    const urgent = days < URGENT_DAYS_THRESHOLD;
 
     let text = '';
     if (days > 0) {

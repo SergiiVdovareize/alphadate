@@ -5,6 +5,7 @@ import type { LetterState } from '../composables/useAlphabetState';
 const props = defineProps<{
   pickRandom: () => LetterState | null;
   isPicking?: boolean;
+  disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -22,7 +23,7 @@ onUnmounted(() => {
 });
 
 const handleRandomPick = () => {
-  if (props.isPicking) return;
+  if (props.isPicking || props.disabled) return;
   const result = props.pickRandom();
   if (result) {
     isEmptyNotice.value = false;
@@ -42,7 +43,7 @@ const handleRandomPick = () => {
     <button
       class="button primary large random-btn"
       :class="{ 'is-picking': isPicking }"
-      :disabled="isPicking"
+      :disabled="isPicking || disabled"
       @click="handleRandomPick"
     >
       <span v-if="isPicking" class="picking-label">

@@ -2,6 +2,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { initBoardLocalStorage, type SavedBoard } from './useAlphabetState';
 import { api, setStoredPin } from '../services/api';
+import { STORAGE_KEYS, PIN_REGEX } from '../constants';
 
 export function useHome() {
   const router = useRouter();
@@ -14,8 +15,7 @@ export function useHome() {
   const savedBoards = ref<SavedBoard[]>([]);
 
   onMounted(() => {
-    const savedKey = 'alphadate_saved_boards';
-    const list = localStorage.getItem(savedKey);
+    const list = localStorage.getItem(STORAGE_KEYS.SAVED_BOARDS);
     if (list) {
       try {
         savedBoards.value = JSON.parse(list);
@@ -44,7 +44,7 @@ export function useHome() {
     }
 
     const trimmedPin = pin.value.trim();
-    if (trimmedPin && !/^\d{4}$/.test(trimmedPin)) {
+    if (trimmedPin && !PIN_REGEX.test(trimmedPin)) {
       errorMessage.value = 'PIN-код повинен складатися рівно з 4 цифр.';
       return;
     }
@@ -58,15 +58,16 @@ export function useHome() {
         }
 
         // Save board details to localStorage history list
-        const savedKey = 'alphadate_saved_boards';
-        const existingList: SavedBoard[] = JSON.parse(localStorage.getItem(savedKey) || '[]');
+        const existingList: SavedBoard[] = JSON.parse(
+          localStorage.getItem(STORAGE_KEYS.SAVED_BOARDS) || '[]'
+        );
         const newEntry: SavedBoard = {
           key: data.key,
           partners: validPartners,
           createdAt: new Date().toISOString()
         };
         const updated = [newEntry, ...existingList.filter((b) => b.key !== data.key)];
-        localStorage.setItem(savedKey, JSON.stringify(updated));
+        localStorage.setItem(STORAGE_KEYS.SAVED_BOARDS, JSON.stringify(updated));
 
         // Initialize the board metadata safely into localStorage without triggering out-of-context watchers
         initBoardLocalStorage(data.key, validPartners, Boolean(trimmedPin));

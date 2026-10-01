@@ -1,5 +1,15 @@
 import { ref, watch } from 'vue';
 import { api, ApiError, setStoredPin, clearStoredPin } from '../services/api';
+import {
+  UKRAINIAN_ALPHABET,
+  DEFAULT_BOARD_ID,
+  PIN_REGEX,
+  INITIAL_SELECTION_OFFSET_MS,
+  STORAGE_KEYS,
+  getBoardStateStorageKey,
+  getPinFirstSeenStorageKey,
+  getPinDismissedStorageKey
+} from '../constants';
 import type {
   LetterStatus,
   LetterState,
@@ -10,42 +20,6 @@ import type {
 } from '../types';
 export type { LetterStatus, LetterState, BoardMetadata, SavedBoard, LetterHistoryItem };
 
-const UKRAINIAN_ALPHABET = [
-  'А',
-  'Б',
-  'В',
-  'Г',
-  'Ґ',
-  'Д',
-  'Е',
-  'Є',
-  'Ж',
-  'З',
-  'И',
-  'І',
-  'Ї',
-  'Й',
-  'К',
-  'Л',
-  'М',
-  'Н',
-  'О',
-  'П',
-  'Р',
-  'С',
-  'Т',
-  'У',
-  'Ф',
-  'Х',
-  'Ц',
-  'Ч',
-  'Ш',
-  'Щ',
-  'Ь',
-  'Ю',
-  'Я'
-];
-
 const defaultState: LetterState[] = UKRAINIAN_ALPHABET.map((letter) => ({
   letter,
   status: 'available'
@@ -55,7 +29,7 @@ const defaultState: LetterState[] = UKRAINIAN_ALPHABET.map((letter) => ({
  * Initializes localStorage for a new board key without triggering component reactive watchers.
  */
 export function initBoardLocalStorage(boardId: string, partnersArray: string[], hasPin = false): void {
-  const LOCAL_STORAGE_KEY = `alphadate_state_${boardId}`;
+  const LOCAL_STORAGE_KEY = getBoardStateStorageKey(boardId);
   const mappedPartners: Partner[] = partnersArray.map((name, index) => ({
     id: index + 1,
     name
@@ -80,7 +54,7 @@ export function initBoardLocalStorage(boardId: string, partnersArray: string[], 
 }
 
 export function useAlphabetState(boardId: string) {
-  const LOCAL_STORAGE_KEY = `alphadate_state_${boardId}`;
+  const LOCAL_STORAGE_KEY = getBoardStateStorageKey(boardId);
   const letters = ref<LetterState[]>([]);
   const metadata = ref<BoardMetadata>({
     partners: [],
@@ -93,8 +67,9 @@ export function useAlphabetState(boardId: string) {
   const history = ref<LetterHistoryItem[]>([]);
   const activeLetter = ref<LetterState | null>(null);
   const fetchError = ref<string | null>(null);
-  const isLoadingBackend = ref(boardId !== 'default');
+  const isLoadingBackend = ref(boardId !== DEFAULT_BOARD_ID);
   const isSyncing = ref(false);
+  const isBackgroundRefreshing = ref(false);
   const isPinRequired = ref(false);
   const pinError = ref<string | null>(null);
 
@@ -175,12 +150,17 @@ export function useAlphabetState(boardId: string) {
   fetchState();
 
   // Sync state from backend asynchronously
-  const fetchBackendState = async () => {
-    if (boardId === 'default') {
+  const fetchBackendState = async (options?: { silent?: boolean }) => {
+    if (boardId === DEFAULT_BOARD_ID) {
       isLoadingBackend.value = false;
       return;
     }
-    isLoadingBackend.value = true;
+    const isSilent = options?.silent ?? false;
+    if (isSilent) {
+      isBackgroundRefreshing.value = true;
+    } else {
+      isLoadingBackend.value = true;
+    }
     fetchError.value = null;
 
     try {
@@ -202,8 +182,9 @@ export function useAlphabetState(boardId: string) {
             : null;
 
           // Save board to local storage history list
-          const savedKey = 'alphadate_saved_boards';
-          const savedBoards: SavedBoard[] = JSON.parse(localStorage.getItem(savedKey) || '[]');
+          const savedBoards: SavedBoard[] = JSON.parse(
+            localStorage.getItem(STORAGE_KEYS.SAVED_BOARDS) || '[]'
+          );
           const partnerNames = data.metadata.partners
             ? data.metadata.partners.map((p) => p.name)
             : [];
@@ -217,7 +198,7 @@ export function useAlphabetState(boardId: string) {
             newEntry.createdAt = existing.createdAt;
           }
           const updated = [newEntry, ...savedBoards.filter((b) => b.key !== boardId)];
-          localStorage.setItem(savedKey, JSON.stringify(updated));
+          localStorage.setItem(STORAGE_KEYS.SAVED_BOARDS, JSON.stringify(updated));
         }
       }
     } catch (e: unknown) {
@@ -241,13 +222,17 @@ export function useAlphabetState(boardId: string) {
         fetchError.value = e instanceof Error ? e.message : 'Не вдалося завантажити дошку з сервера.';
       }
     } finally {
-      isLoadingBackend.value = false;
+      if (isSilent) {
+        isBackgroundRefreshing.value = false;
+      } else {
+        isLoadingBackend.value = false;
+      }
     }
   };
 
   const unlockWithPin = async (enteredPin: string): Promise<boolean> => {
     const trimmed = enteredPin.trim();
-    if (!/^\d{4}$/.test(trimmed)) {
+    if (!PIN_REGEX.test(trimmed)) {
       pinError.value = 'PIN-код повинен складатися рівно з 4 цифр.';
       return false;
     }
@@ -288,7 +273,7 @@ export function useAlphabetState(boardId: string) {
 
   const setBoardPin = async (newPin: string): Promise<boolean> => {
     const trimmed = newPin.trim();
-    if (!/^\d{4}$/.test(trimmed)) {
+    if (!PIN_REGEX.test(trimmed)) {
       pinError.value = 'PIN-код повинен складатися рівно з 4 цифр.';
       return false;
     }
@@ -296,7 +281,7 @@ export function useAlphabetState(boardId: string) {
     isLoadingBackend.value = true;
     pinError.value = null;
     try {
-      if (boardId !== 'default') {
+      if (boardId !== DEFAULT_BOARD_ID) {
         await api.updateBoard(
           boardId,
           letters.value,
@@ -340,7 +325,7 @@ export function useAlphabetState(boardId: string) {
 
   // Sync with backend using AbortController to prevent race conditions
   const syncWithBackend = async () => {
-    if (boardId === 'default') return;
+    if (boardId === DEFAULT_BOARD_ID) return;
 
     if (currentSyncController) {
       currentSyncController.abort();
@@ -380,7 +365,9 @@ export function useAlphabetState(boardId: string) {
     metadata.value.currentLetter = letter ? letter.letter : null;
     if (letter) {
       if (!metadata.value.currentLetterSelectedAt) {
-        metadata.value.currentLetterSelectedAt = new Date(Date.now() - 5 * 1000).toISOString();
+        metadata.value.currentLetterSelectedAt = new Date(
+          Date.now() - INITIAL_SELECTION_OFFSET_MS
+        ).toISOString();
       }
     } else {
       metadata.value.currentLetterSelectedAt = null;
@@ -396,7 +383,7 @@ export function useAlphabetState(boardId: string) {
     syncWithBackend();
   };
 
-  const markAsStatus = (
+  const markAsStatus = async (
     letterChar: string,
     status: LetterStatus,
     note?: string,
@@ -429,7 +416,7 @@ export function useAlphabetState(boardId: string) {
       metadata.value.currentLetter = null;
       metadata.value.currentLetterSelectedAt = null;
     }
-    syncWithBackend();
+    await syncWithBackend();
   };
 
   const pickRandom = (): LetterState | null => {
@@ -448,19 +435,20 @@ export function useAlphabetState(boardId: string) {
   };
 
   const deleteBoardState = async () => {
-    if (boardId === 'default') return;
+    if (boardId === DEFAULT_BOARD_ID) return;
     try {
       await api.deleteBoard(boardId);
       clearStoredPin(boardId);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
-      localStorage.removeItem(`alphadate_pin_first_seen_${boardId}`);
-      localStorage.removeItem(`alphadate_pin_dismissed_${boardId}`);
+      localStorage.removeItem(getPinFirstSeenStorageKey(boardId));
+      localStorage.removeItem(getPinDismissedStorageKey(boardId));
 
       // Cleanup from history list
-      const savedKey = 'alphadate_saved_boards';
-      const savedBoards: SavedBoard[] = JSON.parse(localStorage.getItem(savedKey) || '[]');
+      const savedBoards: SavedBoard[] = JSON.parse(
+        localStorage.getItem(STORAGE_KEYS.SAVED_BOARDS) || '[]'
+      );
       const updated = savedBoards.filter((b) => b.key !== boardId);
-      localStorage.setItem(savedKey, JSON.stringify(updated));
+      localStorage.setItem(STORAGE_KEYS.SAVED_BOARDS, JSON.stringify(updated));
     } catch (e) {
       console.error('Failed to delete board state from backend:', e);
     }
@@ -474,6 +462,7 @@ export function useAlphabetState(boardId: string) {
     fetchError,
     isLoadingBackend,
     isSyncing,
+    isBackgroundRefreshing,
     isPinRequired,
     pinError,
     fetchState,
@@ -483,6 +472,7 @@ export function useAlphabetState(boardId: string) {
     initBoardMetadata,
     deleteBoardState,
     selectLetter,
+    refreshBackgroundState: () => fetchBackendState({ silent: true }),
     reloadBackendState: fetchBackendState,
     unlockWithPin,
     setBoardPin
