@@ -16,7 +16,6 @@ const emit = defineEmits<{
 const pinInput = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
 
-
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   // Keep only digits and max PIN_LENGTH chars
@@ -126,10 +125,7 @@ onUnmounted(() => {
         </form>
       </div>
     </dialog>
-    <div
-      class="modal-overlay"
-      aria-hidden="true"
-    ></div>
+    <div class="modal-overlay" aria-hidden="true"></div>
   </div>
 </template>
 

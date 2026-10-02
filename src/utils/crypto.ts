@@ -122,13 +122,9 @@ async function getOrGenerateDeviceKey(): Promise<CryptoKey> {
   }
 
   const saltBytes = base64ToBuffer(salt);
-  const baseKey = await crypto.subtle.importKey(
-    'raw',
-    saltBytes,
-    { name: 'PBKDF2' },
-    false,
-    ['deriveKey']
-  );
+  const baseKey = await crypto.subtle.importKey('raw', saltBytes, { name: 'PBKDF2' }, false, [
+    'deriveKey'
+  ]);
 
   const derivedKey = await crypto.subtle.deriveKey(
     {
@@ -160,11 +156,7 @@ export async function encryptPin(pin: string): Promise<string> {
   const key = await getOrGenerateDeviceKey();
   const iv = crypto.getRandomValues(new Uint8Array(CRYPTO_CIPHER_CONFIG.IV_LENGTH_BYTES));
   const encoded = new TextEncoder().encode(pin);
-  const encrypted = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
-    key,
-    encoded
-  );
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
 
   const payload: EncryptedPinPayload = {
     v: 1,
@@ -193,11 +185,7 @@ export async function decryptPin(storedValue: string): Promise<string | null> {
     const iv = base64ToBuffer(payload.iv);
     const data = base64ToBuffer(payload.data);
 
-    const decryptedBuffer = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      data
-    );
+    const decryptedBuffer = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, data);
 
     return new TextDecoder().decode(decryptedBuffer);
   } catch {

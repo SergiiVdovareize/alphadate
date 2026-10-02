@@ -1,6 +1,5 @@
 export type LetterStatus = 'available' | 'used' | 'excluded' | 'skipped';
 
-
 export interface LetterState {
   letter: string;
   status: LetterStatus;

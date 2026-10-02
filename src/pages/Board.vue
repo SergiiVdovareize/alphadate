@@ -174,11 +174,7 @@ const {
 
       <!-- History Journal Trigger Link -->
       <div class="history-trigger-section">
-        <button
-          type="button"
-          class="history-journal-link"
-          @click="openHistory()"
-        >
+        <button type="button" class="history-journal-link" @click="openHistory()">
           <span class="journal-icon" aria-hidden="true">📖</span>
           <span class="journal-link-text">Щоденник побачень</span>
           <span v-if="history.length > 0" class="history-count-pill">
@@ -205,11 +201,7 @@ const {
       />
 
       <footer class="footer">
-        <button
-          type="button"
-          class="delete-board-link"
-          @click="isDeleteModalOpen = true"
-        >
+        <button type="button" class="delete-board-link" @click="isDeleteModalOpen = true">
           Видалити дошку
         </button>
       </footer>
@@ -322,7 +314,9 @@ const {
   padding: 0.4rem;
   color: var(--color-accent, #d97732);
   cursor: pointer;
-  transition: color 0.2s ease, filter 0.2s ease;
+  transition:
+    color 0.2s ease,
+    filter 0.2s ease;
   animation: floatBob 2.4s ease-in-out infinite;
 }
 
@@ -343,7 +337,8 @@ const {
 }
 
 @keyframes floatBob {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(-50%);
   }
   50% {
@@ -468,8 +463,12 @@ const {
   overflow: hidden;
   pointer-events: none;
   z-index: 2;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: partner-rim-fade 800ms ease-out forwards;

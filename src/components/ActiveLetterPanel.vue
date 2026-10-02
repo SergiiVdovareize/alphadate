@@ -192,16 +192,10 @@ onUnmounted(() => {
 
       <!-- Normal action buttons -->
       <div v-else class="action-buttons">
-        <button
-          class="button text close-panel-btn"
-          @click="handleConfirmableAction('cancel')"
-        >
+        <button class="button text close-panel-btn" @click="handleConfirmableAction('cancel')">
           <span>Обрати іншу</span>
         </button>
-        <button
-          class="button danger"
-          @click="handleConfirmableAction('exclude')"
-        >
+        <button class="button danger" @click="handleConfirmableAction('exclude')">
           <span>Виключити</span>
         </button>
         <button
@@ -239,7 +233,9 @@ onUnmounted(() => {
   border: 1.5px solid #dfd5ca;
   box-shadow: inset 0 2px 6px rgba(45, 55, 72, 0.06);
   text-align: center;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .active-letter-panel.has-active-letter {
@@ -257,8 +253,12 @@ onUnmounted(() => {
   overflow: hidden;
   pointer-events: none;
   z-index: 2;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   animation: rim-beam-fade 800ms ease-out forwards;

@@ -68,7 +68,10 @@ export function clearStoredPin(boardId: string): void {
   localStorage.removeItem(getBoardPinStorageKey(boardId));
 }
 
-async function buildHeaders(boardKey?: string, pinOverride?: string): Promise<Record<string, string>> {
+async function buildHeaders(
+  boardKey?: string,
+  pinOverride?: string
+): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
   const pin = pinOverride || (boardKey ? await getStoredPin(boardKey) : null);
   if (pin) {

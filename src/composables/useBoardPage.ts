@@ -141,7 +141,8 @@ export function useBoardPage() {
   });
 
   const handlePickRandom = (targetLetter: LetterState) => {
-    if (activeLetter.value || isPickingRandom.value || isSyncing.value || isMarkingLetter.value) return;
+    if (activeLetter.value || isPickingRandom.value || isSyncing.value || isMarkingLetter.value)
+      return;
 
     const available = letters.value.filter((l) => l.status === 'available');
 
@@ -237,7 +238,8 @@ export function useBoardPage() {
   };
 
   const handleSelectLetter = (letter: LetterState) => {
-    if (activeLetter.value || isPickingRandom.value || isSyncing.value || isMarkingLetter.value) return;
+    if (activeLetter.value || isPickingRandom.value || isSyncing.value || isMarkingLetter.value)
+      return;
     selectLetter(letter);
   };
 

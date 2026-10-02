@@ -39,54 +39,8 @@ const copyKeyword = async () => {
   }
 };
 
-let iosFallbackTimeout: ReturnType<typeof setTimeout> | undefined;
-
-const navigateTo = (url: string) => {
-  if (typeof window !== 'undefined') {
-    if (typeof window.location.assign === 'function') {
-      window.location.assign(url);
-    } else {
-      window.location.href = url;
-    }
-  }
-};
-
-const openGmail = async () => {
-  const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-  const isAndroid = /android/i.test(userAgent);
-  const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
-  const webSearchUrl = 'https://mail.google.com/mail/u/0/#search/AlphaDate';
-
-  if (isAndroid) {
-    // Android Chrome Intent: triggers native Gmail app if present, or redirects to web fallback
-    navigateTo(
-      'intent://#Intent;package=com.google.android.gm;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;S.browser_fallback_url=' +
-        encodeURIComponent(webSearchUrl) +
-        ';end'
-    );
-    return;
-  }
-
-  if (isIOS) {
-    // iOS URL scheme: launches native Gmail app if present, with fallback to web if not installed
-    const start = Date.now();
-    navigateTo('googlegmail:///');
-    if (iosFallbackTimeout) clearTimeout(iosFallbackTimeout);
-    iosFallbackTimeout = setTimeout(() => {
-      if (document.visibilityState === 'visible' && Date.now() - start < 1500) {
-        navigateTo(webSearchUrl);
-      }
-    }, 800);
-    return;
-  }
-
-  // Desktop or other environments: open web search directly in new tab
-  window.open(webSearchUrl, '_blank', 'noopener,noreferrer');
-};
-
 onUnmounted(() => {
   if (copyTimeout) clearTimeout(copyTimeout);
-  if (iosFallbackTimeout) clearTimeout(iosFallbackTimeout);
 });
 
 const handleRecover = async () => {
@@ -108,9 +62,7 @@ const handleRecover = async () => {
     }
   } catch (err: unknown) {
     errorMessage.value =
-      err instanceof Error
-        ? err.message
-        : 'Помилка при відновленні дошки. Перевірте зʼєднання.';
+      err instanceof Error ? err.message : 'Помилка при відновленні дошки. Перевірте зʼєднання.';
   } finally {
     isLoading.value = false;
   }
@@ -131,7 +83,11 @@ const handleRecover = async () => {
             class="back-arrow"
             aria-hidden="true"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"
+            />
           </svg>
           На головну
         </button>
@@ -143,7 +99,8 @@ const handleRecover = async () => {
 
       <h1>Відновлення дошки</h1>
       <p class="subtitle">
-        Забули або втратили посилання на спільну дошку? Дотримуйтесь цих кроків для швидкого відновлення доступу:
+        Забули або втратили посилання на спільну дошку? Дотримуйтесь цих кроків для швидкого
+        відновлення доступу:
       </p>
 
       <div class="steps-list">
@@ -154,7 +111,8 @@ const handleRecover = async () => {
             <h2 id="step-1-heading" class="step-title">Відкрийте з пристрою, де вже заходили</h2>
           </div>
           <p class="step-desc">
-            Якщо ви вже відкривали дошку раніше на телефоні, ноутбуці або планшеті — вона зберігається у памʼяті цього браузера автоматично.
+            Якщо ви вже відкривали дошку раніше на телефоні, ноутбуці або планшеті — вона
+            зберігається у памʼяті цього браузера автоматично.
           </p>
         </section>
 
@@ -165,7 +123,8 @@ const handleRecover = async () => {
             <h2 id="step-2-heading" class="step-title">Пошукайте лист від AlphaDate у пошті</h2>
           </div>
           <p class="step-desc">
-            Одразу під час створення дошки ми надсилали вітальний лист із прямим посиланням. Спробуйте знайти його за словом
+            Одразу під час створення дошки ми надсилали вітальний лист із прямим посиланням.
+            Спробуйте знайти його за словом
             <button
               type="button"
               class="copy-keyword-btn"
@@ -203,30 +162,8 @@ const handleRecover = async () => {
                 aria-hidden="true"
               >
                 <path d="M20 6 9 17l-5-5" />
-              </svg>
-            </button>.
-          </p>
-          <div class="step-action-row">
-            <button
-              type="button"
-              class="action-btn gmail-btn"
-              @click="openGmail"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                class="gmail-icon"
-                aria-hidden="true"
-              >
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" />
-              </svg>
-              Відкрити Gmail
-              <span class="external-icon" aria-hidden="true">↗</span>
-            </button>
-          </div>
-          <p class="step-subnote">
-            На телефоні відкриється застосунок Gmail (або вебверсія пошуку).
+              </svg></button
+            >.
           </p>
         </section>
 
@@ -237,7 +174,8 @@ const handleRecover = async () => {
             <h2 id="step-3-heading" class="step-title">Надіслати посилання на Email</h2>
           </div>
           <p class="step-desc">
-            Якщо попередні способи не спрацювали, введіть електронну пошту, зазначену під час створення дошки — ми повторно надішлемо вам посилання.
+            Якщо попередні способи не спрацювали, введіть електронну пошту, зазначену під час
+            створення дошки — ми повторно надішлемо вам посилання.
           </p>
 
           <form v-if="!isSuccess" class="recovery-form" @submit.prevent="handleRecover">
@@ -267,7 +205,8 @@ const handleRecover = async () => {
             <div class="success-icon" aria-hidden="true">💌</div>
             <h3 class="success-title">Лист надіслано!</h3>
             <p class="success-desc">
-              Якщо дошка була зареєстрована на цю адресу, ми надіслали лист із посиланням на неї. Будь ласка, перевірте поштову скриньку (і папку «Спам»).
+              Якщо дошка була зареєстрована на цю адресу, ми надіслали лист із посиланням на неї.
+              Будь ласка, перевірте поштову скриньку (і папку «Спам»).
             </p>
             <button type="button" class="action-btn outline-btn" @click="router.push('/')">
               Повернутися на головну
@@ -317,7 +256,9 @@ const handleRecover = async () => {
   cursor: pointer;
   padding: 0.35rem 0.5rem;
   border-radius: 8px;
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
   font-family: inherit;
 }
 
@@ -371,7 +312,9 @@ h1 {
   border-radius: 16px;
   padding: 1.25rem 1.25rem;
   text-align: left;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .step-card:hover {
@@ -441,7 +384,9 @@ h1 {
   text-underline-offset: 3px;
   text-decoration-thickness: 1.5px;
   text-decoration-color: var(--color-accent, #d97732);
-  transition: text-decoration-color 0.15s ease, color 0.15s ease;
+  transition:
+    text-decoration-color 0.15s ease,
+    color 0.15s ease;
   user-select: none;
 }
 
@@ -476,12 +421,6 @@ h1 {
   outline: 2px solid var(--color-accent, #d97732);
   outline-offset: 2px;
   border-radius: 4px;
-}
-
-.step-action-row {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.25rem;
 }
 
 .action-btn {
@@ -527,44 +466,6 @@ h1 {
   outline-offset: 2px;
 }
 
-.gmail-btn {
-  background: #ffffff;
-  color: #c53030;
-  border: 1px solid #feb2b2;
-}
-
-.gmail-btn:hover {
-  background: #fff5f5;
-  border-color: #e53e3e;
-}
-
-.gmail-btn:active {
-  transform: translateY(1px);
-}
-
-.gmail-btn:focus-visible {
-  outline: 2px solid #c53030;
-  outline-offset: 2px;
-}
-
-.gmail-icon {
-  width: 1rem;
-  height: 1rem;
-}
-
-.external-icon {
-  font-size: 0.9rem;
-  line-height: 1;
-  opacity: 0.7;
-}
-
-.step-subnote {
-  font-size: 0.78rem;
-  color: #a0aec0;
-  margin: 0.6rem 0 0 0;
-  line-height: 1.35;
-}
-
 .recovery-form {
   margin-top: 0.5rem;
 }
@@ -592,7 +493,9 @@ h1 {
   color: var(--color-ink, #2d3748);
   background: #ffffff;
   box-sizing: border-box;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .input-group input:focus {

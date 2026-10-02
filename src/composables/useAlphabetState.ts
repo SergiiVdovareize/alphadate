@@ -28,7 +28,11 @@ const defaultState: LetterState[] = UKRAINIAN_ALPHABET.map((letter) => ({
 /**
  * Initializes localStorage for a new board key without triggering component reactive watchers.
  */
-export function initBoardLocalStorage(boardId: string, partnersArray: string[], hasPin = false): void {
+export function initBoardLocalStorage(
+  boardId: string,
+  partnersArray: string[],
+  hasPin = false
+): void {
   const LOCAL_STORAGE_KEY = getBoardStateStorageKey(boardId);
   const mappedPartners: Partner[] = partnersArray.map((name, index) => ({
     id: index + 1,
@@ -205,12 +209,17 @@ export function useAlphabetState(boardId: string) {
       const is401 =
         e instanceof ApiError
           ? e.status === 401
-          : Boolean(e && typeof e === 'object' && 'status' in e && (e as { status: unknown }).status === 401);
+          : Boolean(
+              e &&
+              typeof e === 'object' &&
+              'status' in e &&
+              (e as { status: unknown }).status === 401
+            );
       const isPinFlag = Boolean(
         e &&
-          typeof e === 'object' &&
-          'responseBody' in e &&
-          (e as { responseBody?: { isPinRequired?: boolean } }).responseBody?.isPinRequired
+        typeof e === 'object' &&
+        'responseBody' in e &&
+        (e as { responseBody?: { isPinRequired?: boolean } }).responseBody?.isPinRequired
       );
 
       if (is401 || isPinFlag) {
@@ -219,7 +228,8 @@ export function useAlphabetState(boardId: string) {
         fetchError.value = null;
       } else {
         console.error('Failed to sync state from backend:', e);
-        fetchError.value = e instanceof Error ? e.message : 'Не вдалося завантажити дошку з сервера.';
+        fetchError.value =
+          e instanceof Error ? e.message : 'Не вдалося завантажити дошку з сервера.';
       }
     } finally {
       if (isSilent) {

@@ -127,7 +127,9 @@ describe('useHome', () => {
 
     await vm.createBoard();
 
-    expect(vm.errorMessage.value).toBe('Помилка при створенні дошки. Перевірте зʼєднання з сервером.');
+    expect(vm.errorMessage.value).toBe(
+      'Помилка при створенні дошки. Перевірте зʼєднання з сервером.'
+    );
   });
 
   it('openBoard routes to the board key', () => {

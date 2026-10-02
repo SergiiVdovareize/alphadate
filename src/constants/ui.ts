@@ -3,9 +3,8 @@ import { MS_PER_SECOND } from './time';
 export const ROULETTE_CONFIG = {
   HOPS_COUNT: 22,
   DELAYS: [
-    45, 45, 45, 45, 50, 50, 55, 60, 65, 75,
-    85, 100, 120, 145, 175, 210, 255, 310, 375, 455,
-    550, 660
+    45, 45, 45, 45, 50, 50, 55, 60, 65, 75, 85, 100, 120, 145, 175, 210, 255, 310, 375, 455, 550,
+    660
   ] as const,
   CELEBRATION_PAUSE_MS: 650
 } as const;

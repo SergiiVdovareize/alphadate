@@ -303,9 +303,12 @@ describe('useBoardPage', () => {
     it('sets isMarkingLetter and custom message during handleCompleteLetter', async () => {
       mockActiveLetter.value = { letter: 'К', status: 'available' };
       let resolveMock: () => void;
-      mockMarkAsStatus.mockImplementationOnce(() => new Promise<void>((resolve) => {
-        resolveMock = resolve;
-      }));
+      mockMarkAsStatus.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveMock = resolve;
+          })
+      );
 
       const vm = useBoardPage();
       const completePromise = vm.handleCompleteLetter('Класна кава');
@@ -326,9 +329,12 @@ describe('useBoardPage', () => {
     it('sets isMarkingLetter and custom message during handleExcludeLetter', async () => {
       mockActiveLetter.value = { letter: 'Ь', status: 'available' };
       let resolveMock: () => void;
-      mockMarkAsStatus.mockImplementationOnce(() => new Promise<void>((resolve) => {
-        resolveMock = resolve;
-      }));
+      mockMarkAsStatus.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveMock = resolve;
+          })
+      );
 
       const vm = useBoardPage();
       const excludePromise = vm.handleExcludeLetter();

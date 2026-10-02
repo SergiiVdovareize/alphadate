@@ -104,12 +104,7 @@ watch(
           <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
           <span v-else>📖 Щоденник побачень</span>
         </h3>
-        <button
-          type="button"
-          class="close-icon-btn"
-          aria-label="Закрити"
-          @click="emit('close')"
-        >
+        <button type="button" class="close-icon-btn" aria-label="Закрити" @click="emit('close')">
           ✕
         </button>
       </header>
@@ -128,11 +123,7 @@ watch(
           </div>
 
           <div v-else class="single-letter-memories">
-            <div
-              v-for="(item, idx) in letterHistoryItems"
-              :key="idx"
-              class="single-memory-view"
-            >
+            <div v-for="(item, idx) in letterHistoryItems" :key="idx" class="single-memory-view">
               <div class="memory-letter-heading">
                 <span class="memory-letter-char">{{ item.letter }}</span>
               </div>
@@ -163,12 +154,8 @@ watch(
 
               <div class="memory-note-box">
                 <span class="note-label">Враження від побачення:</span>
-                <p v-if="item.note" class="note-content">
-                  «{{ item.note }}»
-                </p>
-                <p v-else class="empty-note">
-                  Коментар не було додано
-                </p>
+                <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
+                <p v-else class="empty-note">Коментар не було додано</p>
               </div>
             </div>
           </div>
@@ -176,11 +163,7 @@ watch(
 
         <!-- Link to open full history (fixed footer outside scrollbar) -->
         <div class="view-all-history-section">
-          <button
-            type="button"
-            class="view-all-history-link"
-            @click="handleViewAll"
-          >
+          <button type="button" class="view-all-history-link" @click="handleViewAll">
             <span class="view-all-icon" aria-hidden="true">📖</span>
             <span class="view-all-text">Відкрити щоденник побачень</span>
           </button>
@@ -226,12 +209,8 @@ watch(
             </div>
 
             <div class="item-note">
-              <p v-if="item.note" class="note-text">
-                «{{ item.note }}»
-              </p>
-              <p v-else class="empty-note-small">
-                Без коментаря
-              </p>
+              <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
+              <p v-else class="empty-note-small">Без коментаря</p>
             </div>
           </article>
         </div>

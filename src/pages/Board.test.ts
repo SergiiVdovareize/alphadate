@@ -83,9 +83,11 @@ describe('Board.vue', () => {
   });
 
   it('renders sync error banner when fetchError is present', () => {
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      fetchError: ref('Сервер недоступний')
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        fetchError: ref('Сервер недоступний')
+      })
+    );
 
     const wrapper = mount(Board);
 
@@ -96,17 +98,19 @@ describe('Board.vue', () => {
 
   it('calls openHistory when history button is clicked', async () => {
     const mockOpenHistory = vi.fn();
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      history: ref([
-        {
-          letter: 'А',
-          status: 'used',
-          partnerName: 'Олена',
-          completedAt: '2026-09-25T10:00:00Z'
-        }
-      ]),
-      openHistory: mockOpenHistory
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        history: ref([
+          {
+            letter: 'А',
+            status: 'used',
+            partnerName: 'Олена',
+            completedAt: '2026-09-25T10:00:00Z'
+          }
+        ]),
+        openHistory: mockOpenHistory
+      })
+    );
 
     const wrapper = mount(Board);
     const historyBtn = wrapper.find('.history-journal-link');
@@ -118,10 +122,12 @@ describe('Board.vue', () => {
   });
 
   it('renders PinModal when isPinRequired is true', () => {
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      isPinRequired: ref(true),
-      pinError: ref('Невірний PIN-код')
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isPinRequired: ref(true),
+        pinError: ref('Невірний PIN-код')
+      })
+    );
 
     const wrapper = mount(Board);
     expect(wrapper.findComponent({ name: 'PinModal' }).exists()).toBe(true);
@@ -146,10 +152,12 @@ describe('Board.vue', () => {
 
   it('renders pin-attention-btn when isPinPromptVisible is true and triggers handleOpenSetPin on click', async () => {
     const mockOpenSetPin = vi.fn();
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      isPinPromptVisible: computed(() => true),
-      handleOpenSetPin: mockOpenSetPin
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isPinPromptVisible: computed(() => true),
+        handleOpenSetPin: mockOpenSetPin
+      })
+    );
 
     const wrapper = mount(Board);
     const attentionBtn = wrapper.find('.pin-attention-btn');
@@ -160,19 +168,23 @@ describe('Board.vue', () => {
   });
 
   it('does not render pin-attention-btn when isPinPromptVisible is false', () => {
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      isPinPromptVisible: computed(() => false)
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isPinPromptVisible: computed(() => false)
+      })
+    );
 
     const wrapper = mount(Board);
     expect(wrapper.find('.pin-attention-btn').exists()).toBe(false);
   });
 
   it('renders header-sync-indicator and hides pin-attention-btn when isBackgroundRefreshing is true', () => {
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      isBackgroundRefreshing: ref(true),
-      isPinPromptVisible: computed(() => true)
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isBackgroundRefreshing: ref(true),
+        isPinPromptVisible: computed(() => true)
+      })
+    );
 
     const wrapper = mount(Board);
     expect(wrapper.find('.header-sync-indicator').exists()).toBe(true);
@@ -180,10 +192,12 @@ describe('Board.vue', () => {
   });
 
   it('renders pin-attention-btn and hides header-sync-indicator when isBackgroundRefreshing is false and isPinPromptVisible is true', () => {
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      isBackgroundRefreshing: ref(false),
-      isPinPromptVisible: computed(() => true)
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isBackgroundRefreshing: ref(false),
+        isPinPromptVisible: computed(() => true)
+      })
+    );
 
     const wrapper = mount(Board);
     expect(wrapper.find('.header-sync-indicator').exists()).toBe(false);
@@ -191,11 +205,13 @@ describe('Board.vue', () => {
   });
 
   it('renders RomanticLoader when isPageLoaderVisible is true and passes message and submessage', () => {
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      isPageLoaderVisible: computed(() => true),
-      pageLoaderMessage: computed(() => 'Завантажуємо дошку... 💕'),
-      pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...')
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isPageLoaderVisible: computed(() => true),
+        pageLoaderMessage: computed(() => 'Завантажуємо дошку... 💕'),
+        pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...')
+      })
+    );
 
     const wrapper = mount(Board);
     const loader = wrapper.findComponent({ name: 'RomanticLoader' });
@@ -206,10 +222,12 @@ describe('Board.vue', () => {
   });
 
   it('disables AlphabetGrid and ActiveLetterPanel when isSyncing or isPageLoaderVisible is true', () => {
-    vi.mocked(useBoardPage).mockReturnValue(createMockBoardPage({
-      isSyncing: ref(true),
-      isPageLoaderVisible: computed(() => false)
-    }));
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isSyncing: ref(true),
+        isPageLoaderVisible: computed(() => false)
+      })
+    );
 
     const wrapper = mount(Board);
     const grid = wrapper.findComponent({ name: 'AlphabetGrid' });

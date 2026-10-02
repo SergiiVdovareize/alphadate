@@ -24,7 +24,9 @@ describe('RomanticLoader.vue', () => {
     });
     expect(wrapper.find('.romantic-loader-overlay').exists()).toBe(true);
     expect(wrapper.find('.loader-title').text()).toBe('Зберігаємо побачення... 💕');
-    expect(wrapper.find('.loader-submessage').text()).toBe('Синхронізуємо ваші спогади з сервером...');
+    expect(wrapper.find('.loader-submessage').text()).toBe(
+      'Синхронізуємо ваші спогади з сервером...'
+    );
     expect(document.body.style.overflow).toBe('hidden');
   });
 

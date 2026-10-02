@@ -17,7 +17,6 @@ const pinInput = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
 const localError = ref<string | null>(null);
 
-
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const sanitized = target.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
@@ -70,7 +69,11 @@ onUnmounted(() => {
 
 <template>
   <div v-if="isOpen">
-    <dialog class="selection-modal set-pin-modal" :open="isOpen" aria-labelledby="set-pin-modal-title">
+    <dialog
+      class="selection-modal set-pin-modal"
+      :open="isOpen"
+      aria-labelledby="set-pin-modal-title"
+    >
       <div class="modal-content">
         <div class="icon-wrap" aria-hidden="true">
           <svg
@@ -91,8 +94,9 @@ onUnmounted(() => {
 
         <h2 id="set-pin-modal-title">Захистіть вашу дошку</h2>
         <p class="description">
-          Встановіть 4-значний PIN-код, щоб ваші плани, ідеї для побачень та історія залишалися особистими.
-          Без коду сторонні особи з посиланням не зможуть переглядати або змінювати вміст дошки.
+          Встановіть 4-значний PIN-код, щоб ваші плани, ідеї для побачень та історія залишалися
+          особистими. Без коду сторонні особи з посиланням не зможуть переглядати або змінювати
+          вміст дошки.
         </p>
 
         <form @submit.prevent="submitPin">
@@ -147,10 +151,7 @@ onUnmounted(() => {
         </form>
       </div>
     </dialog>
-    <div
-      class="modal-overlay"
-      aria-hidden="true"
-    ></div>
+    <div class="modal-overlay" aria-hidden="true"></div>
   </div>
 </template>
 

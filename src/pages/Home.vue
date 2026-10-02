@@ -26,11 +26,7 @@ const goToRecover = () => {
       <!-- Quick continue banner & selector for saved boards -->
       <div v-if="savedBoards.length > 0" class="saved-boards-section">
         <!-- Main card for the most recent board -->
-        <button
-          type="button"
-          class="recent-suggestion"
-          @click="openBoard(savedBoards[0].key)"
-        >
+        <button type="button" class="recent-suggestion" @click="openBoard(savedBoards[0].key)">
           <div class="suggestion-content">
             <div class="suggestion-header">
               <span class="suggestion-tag">
@@ -94,11 +90,7 @@ const goToRecover = () => {
           <Transition name="expand">
             <div v-if="isBoardsListOpen" class="saved-boards-dropdown">
               <ul class="dropdown-list">
-                <li
-                  v-for="(board, idx) in savedBoards"
-                  :key="board.key"
-                  class="dropdown-item"
-                >
+                <li v-for="(board, idx) in savedBoards" :key="board.key" class="dropdown-item">
                   <button
                     type="button"
                     class="board-select-btn"
@@ -169,11 +161,7 @@ const goToRecover = () => {
 
       <!-- Recovery text button -->
       <div class="recovery-section">
-        <button
-          type="button"
-          class="recover-text-btn"
-          @click="goToRecover"
-        >
+        <button type="button" class="recover-text-btn" @click="goToRecover">
           Забули посилання на дошку?
         </button>
       </div>
@@ -611,7 +599,9 @@ input:focus {
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-color: rgba(113, 128, 150, 0.4);
-  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    text-decoration-color 0.2s ease;
   font-family: inherit;
 }
 
