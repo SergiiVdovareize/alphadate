@@ -41,10 +41,9 @@ describe('Recover.vue', () => {
     expect(copyBtn.exists()).toBe(true);
     expect(copyBtn.text()).toContain('«AlphaDate»');
 
-    const gmailLink = wrapper.find('.gmail-btn');
-    expect(gmailLink.exists()).toBe(true);
-    expect(gmailLink.attributes('href')).toBe('https://mail.google.com/mail/u/0/#search/AlphaDate');
-    expect(gmailLink.attributes('target')).toBe('_blank');
+    const gmailBtn = wrapper.find('.gmail-btn');
+    expect(gmailBtn.exists()).toBe(true);
+    expect(gmailBtn.text()).toContain('Відкрити Gmail');
 
     // Step 3
     expect(wrapper.find('#step-3-heading').text()).toContain('Надіслати посилання на Email');
@@ -59,6 +58,84 @@ describe('Recover.vue', () => {
     expect(mockPush).toHaveBeenCalledWith('/');
   });
 
+  it('opens Gmail via window.open on desktop and does not copy anything to clipboard', async () => {
+    const openMock = vi.fn();
+    const writeTextMock = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('open', openMock);
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: writeTextMock
+      }
+    });
+
+    const wrapper = mount(Recover);
+    await wrapper.find('.gmail-btn').trigger('click');
+
+    expect(openMock).toHaveBeenCalledWith(
+      'https://mail.google.com/mail/u/0/#search/AlphaDate',
+      '_blank',
+      'noopener,noreferrer'
+    );
+    expect(writeTextMock).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
+  it('triggers Android intent when on Android', async () => {
+    const originalUserAgent = navigator.userAgent;
+    const assignMock = vi.fn();
+    const originalLocation = window.location;
+    vi.stubGlobal('location', {
+      ...originalLocation,
+      assign: assignMock,
+      href: ''
+    });
+
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (Linux; Android 14; Pixel 8)',
+      configurable: true
+    });
+
+    const wrapper = mount(Recover);
+    await wrapper.find('.gmail-btn').trigger('click');
+
+    expect(assignMock).toHaveBeenCalledWith(
+      expect.stringContaining('package=com.google.android.gm')
+    );
+
+    Object.defineProperty(navigator, 'userAgent', {
+      value: originalUserAgent,
+      configurable: true
+    });
+    vi.unstubAllGlobals();
+  });
+
+  it('triggers iOS scheme when on iOS', async () => {
+    const originalUserAgent = navigator.userAgent;
+    const assignMock = vi.fn();
+    const originalLocation = window.location;
+    vi.stubGlobal('location', {
+      ...originalLocation,
+      assign: assignMock,
+      href: ''
+    });
+
+    Object.defineProperty(navigator, 'userAgent', {
+      value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+      configurable: true
+    });
+
+    const wrapper = mount(Recover);
+    await wrapper.find('.gmail-btn').trigger('click');
+
+    expect(assignMock).toHaveBeenCalledWith('googlegmail:///');
+
+    Object.defineProperty(navigator, 'userAgent', {
+      value: originalUserAgent,
+      configurable: true
+    });
+    vi.unstubAllGlobals();
+  });
+
   it('copies "AlphaDate" to clipboard on click/tap and displays feedback', async () => {
     const writeTextMock = vi.fn().mockResolvedValue(undefined);
     Object.assign(navigator, {
@@ -70,15 +147,15 @@ describe('Recover.vue', () => {
     const wrapper = mount(Recover);
 
     const copyBtn = wrapper.find('.copy-keyword-btn');
-    expect(wrapper.find('.copied-badge').exists()).toBe(false);
+    expect(copyBtn.find('.check-icon').exists()).toBe(false);
 
     await copyBtn.trigger('click');
     expect(writeTextMock).toHaveBeenCalledWith('AlphaDate');
 
     await wrapper.vm.$nextTick();
-    expect(wrapper.find('.copied-badge').exists()).toBe(true);
-    expect(wrapper.find('.copied-badge').text()).toBe('Скопійовано! ✓');
     expect(copyBtn.classes()).toContain('is-copied');
+    expect(copyBtn.find('.check-icon').exists()).toBe(true);
+    expect(copyBtn.attributes('aria-label')).toBe('Слово скопійовано');
   });
 
   it('validates empty email in step 3', async () => {

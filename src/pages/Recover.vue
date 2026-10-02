@@ -19,7 +19,7 @@ const copyKeyword = async () => {
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       await navigator.clipboard.writeText(keyword);
-    } else {
+    } else if (typeof document !== 'undefined' && typeof document.execCommand === 'function') {
       const textarea = document.createElement('textarea');
       textarea.value = keyword;
       textarea.style.position = 'fixed';
@@ -39,8 +39,54 @@ const copyKeyword = async () => {
   }
 };
 
+let iosFallbackTimeout: ReturnType<typeof setTimeout> | undefined;
+
+const navigateTo = (url: string) => {
+  if (typeof window !== 'undefined') {
+    if (typeof window.location.assign === 'function') {
+      window.location.assign(url);
+    } else {
+      window.location.href = url;
+    }
+  }
+};
+
+const openGmail = async () => {
+  const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+  const isAndroid = /android/i.test(userAgent);
+  const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
+  const webSearchUrl = 'https://mail.google.com/mail/u/0/#search/AlphaDate';
+
+  if (isAndroid) {
+    // Android Chrome Intent: triggers native Gmail app if present, or redirects to web fallback
+    navigateTo(
+      'intent://#Intent;package=com.google.android.gm;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;S.browser_fallback_url=' +
+        encodeURIComponent(webSearchUrl) +
+        ';end'
+    );
+    return;
+  }
+
+  if (isIOS) {
+    // iOS URL scheme: launches native Gmail app if present, with fallback to web if not installed
+    const start = Date.now();
+    navigateTo('googlegmail:///');
+    if (iosFallbackTimeout) clearTimeout(iosFallbackTimeout);
+    iosFallbackTimeout = setTimeout(() => {
+      if (document.visibilityState === 'visible' && Date.now() - start < 1500) {
+        navigateTo(webSearchUrl);
+      }
+    }, 800);
+    return;
+  }
+
+  // Desktop or other environments: open web search directly in new tab
+  window.open(webSearchUrl, '_blank', 'noopener,noreferrer');
+};
+
 onUnmounted(() => {
   if (copyTimeout) clearTimeout(copyTimeout);
+  if (iosFallbackTimeout) clearTimeout(iosFallbackTimeout);
 });
 
 const handleRecover = async () => {
@@ -129,9 +175,8 @@ const handleRecover = async () => {
               @click="copyKeyword"
             >
               <span class="keyword-text">«AlphaDate»</span>
-              <span v-if="isCopied" class="copied-badge">Скопійовано! ✓</span>
               <svg
-                v-else
+                v-if="!isCopied"
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
@@ -145,14 +190,27 @@ const handleRecover = async () => {
                 <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
                 <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
               </svg>
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="copy-icon check-icon"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
             </button>.
           </p>
           <div class="step-action-row">
-            <a
-              href="https://mail.google.com/mail/u/0/#search/AlphaDate"
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              type="button"
               class="action-btn gmail-btn"
+              @click="openGmail"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -163,12 +221,12 @@ const handleRecover = async () => {
               >
                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z" />
               </svg>
-              Пошук у Gmail
+              Відкрити Gmail
               <span class="external-icon" aria-hidden="true">↗</span>
-            </a>
+            </button>
           </div>
           <p class="step-subnote">
-            Якщо ви використовуєте іншу пошту (Ukr.net, iCloud тощо), введіть «AlphaDate» у полі пошуку вашого поштового сервісу.
+            На телефоні відкриється застосунок Gmail (або вебверсія пошуку).
           </p>
         </section>
 
@@ -363,62 +421,56 @@ h1 {
 .copy-keyword-btn {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  background: rgba(217, 119, 50, 0.08);
-  border: 1px solid rgba(217, 119, 50, 0.28);
-  border-radius: 8px;
-  padding: 0.15rem 0.45rem;
-  margin: 0 0.15rem;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  padding: 0 0.15rem;
+  margin: 0;
   font-family: inherit;
-  font-size: 0.88rem;
+  font-size: inherit;
   font-weight: 700;
   color: var(--color-ink, #2d3748);
   cursor: pointer;
   vertical-align: baseline;
-  transition: all 0.15s ease;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: var(--color-accent, #d97732);
+  transition: text-decoration-color 0.15s ease, color 0.15s ease;
   user-select: none;
 }
 
 .copy-keyword-btn:hover {
-  background: rgba(217, 119, 50, 0.15);
-  border-color: var(--color-accent, #d97732);
-  transform: translateY(-1px);
-}
-
-.copy-keyword-btn:active {
-  transform: translateY(0);
-}
-
-.copy-keyword-btn.is-copied {
-  background: #f0fff4;
-  border-color: #68d391;
-  color: #22543d;
+  text-decoration-color: var(--color-accent-hover, #c26522);
 }
 
 .copy-icon {
-  width: 0.85rem;
-  height: 0.85rem;
+  width: 0.95rem;
+  height: 0.95rem;
   color: var(--color-accent, #d97732);
+  transition: color 0.15s ease;
   flex-shrink: 0;
 }
 
-.copied-badge {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: #276749;
-  margin-left: 0.2rem;
-  animation: badgePop 0.15s ease-out;
+.copy-keyword-btn:hover .copy-icon {
+  color: var(--color-accent-hover, #c26522);
 }
 
-@keyframes badgePop {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+.copy-keyword-btn.is-copied,
+.copy-keyword-btn.is-copied:hover {
+  text-decoration-color: #38a169;
+}
+
+.copy-keyword-btn.is-copied .copy-icon,
+.copy-keyword-btn.is-copied:hover .copy-icon,
+.copy-icon.check-icon {
+  color: #38a169 !important;
+}
+
+.copy-keyword-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .step-action-row {
