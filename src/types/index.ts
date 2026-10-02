@@ -69,3 +69,8 @@ export interface DateSuggestionsResponse {
   lang?: string;
   suggestions: DateSuggestion[];
 }
+
+export interface RecoverBoardResponse {
+  success: boolean;
+  message?: string;
+}

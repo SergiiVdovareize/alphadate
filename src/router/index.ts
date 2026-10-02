@@ -10,6 +10,11 @@ const router = createRouter({
       component: () => import('../pages/Home.vue')
     },
     {
+      path: '/recover',
+      name: 'recover',
+      component: () => import('../pages/Recover.vue')
+    },
+    {
       path: '/:id',
       name: 'board',
       component: () => import('../pages/Board.vue')

@@ -87,6 +87,11 @@ export function useHome() {
     }
   };
 
+  const removeSavedBoard = (key: string) => {
+    savedBoards.value = savedBoards.value.filter((b) => b.key !== key);
+    localStorage.setItem(STORAGE_KEYS.SAVED_BOARDS, JSON.stringify(savedBoards.value));
+  };
+
   return {
     partners,
     email,
@@ -95,6 +100,7 @@ export function useHome() {
     errorMessage,
     savedBoards,
     openBoard,
-    createBoard
+    createBoard,
+    removeSavedBoard
   };
 }

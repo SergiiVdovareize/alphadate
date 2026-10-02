@@ -226,4 +226,31 @@ describe('api service', () => {
 
     await expect(api.getBoard('error')).rejects.toThrow('API error: 500');
   });
+
+  it('recoverBoard calls POST /alphadate/recover when backend is available', async () => {
+    const mockResponse = { success: true, message: 'Recovery email sent' };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    } as Response);
+
+    const result = await api.recoverBoard('user@example.com');
+    expect(result).toEqual(mockResponse);
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/alphadate/recover'),
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'user@example.com' })
+      })
+    );
+  });
+
+  it('recoverBoard falls back to simulated success mock when request fails', async () => {
+    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network offline'));
+
+    const result = await api.recoverBoard('user@example.com');
+    expect(result.success).toBe(true);
+    expect(result.message).toContain('Посилання на дошку надіслано');
+  });
 });

@@ -135,4 +135,20 @@ describe('useHome', () => {
     vm.openBoard('my-board');
     expect(mockPush).toHaveBeenCalledWith('/my-board');
   });
+
+  it('removeSavedBoard filters out board and updates localStorage', () => {
+    const vm = useHome();
+    vm.savedBoards.value = [
+      { key: 'board-1', partners: ['А', 'Б'], createdAt: '2026-01-01' },
+      { key: 'board-2', partners: ['В', 'Г'], createdAt: '2026-01-02' }
+    ];
+
+    vm.removeSavedBoard('board-1');
+
+    expect(vm.savedBoards.value).toHaveLength(1);
+    expect(vm.savedBoards.value[0].key).toBe('board-2');
+    const stored = JSON.parse(localStorage.getItem('alphadate_saved_boards') || '[]');
+    expect(stored).toHaveLength(1);
+    expect(stored[0].key).toBe('board-2');
+  });
 });

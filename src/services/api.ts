@@ -4,7 +4,8 @@ import type {
   BoardResponse,
   UpdateBoardResponse,
   DateSuggestion,
-  DateSuggestionsResponse
+  DateSuggestionsResponse,
+  RecoverBoardResponse
 } from '../types';
 import { getDefaultBoardSuggestions } from './mocks/defaultSuggestions';
 import {
@@ -184,6 +185,23 @@ export const api = {
         signal
       }
     );
+  },
+
+  // [MOCK - Pending BE: AP-001]
+  async recoverBoard(email: string): Promise<RecoverBoardResponse> {
+    try {
+      return await request<RecoverBoardResponse>('/alphadate/recover', {
+        method: 'POST',
+        body: JSON.stringify({ email: email.trim() })
+      });
+    } catch {
+      // Mock fallback: simulate network latency and return success
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return {
+        success: true,
+        message: 'Посилання на дошку надіслано на вашу пошту'
+      };
+    }
   }
 };
 
@@ -192,5 +210,6 @@ export type {
   BoardResponse,
   UpdateBoardResponse,
   DateSuggestion,
-  DateSuggestionsResponse
+  DateSuggestionsResponse,
+  RecoverBoardResponse
 };

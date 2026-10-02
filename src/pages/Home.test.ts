@@ -4,6 +4,13 @@ import { ref } from 'vue';
 import Home from './Home.vue';
 import { useHome } from '../composables/useHome';
 
+const mockPush = vi.fn();
+vi.mock('vue-router', () => ({
+  useRouter: () => ({
+    push: mockPush
+  })
+}));
+
 vi.mock('../composables/useHome');
 
 describe('Home.vue', () => {
@@ -17,7 +24,8 @@ describe('Home.vue', () => {
       errorMessage: ref(null),
       savedBoards: ref([]),
       openBoard: vi.fn(),
-      createBoard: mockCreateBoard
+      createBoard: mockCreateBoard,
+      removeSavedBoard: vi.fn()
     });
 
     const wrapper = mount(Home);
@@ -45,7 +53,8 @@ describe('Home.vue', () => {
         }
       ]),
       openBoard: mockOpenBoard,
-      createBoard: vi.fn()
+      createBoard: vi.fn(),
+      removeSavedBoard: vi.fn()
     });
 
     const wrapper = mount(Home);
@@ -53,9 +62,60 @@ describe('Home.vue', () => {
     const banner = wrapper.find('.recent-suggestion');
     expect(banner.exists()).toBe(true);
     expect(banner.text()).toContain('Андрій та Іра');
+    expect(wrapper.find('.toggle-boards-btn').exists()).toBe(false);
 
     await banner.trigger('click');
     expect(mockOpenBoard).toHaveBeenCalledWith('saved-key');
+  });
+
+  it('renders selector and allows selecting other boards when multiple boards exist', async () => {
+    const mockOpenBoard = vi.fn();
+    vi.mocked(useHome).mockReturnValue({
+      partners: ref(['', '']),
+      email: ref(''),
+      pin: ref(''),
+      isLoading: ref(false),
+      errorMessage: ref(null),
+      savedBoards: ref([
+        {
+          key: 'board-1',
+          partners: ['Маргарита', 'Сергій'],
+          createdAt: '2026-01-01'
+        },
+        {
+          key: 'board-2',
+          partners: ['Олена', 'Дмитро'],
+          createdAt: '2026-01-02'
+        }
+      ]),
+      openBoard: mockOpenBoard,
+      createBoard: vi.fn(),
+      removeSavedBoard: vi.fn()
+    });
+
+    const wrapper = mount(Home);
+
+    const toggleBtn = wrapper.find('.toggle-boards-btn');
+    expect(toggleBtn.exists()).toBe(true);
+    expect(toggleBtn.text()).toContain('Вибрати іншу дошку (1)');
+    expect(wrapper.find('.saved-boards-dropdown').exists()).toBe(false);
+
+    // Expand dropdown
+    await toggleBtn.trigger('click');
+    expect(wrapper.find('.saved-boards-dropdown').exists()).toBe(true);
+    expect(toggleBtn.text()).toContain('Сховати список дошок');
+
+    // Click on the second board
+    const selectButtons = wrapper.findAll('.board-select-btn');
+    expect(selectButtons).toHaveLength(2);
+    expect(selectButtons[1].text()).toContain('Олена та Дмитро');
+
+    await selectButtons[1].trigger('click');
+    expect(mockOpenBoard).toHaveBeenCalledWith('board-2');
+
+    // Collapse dropdown
+    await toggleBtn.trigger('click');
+    expect(wrapper.find('.saved-boards-dropdown').exists()).toBe(false);
   });
 
   it('renders error message banner when errorMessage is set', () => {
@@ -67,7 +127,8 @@ describe('Home.vue', () => {
       errorMessage: ref('Помилка сервера'),
       savedBoards: ref([]),
       openBoard: vi.fn(),
-      createBoard: vi.fn()
+      createBoard: vi.fn(),
+      removeSavedBoard: vi.fn()
     });
 
     const wrapper = mount(Home);
@@ -75,5 +136,29 @@ describe('Home.vue', () => {
     const errorBanner = wrapper.find('.form-error-banner');
     expect(errorBanner.exists()).toBe(true);
     expect(errorBanner.text()).toBe('Помилка сервера');
+  });
+
+  it('renders recovery text button and navigates to /recover on click', async () => {
+    mockPush.mockClear();
+    vi.mocked(useHome).mockReturnValue({
+      partners: ref(['', '']),
+      email: ref(''),
+      pin: ref(''),
+      isLoading: ref(false),
+      errorMessage: ref(null),
+      savedBoards: ref([]),
+      openBoard: vi.fn(),
+      createBoard: vi.fn(),
+      removeSavedBoard: vi.fn()
+    });
+
+    const wrapper = mount(Home);
+
+    const recoverBtn = wrapper.find('.recover-text-btn');
+    expect(recoverBtn.exists()).toBe(true);
+    expect(recoverBtn.text()).toBe('Забули посилання на дошку?');
+
+    await recoverBtn.trigger('click');
+    expect(mockPush).toHaveBeenCalledWith('/recover');
   });
 });

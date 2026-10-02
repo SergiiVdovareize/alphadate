@@ -1,8 +1,17 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
 
-const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, createBoard } = useHome();
+const router = useRouter();
+const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, createBoard } =
+  useHome();
+
+const isBoardsListOpen = ref(false);
+const goToRecover = () => {
+  router.push('/recover');
+};
 </script>
 
 <template>
@@ -14,30 +23,98 @@ const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, c
       <h1>AlphaDate</h1>
       <p>Створіть свій унікальний простір для планування побачень.</p>
 
-      <!-- Quick continue banner for the most recent board -->
-      <button
-        v-if="savedBoards.length > 0"
-        type="button"
-        class="recent-suggestion"
-        @click="openBoard(savedBoards[0].key)"
-      >
-        <span class="suggestion-tag">Збережена дошка:</span>
-        <span class="suggestion-partners">{{ savedBoards[0].partners.join(' та ') }}</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="2.5"
-          stroke="currentColor"
-          class="arrow-icon"
+      <!-- Quick continue banner & selector for saved boards -->
+      <div v-if="savedBoards.length > 0" class="saved-boards-section">
+        <!-- Main card for the most recent board -->
+        <button
+          type="button"
+          class="recent-suggestion"
+          @click="openBoard(savedBoards[0].key)"
         >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
-          />
-        </svg>
-      </button>
+          <div class="suggestion-content">
+            <div class="suggestion-header">
+              <span class="suggestion-tag">
+                <span class="tag-heart" aria-hidden="true">💕</span>
+                {{ savedBoards.length > 1 ? 'Остання дошка' : 'Збережена дошка' }}
+              </span>
+            </div>
+            <div class="suggestion-partners">
+              {{ savedBoards[0].partners.join(' та ') }}
+            </div>
+          </div>
+          <div class="suggestion-action" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2.5"
+              stroke="currentColor"
+              class="arrow-icon"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+              />
+            </svg>
+          </div>
+        </button>
+
+        <!-- Toggle for selecting among all saved boards when > 1 -->
+        <div v-if="savedBoards.length > 1" class="boards-picker-wrap">
+          <button
+            type="button"
+            class="toggle-boards-btn"
+            :aria-expanded="isBoardsListOpen"
+            @click="isBoardsListOpen = !isBoardsListOpen"
+          >
+            <span class="toggle-btn-text">
+              {{
+                isBoardsListOpen
+                  ? 'Сховати список дошок'
+                  : `Вибрати іншу дошку (${savedBoards.length - 1})`
+              }}
+            </span>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              class="toggle-chevron"
+              :class="{ 'chevron-rotated': isBoardsListOpen }"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </button>
+
+          <Transition name="expand">
+            <div v-if="isBoardsListOpen" class="saved-boards-dropdown">
+              <ul class="dropdown-list">
+                <li
+                  v-for="(board, idx) in savedBoards"
+                  :key="board.key"
+                  class="dropdown-item"
+                >
+                  <button
+                    type="button"
+                    class="board-select-btn"
+                    :class="{ 'board-select-current': idx === 0 }"
+                    @click="openBoard(board.key)"
+                  >
+                    <span class="board-bullet" aria-hidden="true">•</span>
+                    <span class="board-select-names">{{ board.partners.join(' та ') }}</span>
+                    <span v-if="idx === 0" class="current-badge">(активна)</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </Transition>
+        </div>
+      </div>
 
       <form class="setup-form" @submit.prevent="createBoard">
         <div v-for="(_, index) in partners" :key="index" class="input-group">
@@ -89,6 +166,17 @@ const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, c
           {{ isLoading ? 'Створення...' : 'Створити спільну дошку' }}
         </button>
       </form>
+
+      <!-- Recovery text button -->
+      <div class="recovery-section">
+        <button
+          type="button"
+          class="recover-text-btn"
+          @click="goToRecover"
+        >
+          Забули посилання на дошку?
+        </button>
+      </div>
     </div>
   </main>
 </template>
@@ -103,14 +191,14 @@ const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, c
 }
 
 .card {
-  background: var(--color-surface, #ffffff);
-  border: 1.5px solid #dfd5ca;
-  border-radius: 24px;
-  padding: 3rem 2.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
   max-width: 450px;
   width: 100%;
   text-align: center;
-  box-shadow: inset 0 2px 6px rgba(45, 55, 72, 0.06);
+  box-shadow: none;
 }
 
 .logo-wrap {
@@ -231,56 +319,293 @@ input:focus {
   margin-bottom: 0.5rem;
 }
 
+.saved-boards-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
 .recent-suggestion {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   width: 100%;
   box-sizing: border-box;
   font-family: inherit;
-  background: var(--color-surface, #ffffff);
+  background-color: #fdebee;
   border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1.75rem;
+  border-radius: 14px;
+  padding: 0.85rem 1.1rem;
+  margin-bottom: 0;
   cursor: pointer;
-  box-shadow: var(--shadow-3d-sm, 0 2.5px 0 #2d3748);
+  box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
   transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease;
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.15s ease;
   text-align: left;
 }
 
 .recent-suggestion:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-3d, 0 5px 0 #2d3748);
+  background-color: #fbe0e7;
 }
 
 .recent-suggestion:active {
   transform: translateY(2px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+  background-color: #f8d0dc;
+}
+
+.recent-suggestion:focus-visible {
+  outline: 2px solid #e25c75;
+  outline-offset: 3px;
+}
+
+.suggestion-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.suggestion-header {
+  display: flex;
+  align-items: center;
 }
 
 .suggestion-tag {
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  color: var(--color-accent, #ea7a87);
   letter-spacing: 0.05em;
-  margin-right: 0.5rem;
+  color: #ad2e52;
+  background-color: rgba(226, 92, 117, 0.16);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  line-height: 1.2;
+}
+
+.tag-heart {
+  font-size: 0.75rem;
+  line-height: 1;
 }
 
 .suggestion-partners {
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 1.05rem;
   color: var(--color-ink, #2d3748);
-  flex-grow: 1;
+  line-height: 1.35;
+  word-break: break-word;
 }
 
-.recent-suggestion .arrow-icon {
-  width: 1.25rem;
-  height: 1.25rem;
+.suggestion-action {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: #e25c75;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(226, 92, 117, 0.35);
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.recent-suggestion:hover .suggestion-action {
+  transform: translateX(2px);
+  background-color: #cc4963;
+}
+
+.suggestion-action .arrow-icon {
+  width: 1rem;
+  height: 1rem;
+  stroke: currentColor;
+}
+
+.boards-picker-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -0.25rem;
+}
+
+.toggle-boards-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  background: transparent;
+  border: none;
+  padding: 0.35rem 0.65rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-ink-muted, #718096);
+  cursor: pointer;
+  user-select: none;
+  border-radius: 6px;
+  transition: color 0.15s ease;
+}
+
+.toggle-boards-btn:hover {
+  color: var(--color-accent, #ea7a87);
+}
+
+.toggle-boards-btn .toggle-btn-text {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(113, 128, 150, 0.4);
+  transition: text-decoration-color 0.15s ease;
+}
+
+.toggle-boards-btn:hover .toggle-btn-text {
+  text-decoration-color: var(--color-accent, #ea7a87);
+}
+
+.toggle-chevron {
+  width: 0.95rem;
+  height: 0.95rem;
+  transition: transform 0.2s ease;
+}
+
+.chevron-rotated {
+  transform: rotate(180deg);
+}
+
+.saved-boards-dropdown {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.dropdown-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dropdown-item {
+  margin: 0;
+  padding: 0;
+}
+
+.board-select-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-ink-muted, #718096);
+  cursor: pointer;
+  text-align: left;
+  border-radius: 6px;
+  transition:
+    color 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.board-select-btn:hover {
+  color: var(--color-accent, #ea7a87);
+  background-color: rgba(234, 122, 135, 0.08);
+}
+
+.board-select-current {
   color: var(--color-ink, #2d3748);
-  margin-left: 0.5rem;
+  font-weight: 700;
+}
+
+.board-bullet {
+  color: var(--color-accent, #ea7a87);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.board-select-names {
+  flex-grow: 1;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(113, 128, 150, 0.25);
+  word-break: break-word;
+  transition: text-decoration-color 0.12s ease;
+}
+
+.board-select-btn:hover .board-select-names {
+  text-decoration-color: var(--color-accent, #ea7a87);
+}
+
+.current-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-accent, #ea7a87);
+  margin-left: 0.35rem;
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.2s ease-out;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.recovery-section {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(223, 213, 202, 0.4);
+  display: flex;
+  justify-content: center;
+}
+
+.recover-text-btn {
+  background: none;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  color: #718096;
+  cursor: pointer;
+  border-radius: 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(113, 128, 150, 0.4);
+  transition: color 0.2s ease, text-decoration-color 0.2s ease;
+  font-family: inherit;
+}
+
+.recover-text-btn:hover {
+  color: var(--color-primary, #e53e3e);
+  text-decoration-color: var(--color-primary, #e53e3e);
+}
+
+.recover-text-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #e53e3e);
+  outline-offset: 2px;
 }
 </style>

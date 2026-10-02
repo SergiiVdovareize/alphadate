@@ -14,22 +14,26 @@ This document tracks required backend changes, missing API endpoints, property p
 
 ## 📝 Active Requirements & Tasks
 
-<!--
-Template for new items:
-
-### [STATUS] AP-XXX: Short Title
-- **Requested Date**: YYYY-MM-DD
-- **Target Endpoint**: `METHOD /path`
-- **Frontend Need**: Description of UI/UX feature needing this API support.
+### 🟡 AP-001: Board link recovery via email
+- **Requested Date**: 2026-10-02
+- **Target Endpoint**: `POST /alphadate/recover`
+- **Frontend Need**: Users who lost or forgot their board URL can request the board link(s) to be sent to their email.
 - **Proposed Request / Response**:
   ```json
-  // Request / Response preview
-  ```
-- **Client Mock Status**: Where and how mock is currently implemented in frontend.
-- **Backend Acceptance Criteria**:
-  - [ ] Schema validation / DTO update
-  - [ ] Business logic & DB migration
-  - [ ] Documentation updated in `docs/api/alphadate.md`
--->
+  // Request (POST /alphadate/recover):
+  {
+    "email": "couple@example.com"
+  }
 
-*Наразі всі поточні потреби клієнта підтримуються чинною версією API (`POST`, `GET`, `PUT`, `DELETE` з полями `currentLetter`, `currentLetterSelectedAt`, `partners`, `letters`).*
+  // Response (200 OK):
+  {
+    "success": true,
+    "message": "Board recovery email sent if the address exists"
+  }
+  ```
+- **Client Mock Status**: Implemented with graceful fallback mock in `src/services/api.ts` (`api.recoverBoard`).
+- **Backend Acceptance Criteria**:
+  - [ ] Lookup board keys associated with the provided email.
+  - [ ] Send email with direct link(s) to the board(s).
+  - [ ] Always return `{ "success": true }` to prevent email enumeration.
+  - [ ] Document endpoint in `docs/api/alphadate.md`.
