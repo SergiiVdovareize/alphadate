@@ -191,13 +191,13 @@ onUnmounted(() => {
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  background: rgba(var(--color-accent-rgb, 234, 122, 135), 0.15);
-  border: 2px solid var(--color-accent, #ea7a87);
+  background: rgba(217, 119, 50, 0.12);
+  border: 2px solid var(--color-accent, #d97732);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 1.25rem;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
 }
 
 .shield-icon {
@@ -257,8 +257,8 @@ onUnmounted(() => {
 }
 
 .pin-dot-box.focused {
-  border-color: var(--color-accent, #ea7a87);
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, 234, 122, 135), 0.25);
+  border-color: var(--color-accent, #d97732);
+  box-shadow: 0 0 0 3px rgba(217, 119, 50, 0.2);
 }
 
 .pin-dot-box.filled {
@@ -297,7 +297,11 @@ onUnmounted(() => {
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,44 +309,58 @@ onUnmounted(() => {
 }
 
 .button.primary {
-  background: var(--color-accent, #ea7a87);
+  background: var(--color-accent, #d97732);
   color: #ffffff;
   border: 2px solid var(--color-ink, #2d3748);
   box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
 }
 
 .button.primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #2d3748;
+  background: var(--color-accent-hover, #c26522);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #2d3748;
 }
 
 .button.primary:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 2px 0 #2d3748;
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
 .button.primary:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
+  box-shadow: 0 2px 0 #2d3748;
 }
 
 .button.outline {
-  background: transparent;
+  background: #ffffff;
   color: var(--color-ink, #2d3748);
   border: 2px solid var(--color-ink, #2d3748);
   box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
 }
 
 .button.outline:hover:not(:disabled) {
-  background: rgba(45, 55, 72, 0.04);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 0 #2d3748;
+  background: var(--color-surface-muted, #f3eae3);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 #2d3748;
 }
 
 .button.outline:active:not(:disabled) {
-  transform: translateY(2px);
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.button.outline:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
   box-shadow: 0 2px 0 #2d3748;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .spinner {

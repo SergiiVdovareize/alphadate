@@ -343,6 +343,11 @@ watch(
   transform: scale(0.92);
 }
 
+.close-icon-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
+}
+
 /* Single Letter View */
 .single-letter-container {
   flex: 1;
@@ -382,7 +387,7 @@ watch(
 .memory-letter-char {
   font-size: 4rem;
   font-weight: 900;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
   line-height: 1;
   letter-spacing: -0.02em;
   user-select: none;
@@ -502,18 +507,23 @@ watch(
 
 .view-all-history-link .view-all-text {
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: 3px;
   text-decoration-color: rgba(113, 128, 150, 0.4);
   transition: text-decoration-color 0.15s ease;
 }
 
 .view-all-history-link:hover {
-  color: var(--color-accent);
+  color: var(--color-accent, #d97732);
   background-color: var(--color-surface-muted, #f3eae3);
 }
 
 .view-all-history-link:hover .view-all-text {
-  text-decoration-color: var(--color-accent);
+  text-decoration-color: var(--color-accent, #d97732);
+}
+
+.view-all-history-link:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .view-all-icon {
@@ -582,8 +592,8 @@ watch(
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
-  color: var(--color-accent, #ea7a87);
+  background: rgba(var(--color-accent-rgb, 217, 119, 50), 0.12);
+  color: var(--color-accent, #d97732);
   display: flex;
   align-items: center;
   justify-content: center;

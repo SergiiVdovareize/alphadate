@@ -94,6 +94,11 @@ const handleClick = (item: LetterState) => {
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
+.letter-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
+}
+
 .letter-btn.active {
   background-color: var(--color-accent) !important;
   color: #ffffff !important;

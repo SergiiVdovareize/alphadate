@@ -166,13 +166,13 @@ onUnmounted(() => {
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  background: rgba(var(--color-accent-rgb, 234, 122, 135), 0.15);
-  border: 2px solid var(--color-accent, #ea7a87);
+  background: rgba(217, 119, 50, 0.12);
+  border: 2px solid var(--color-accent, #d97732);
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 1.25rem;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
 }
 
 .lock-icon {
@@ -224,8 +224,8 @@ onUnmounted(() => {
 
 .pin-input:focus {
   outline: none;
-  border-color: var(--color-accent, #ea7a87);
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, 234, 122, 135), 0.25);
+  border-color: var(--color-accent, #d97732);
+  box-shadow: 0 0 0 3px rgba(217, 119, 50, 0.2);
 }
 
 .pin-error-banner {
@@ -247,36 +247,46 @@ onUnmounted(() => {
 }
 
 .actions button {
-  padding: 0.75rem 1.25rem;
-  border-radius: 10px;
+  padding: 0.85rem 1.25rem;
+  min-height: 48px;
+  border-radius: 12px;
   font-size: 1rem;
   cursor: pointer;
   border: 2px solid var(--color-ink, #2d3748);
   font-weight: 700;
-  box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease;
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .actions button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 0 var(--color-ink, #2d3748);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
 
 .actions button:active:not(:disabled) {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--color-ink, #2d3748);
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 var(--color-ink, #2d3748));
+}
+
+.actions button:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .button.primary {
-  background: var(--color-accent, #ea7a87);
+  background: var(--color-accent, #d97732);
   color: #ffffff;
 }
 
 .button.primary:hover:not(:disabled) {
-  background: var(--color-accent-hover, #dc6876);
+  background: var(--color-accent-hover, #c26522);
 }
 
 .button.outline {
@@ -284,8 +294,12 @@ onUnmounted(() => {
   color: var(--color-ink, #2d3748);
 }
 
+.button.outline:hover:not(:disabled) {
+  background: var(--color-surface-muted, #f3eae3);
+}
+
 .actions button:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
   box-shadow: 0 2px 0 var(--color-ink, #2d3748);

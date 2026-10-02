@@ -290,8 +290,8 @@ onUnmounted(() => {
     from 0deg,
     transparent 0deg,
     transparent 65deg,
-    rgba(234, 122, 135, 0.2) 80deg,
-    var(--color-accent, #ea7a87) 95deg,
+    rgba(217, 119, 50, 0.2) 80deg,
+    var(--color-accent, #d97732) 95deg,
     #f4a261 105deg,
     rgba(244, 162, 97, 0.3) 115deg,
     transparent 130deg,
@@ -377,7 +377,7 @@ onUnmounted(() => {
   font-weight: 900;
   margin: 0;
   line-height: 1;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
   display: inline-block;
   animation:
     letter-pop-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both,
@@ -435,17 +435,17 @@ onUnmounted(() => {
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
 }
 
 .countdown-badge.is-urgent {
-  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
-  border-color: rgba(var(--color-accent-rgb, 138, 99, 229), 0.4);
+  background: rgba(var(--color-accent-rgb, 217, 119, 50), 0.12);
+  border-color: rgba(var(--color-accent-rgb, 217, 119, 50), 0.4);
   color: var(--color-accent);
 }
 
 .countdown-badge.is-expired {
-  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.18);
+  background: rgba(var(--color-accent-rgb, 217, 119, 50), 0.18);
   border-color: var(--color-accent);
   color: var(--color-accent);
   font-weight: 700;
@@ -473,9 +473,22 @@ onUnmounted(() => {
   transition:
     transform 0.1s ease,
     box-shadow 0.1s ease,
-    background-color 0.15s ease;
+    background-color 0.15s ease,
+    color 0.15s ease;
   width: 100%;
   box-sizing: border-box;
+}
+
+.action-buttons button:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
+}
+
+.action-buttons button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 0 var(--color-ink, #2d3748);
 }
 
 .action-buttons .complete-main-btn {
@@ -489,15 +502,15 @@ onUnmounted(() => {
 
 /* Button variants */
 .button.success {
-  background-color: var(--color-accent, #ea7a87);
+  background-color: var(--color-accent, #d97732);
   color: #ffffff;
 }
-.button.success:hover {
-  background-color: var(--color-accent-hover, #dc6876);
+.button.success:hover:not(:disabled) {
+  background-color: var(--color-accent-hover, #c26522);
   transform: translateY(-1px);
   box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
-.button.success:active {
+.button.success:active:not(:disabled) {
   transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
@@ -506,12 +519,12 @@ onUnmounted(() => {
   background-color: var(--color-surface-muted, #f3eae3);
   color: var(--color-ink, #2d3748);
 }
-.button.danger:hover {
+.button.danger:hover:not(:disabled) {
   background-color: var(--color-surface, #ffffff);
   transform: translateY(-1px);
   box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
-.button.danger:active {
+.button.danger:active:not(:disabled) {
   transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
@@ -520,12 +533,12 @@ onUnmounted(() => {
   background-color: var(--color-surface, #ffffff);
   color: var(--color-ink, #2d3748);
 }
-.button.outline:hover {
+.button.outline:hover:not(:disabled) {
   background-color: var(--color-surface-muted, #f3eae3);
   transform: translateY(-1px);
   box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
-.button.outline:active {
+.button.outline:active:not(:disabled) {
   transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
@@ -534,13 +547,13 @@ onUnmounted(() => {
   background-color: var(--color-surface-muted, #f3eae3);
   color: var(--color-ink, #2d3748);
 }
-.close-panel-btn:hover {
+.close-panel-btn:hover:not(:disabled) {
   background-color: var(--color-surface, #ffffff);
   transform: translateY(-1px);
   box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
-.close-panel-btn:active {
-  transform: translateY(2px);
+.close-panel-btn:active:not(:disabled) {
+  transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
@@ -584,7 +597,7 @@ onUnmounted(() => {
 .comment-textarea:focus {
   outline: none;
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, 138, 99, 229), 0.2);
+  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, 217, 119, 50), 0.2);
 }
 
 .completion-actions {
@@ -620,6 +633,11 @@ onUnmounted(() => {
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
+.completion-actions .confirm-btn:focus-visible {
+  outline: 2px solid var(--color-accent-confirm, #5ea885);
+  outline-offset: 2px;
+}
+
 .completion-actions .cancel-btn {
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
@@ -645,6 +663,11 @@ onUnmounted(() => {
 .completion-actions .cancel-btn:active {
   transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.completion-actions .cancel-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 /* Confirmation stage styles (Option 3: full width + cancel button) */
@@ -700,6 +723,11 @@ onUnmounted(() => {
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
+.confirm-expanded-btn:focus-visible {
+  outline: 2px solid var(--color-accent-confirm, #5ea885);
+  outline-offset: 2px;
+}
+
 .confirm-expanded-btn span:not(.confirm-progress-bar) {
   position: relative;
   z-index: 1;
@@ -732,6 +760,11 @@ onUnmounted(() => {
 .cancel-confirm-btn:active {
   transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.cancel-confirm-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .confirm-progress-bar {

@@ -114,27 +114,39 @@ watch(
 }
 
 .actions button {
-  padding: 0.75rem 1.25rem;
-  border-radius: 10px;
+  padding: 0.85rem 1.25rem;
+  min-height: 48px;
+  border-radius: 12px;
   font-size: 1rem;
   cursor: pointer;
   border: 2px solid var(--color-ink, #2d3748);
   font-weight: 700;
-  box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    background 0.12s ease;
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.actions button:hover {
+.actions button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 0 var(--color-ink, #2d3748);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
 
-.actions button:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--color-ink, #2d3748);
+.actions button:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 var(--color-ink, #2d3748));
+}
+
+.actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 0 var(--color-ink, #2d3748);
 }
 
 .button.danger {
@@ -142,12 +154,26 @@ watch(
   color: #ffffff;
 }
 
-.button.danger:hover {
+.button.danger:hover:not(:disabled) {
   background: #c53030;
+}
+
+.button.danger:focus-visible {
+  outline: 2px solid #e53e3e;
+  outline-offset: 2px;
 }
 
 .button.outline {
   background: #ffffff;
   color: var(--color-ink, #2d3748);
+}
+
+.button.outline:hover:not(:disabled) {
+  background: var(--color-surface-muted, #f3eae3);
+}
+
+.button.outline:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 </style>

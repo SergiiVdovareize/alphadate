@@ -268,14 +268,14 @@ input {
 
 input:focus {
   outline: none;
-  border-color: var(--color-accent, #ea7a87);
-  box-shadow: 0 0 0 3px rgba(var(--color-accent-rgb, 138, 99, 229), 0.2);
+  border-color: var(--color-accent, #d97732);
+  box-shadow: 0 0 0 3px rgba(217, 119, 50, 0.15);
 }
 
 .start-btn {
   margin-top: 0.5rem;
   padding: 1rem;
-  background-color: var(--color-accent, #ea7a87);
+  background-color: var(--color-accent, #d97732);
   color: #ffffff;
   border: 2px solid var(--color-ink, #2d3748);
   border-radius: 12px;
@@ -290,7 +290,7 @@ input:focus {
 }
 
 .start-btn:hover:not(:disabled) {
-  background-color: var(--color-accent-hover, #dc6876);
+  background-color: var(--color-accent-hover, #c26522);
   transform: translateY(-1px);
   box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
@@ -301,17 +301,23 @@ input:focus {
 }
 
 .start-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
+  transform: none;
   box-shadow: 0 2px 0 var(--color-ink, #2d3748);
+}
+
+.start-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .form-error-banner {
   padding: 0.65rem 0.9rem;
-  background-color: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
-  border: 1.5px solid var(--color-accent, #ea7a87);
+  background-color: #fff5f5;
+  border: 1.5px solid #feb2b2;
   border-radius: 10px;
-  color: var(--color-accent, #ea7a87);
+  color: #c53030;
   font-size: 0.88rem;
   font-weight: 600;
   text-align: center;
@@ -460,7 +466,7 @@ input:focus {
 }
 
 .toggle-boards-btn:hover {
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
 }
 
 .toggle-boards-btn .toggle-btn-text {
@@ -471,7 +477,12 @@ input:focus {
 }
 
 .toggle-boards-btn:hover .toggle-btn-text {
-  text-decoration-color: var(--color-accent, #ea7a87);
+  text-decoration-color: var(--color-accent, #d97732);
+}
+
+.toggle-boards-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .toggle-chevron {
@@ -529,8 +540,13 @@ input:focus {
 }
 
 .board-select-btn:hover {
-  color: var(--color-accent, #ea7a87);
-  background-color: rgba(234, 122, 135, 0.08);
+  color: var(--color-accent, #d97732);
+  background-color: rgba(217, 119, 50, 0.08);
+}
+
+.board-select-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .board-select-current {
@@ -539,7 +555,7 @@ input:focus {
 }
 
 .board-bullet {
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
   font-size: 1rem;
   line-height: 1;
 }
@@ -554,13 +570,13 @@ input:focus {
 }
 
 .board-select-btn:hover .board-select-names {
-  text-decoration-color: var(--color-accent, #ea7a87);
+  text-decoration-color: var(--color-accent, #d97732);
 }
 
 .current-badge {
   font-size: 0.72rem;
   font-weight: 600;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
   margin-left: 0.35rem;
 }
 
@@ -600,12 +616,12 @@ input:focus {
 }
 
 .recover-text-btn:hover {
-  color: var(--color-primary, #e53e3e);
-  text-decoration-color: var(--color-primary, #e53e3e);
+  color: var(--color-accent, #d97732);
+  text-decoration-color: var(--color-accent, #d97732);
 }
 
 .recover-text-btn:focus-visible {
-  outline: 2px solid var(--color-primary, #e53e3e);
+  outline: 2px solid var(--color-accent, #d97732);
   outline-offset: 2px;
 }
 </style>

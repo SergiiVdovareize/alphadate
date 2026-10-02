@@ -326,6 +326,11 @@ const handleRecover = async () => {
   background: rgba(45, 55, 72, 0.05);
 }
 
+.back-link-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
+}
+
 .back-arrow {
   width: 1rem;
   height: 1rem;
@@ -496,12 +501,30 @@ h1 {
 .outline-btn {
   background: #ffffff;
   color: var(--color-ink, #2d3748);
-  border: 1px solid #cbd5e0;
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
 }
 
 .outline-btn:hover {
-  background: #f7fafc;
-  border-color: #a0aec0;
+  background: var(--color-surface-muted, #f3eae3);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+
+.outline-btn:active {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.outline-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .gmail-btn {
@@ -513,6 +536,15 @@ h1 {
 .gmail-btn:hover {
   background: #fff5f5;
   border-color: #e53e3e;
+}
+
+.gmail-btn:active {
+  transform: translateY(1px);
+}
+
+.gmail-btn:focus-visible {
+  outline: 2px solid #c53030;
+  outline-offset: 2px;
 }
 
 .gmail-icon {
@@ -571,27 +603,42 @@ h1 {
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem 1.25rem;
+  padding: 0.85rem 1.25rem;
   background: var(--color-accent, #d97732);
   color: #ffffff;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  border: none;
-  border-radius: 10px;
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 3px 8px rgba(217, 119, 50, 0.25);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease,
+    background-color 0.15s ease;
 }
 
 .submit-btn:hover:not(:disabled) {
   background: var(--color-accent-hover, #c26522);
   transform: translateY(-1px);
+  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
 .submit-btn:disabled {
-  opacity: 0.65;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
+  box-shadow: 0 2px 0 var(--color-ink, #2d3748);
+}
+
+.submit-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .error-banner {

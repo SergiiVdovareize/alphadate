@@ -267,7 +267,7 @@ const {
   align-items: center;
   justify-content: center;
   padding: 0.4rem;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
   opacity: 0.45;
   pointer-events: none;
 }
@@ -320,19 +320,19 @@ const {
   background: transparent;
   border: none;
   padding: 0.4rem;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
   cursor: pointer;
   transition: color 0.2s ease, filter 0.2s ease;
   animation: floatBob 2.4s ease-in-out infinite;
 }
 
 .pin-attention-btn:hover {
-  color: #e65100;
-  filter: drop-shadow(0 2px 6px rgba(234, 122, 135, 0.5));
+  color: var(--color-accent-hover, #c26522);
+  filter: drop-shadow(0 2px 6px rgba(217, 119, 50, 0.4));
 }
 
 .pin-attention-btn:focus-visible {
-  outline: 2px solid var(--color-accent, #ea7a87);
+  outline: 2px solid var(--color-accent, #d97732);
   outline-offset: 4px;
   border-radius: 8px;
 }
@@ -358,8 +358,8 @@ const {
 }
 
 .sync-warning-banner {
-  background: rgba(var(--color-accent-rgb, 138, 99, 229), 0.12);
-  border: 1.5px solid var(--color-accent, #ea7a87);
+  background: rgba(var(--color-accent-rgb, 217, 119, 50), 0.12);
+  border: 1.5px solid var(--color-accent, #d97732);
   border-radius: 12px;
   padding: 0.65rem 1rem;
   margin-bottom: 1.5rem;
@@ -388,6 +388,12 @@ const {
 
 .brand-wrap:active {
   transform: translateY(2px);
+}
+
+.brand-wrap:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 
 .brand-title {
@@ -447,10 +453,10 @@ const {
 
 .partner-badge.active {
   background: #ffffff;
-  border-color: var(--color-accent, #ea7a87);
+  border-color: var(--color-accent, #d97732);
   color: var(--color-ink, #2d3748);
   font-weight: 700;
-  box-shadow: 0 4px 14px -4px rgba(234, 122, 135, 0.25);
+  box-shadow: 0 4px 14px -4px rgba(217, 119, 50, 0.25);
   transform: none;
 }
 
@@ -525,7 +531,7 @@ const {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: var(--color-accent, #ea7a87);
+  background-color: var(--color-accent, #d97732);
   display: inline-block;
   flex-shrink: 0;
   animation: dot-pulse 2.2s ease-in-out infinite;
@@ -577,18 +583,23 @@ const {
 
 .history-journal-link .journal-link-text {
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: 3px;
   text-decoration-color: rgba(113, 128, 150, 0.4);
   transition: text-decoration-color 0.15s ease;
 }
 
 .history-journal-link:hover {
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
   background-color: var(--color-surface-muted, #f3eae3);
 }
 
 .history-journal-link:hover .journal-link-text {
-  text-decoration-color: var(--color-accent, #ea7a87);
+  text-decoration-color: var(--color-accent, #d97732);
+}
+
+.history-journal-link:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .journal-icon {
@@ -597,8 +608,8 @@ const {
 }
 
 .history-count-pill {
-  background-color: rgba(var(--color-accent-rgb, 138, 99, 229), 0.15);
-  color: var(--color-accent, #ea7a87);
+  background-color: rgba(var(--color-accent-rgb, 217, 119, 50), 0.15);
+  color: var(--color-accent, #d97732);
   font-size: 0.78rem;
   font-weight: 800;
   padding: 0.15rem 0.5rem;
@@ -610,7 +621,7 @@ const {
 }
 
 .history-journal-link:hover .history-count-pill {
-  background-color: var(--color-accent, #ea7a87);
+  background-color: var(--color-accent, #d97732);
   color: #ffffff;
 }
 
@@ -633,7 +644,7 @@ const {
   padding: 0.4rem 0.75rem;
   border-radius: 8px;
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: 3px;
   text-decoration-color: rgba(229, 62, 62, 0.4);
   box-shadow: none;
   user-select: none;
@@ -647,5 +658,10 @@ const {
   color: #c53030;
   text-decoration-color: #c53030;
   background-color: rgba(229, 62, 62, 0.08);
+}
+
+.delete-board-link:focus-visible {
+  outline: 2px solid #e53e3e;
+  outline-offset: 2px;
 }
 </style>

@@ -112,19 +112,24 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 }
 
 .suggestions-link-btn:hover {
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
 }
 
 .suggestions-link-btn:hover .btn-text {
-  text-decoration-color: var(--color-accent, #ea7a87);
+  text-decoration-color: var(--color-accent, #d97732);
 }
 
 .suggestions-link-btn.is-open {
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
 }
 
 .suggestions-link-btn.is-open .btn-text {
-  text-decoration-color: var(--color-accent, #ea7a87);
+  text-decoration-color: var(--color-accent, #d97732);
+}
+
+.suggestions-link-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .btn-icon {
@@ -167,7 +172,7 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
   width: 2rem;
   height: 2rem;
   border: 3px solid rgba(45, 55, 72, 0.12);
-  border-top-color: var(--color-accent, #ea7a87);
+  border-top-color: var(--color-accent, #d97732);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -193,28 +198,36 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 }
 
 .retry-btn {
-  padding: 0.45rem 1rem;
-  font-size: 0.85rem;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.88rem;
   font-weight: 700;
   background: var(--color-surface-muted, #f3eae3);
   color: var(--color-ink, #2d3748);
-  border: 1.5px solid var(--color-ink, #2d3748);
-  border-radius: 8px;
+  border: 2px solid var(--color-ink, #2d3748);
+  border-radius: 10px;
   cursor: pointer;
-  box-shadow: var(--shadow-3d-sm, 0 2px 0 #2d3748);
+  box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
   transition:
     transform 0.1s ease,
-    box-shadow 0.1s ease;
+    box-shadow 0.1s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .retry-btn:hover {
+  background: var(--color-surface, #ffffff);
   transform: translateY(-1px);
-  box-shadow: 0 3px 0 var(--color-ink, #2d3748);
+  box-shadow: 0 4px 0 var(--color-ink, #2d3748);
 }
 
 .retry-btn:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #2d3748;
+  transform: translateY(3px);
+  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.retry-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .suggestions-list {

@@ -84,30 +84,35 @@ const handleRandomPick = () => {
     color 0.15s ease;
 }
 
-.random-btn:hover {
-  background-color: var(--color-accent, #ea7a87);
+.random-btn:hover:not(:disabled) {
+  background-color: var(--color-accent, #d97732);
   color: #ffffff;
   transform: translateY(-1px);
   box-shadow: 0 5px 0 var(--color-ink, #2d3748);
 }
 
-.random-btn:active {
+.random-btn:active:not(:disabled) {
   transform: translateY(3px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
+}
+
+.random-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
 }
 
 .empty-notice {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--color-accent, #ea7a87);
+  color: var(--color-accent, #d97732);
 }
 
 .random-btn:disabled {
-  opacity: 0.65;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none !important;
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748) !important;
+  box-shadow: 0 2px 0 var(--color-ink, #2d3748) !important;
 }
 
 .picking-label {
