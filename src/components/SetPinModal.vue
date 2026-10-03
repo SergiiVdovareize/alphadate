@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { PIN_LENGTH } from '../constants';
+import AppAlert from './AppAlert.vue';
+import AppButton from './AppButton.vue';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -129,27 +131,32 @@ onUnmounted(() => {
             </div>
           </div>
 
-          <div v-if="error || localError" class="pin-error" role="alert">
-            {{ error || localError }}
-          </div>
+          <AppAlert v-if="error || localError" class="pin-error" :message="error || localError" />
 
           <div class="actions">
-            <button
+            <AppButton
               type="submit"
               class="button primary submit-btn"
+              variant="primary"
+              size="md"
+              block
               :disabled="pinInput.length !== PIN_LENGTH || isLoading"
+              :loading="isLoading"
+              loading-text="Встановлення..."
             >
-              <span v-if="isLoading" class="spinner" aria-hidden="true"></span>
-              <span v-else>Встановити PIN</span>
-            </button>
-            <button
+              Встановити PIN
+            </AppButton>
+            <AppButton
               type="button"
               class="button outline cancel-btn"
+              variant="outline"
+              size="md"
+              block
               :disabled="isLoading"
               @click="emit('close')"
             >
               Скасувати
-            </button>
+            </AppButton>
           </div>
         </form>
       </div>
@@ -280,13 +287,6 @@ onUnmounted(() => {
 }
 
 .pin-error {
-  padding: 0.65rem 0.9rem;
-  background-color: var(--color-error-bg, #fff5f5);
-  border: none;
-  border-radius: var(--radius-error, 10px);
-  color: var(--color-error, #c53030);
-  font-size: 0.88rem;
-  font-weight: 600;
   text-align: center;
   margin-bottom: 1.25rem;
 }
@@ -296,92 +296,5 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 0.75rem;
   margin-top: 0.5rem;
-}
-
-.button {
-  padding: 0.85rem 1.25rem;
-  border-radius: 12px;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease,
-    background-color 0.15s ease,
-    color 0.15s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 48px;
-}
-
-.button.primary {
-  background: var(--color-accent, #d97732);
-  color: #ffffff;
-  border: 2px solid var(--color-ink, #2d3748);
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
-}
-
-.button.primary:hover:not(:disabled) {
-  background: var(--color-accent-hover, #c26522);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #2d3748;
-}
-
-.button.primary:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
-}
-
-.button.primary:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 2px 0 #2d3748;
-}
-
-.button.outline {
-  background: #ffffff;
-  color: var(--color-ink, #2d3748);
-  border: 2px solid var(--color-ink, #2d3748);
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
-}
-
-.button.outline:hover:not(:disabled) {
-  background: var(--color-surface-muted, #f3eae3);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #2d3748;
-}
-
-.button.outline:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
-}
-
-.button.outline:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 2px 0 #2d3748;
-}
-
-.button:focus-visible {
-  outline: 2px solid var(--color-accent, #d97732);
-  outline-offset: 2px;
-}
-
-.spinner {
-  width: 20px;
-  height: 20px;
-  border: 2.5px solid rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  border-top-color: #ffffff;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 </style>

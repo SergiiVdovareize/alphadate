@@ -3,6 +3,8 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
+import AppAlert from '../components/AppAlert.vue';
+import AppButton from '../components/AppButton.vue';
 
 const router = useRouter();
 const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, createBoard } =
@@ -166,13 +168,24 @@ const isPinError = computed(
           />
         </div>
 
-        <div v-if="errorMessage" class="form-error-banner" role="alert">
-          {{ errorMessage }}
-        </div>
+        <AppAlert
+          v-if="errorMessage"
+          class="form-error-banner"
+          :message="errorMessage"
+        />
 
-        <button type="submit" class="start-btn" :disabled="isLoading">
-          {{ isLoading ? 'Створення...' : 'Створити спільну дошку' }}
-        </button>
+        <AppButton
+          type="submit"
+          class="start-btn"
+          variant="primary"
+          size="lg"
+          block
+          :disabled="isLoading"
+          :loading="isLoading"
+          loading-text="Створення..."
+        >
+          Створити спільну дошку
+        </AppButton>
       </form>
 
       <!-- Recovery text button -->
@@ -293,52 +306,9 @@ input.input-error:focus {
 
 .start-btn {
   margin-top: 0.5rem;
-  padding: 1rem;
-  background-color: var(--color-accent, #d97732);
-  color: #ffffff;
-  border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 12px;
-  font-size: 1.05rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease,
-    background-color 0.15s ease;
-}
-
-.start-btn:hover:not(:disabled) {
-  background-color: var(--color-accent-hover, #c26522);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
-}
-
-.start-btn:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
-}
-
-.start-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 2px 0 var(--color-ink, #2d3748);
-}
-
-.start-btn:focus-visible {
-  outline: 2px solid var(--color-accent, #d97732);
-  outline-offset: 2px;
 }
 
 .form-error-banner {
-  padding: 0.65rem 0.9rem;
-  background-color: var(--color-error-bg, #fff5f5);
-  border: none;
-  border-radius: var(--radius-error, 10px);
-  color: var(--color-error, #c53030);
-  font-size: 0.88rem;
-  font-weight: 600;
   text-align: center;
   margin-top: -0.25rem;
   margin-bottom: 0.5rem;

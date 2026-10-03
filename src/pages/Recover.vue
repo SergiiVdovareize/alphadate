@@ -2,6 +2,8 @@
 import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AppLogo from '../components/AppLogo.vue';
+import AppAlert from '../components/AppAlert.vue';
+import AppButton from '../components/AppButton.vue';
 import { api } from '../services/api';
 import { getErrorMessage } from '../utils/errors';
 import { EMAIL_REGEX } from '../constants';
@@ -218,13 +220,24 @@ const handleRecover = async () => {
               />
             </div>
 
-            <div v-if="errorMessage" class="error-banner" role="alert">
-              {{ errorMessage }}
-            </div>
+            <AppAlert
+              v-if="errorMessage"
+              class="error-banner"
+              :message="errorMessage"
+            />
 
-            <button type="submit" class="submit-btn" :disabled="isLoading">
-              {{ isLoading ? 'Надсилання...' : 'Надіслати посилання на пошту' }}
-            </button>
+            <AppButton
+              type="submit"
+              class="submit-btn"
+              variant="primary"
+              size="lg"
+              block
+              :disabled="isLoading"
+              :loading="isLoading"
+              loading-text="Надсилання..."
+            >
+              Надіслати посилання на пошту
+            </AppButton>
           </form>
 
           <div v-else class="success-box" role="status">
@@ -548,54 +561,7 @@ h1 {
   box-shadow: 0 0 0 3px rgba(197, 48, 48, 0.2);
 }
 
-.submit-btn {
-  width: 100%;
-  padding: 0.85rem 1.25rem;
-  background: var(--color-accent, #d97732);
-  color: #ffffff;
-  font-size: 0.95rem;
-  font-weight: 700;
-  border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease,
-    background-color 0.15s ease;
-}
-
-.submit-btn:hover:not(:disabled) {
-  background: var(--color-accent-hover, #c26522);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
-}
-
-.submit-btn:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
-}
-
-.submit-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 2px 0 var(--color-ink, #2d3748);
-}
-
-.submit-btn:focus-visible {
-  outline: 2px solid var(--color-accent, #d97732);
-  outline-offset: 2px;
-}
-
 .error-banner {
-  background-color: var(--color-error-bg, #fff5f5);
-  border: none;
-  border-radius: var(--radius-error, 10px);
-  color: var(--color-error, #c53030);
-  padding: 0.65rem 0.9rem;
-  font-size: 0.88rem;
-  font-weight: 600;
   text-align: center;
   margin-bottom: 0.75rem;
 }

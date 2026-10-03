@@ -4,6 +4,8 @@ import { useActiveLetterPanel } from '../composables/useActiveLetterPanel';
 import DateSuggestions from './DateSuggestions.vue';
 import RandomPickButton from './RandomPickButton.vue';
 import { LETTER_POP_ENTRANCE_DELAY_MS, RIM_ANIMATION_DURATION_MS } from '../constants';
+import AppAlert from './AppAlert.vue';
+import AppButton from './AppButton.vue';
 import type { LetterState } from '../composables/useAlphabetState';
 
 const props = defineProps<{
@@ -252,20 +254,33 @@ onUnmounted(() => {
             </button>
           </div>
 
-          <p v-if="photoError" class="photo-error-msg" role="alert">
-            {{ photoError }}
-          </p>
+          <AppAlert
+            v-if="photoError"
+            class="photo-error-msg"
+            :message="photoError"
+          />
         </div>
 
         <div class="completion-actions">
-          <button
+          <AppButton
+            type="button"
             class="button success confirm-btn"
+            variant="success"
+            size="md"
             :disabled="isProcessingPhoto"
             @click="submitComplete"
           >
             Підтвердити виконання
-          </button>
-          <button class="button outline cancel-btn" @click="cancelCompleting">Назад</button>
+          </AppButton>
+          <AppButton
+            type="button"
+            class="button outline cancel-btn"
+            variant="outline"
+            size="md"
+            @click="cancelCompleting"
+          >
+            Назад
+          </AppButton>
         </div>
       </div>
 

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { useDateSuggestions } from '../composables/useDateSuggestions';
+import AppAlert from './AppAlert.vue';
+import AppButton from './AppButton.vue';
 
 const props = defineProps<{
   boardId: string;
@@ -47,10 +49,16 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
-        <p class="error-text">{{ error }}</p>
-        <button type="button" class="retry-btn" @click="() => fetchSuggestions(true)">
+        <AppAlert :message="error" type="error" class="error-text" />
+        <AppButton
+          type="button"
+          class="retry-btn"
+          variant="outline"
+          size="sm"
+          @click="() => fetchSuggestions(true)"
+        >
           Спробувати знову ↻
-        </button>
+        </AppButton>
       </div>
 
       <!-- Suggestions List -->
@@ -66,9 +74,15 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
       <!-- Empty fallback -->
       <div v-else class="empty-state">
         <p>Не знайдено ідей на цю літеру.</p>
-        <button type="button" class="retry-btn" @click="() => fetchSuggestions(true)">
+        <AppButton
+          type="button"
+          class="retry-btn"
+          variant="outline"
+          size="sm"
+          @click="() => fetchSuggestions(true)"
+        >
           Спробувати ще раз
-        </button>
+        </AppButton>
       </div>
     </div>
   </div>
@@ -191,50 +205,10 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 }
 
 .error-text {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--color-error, #c53030);
-  background-color: var(--color-error-bg, #fff5f5);
-  border: none;
-  border-radius: var(--radius-error, 10px);
-  padding: 0.65rem 0.9rem;
   width: 100%;
   max-width: 320px;
   margin: 0;
   text-align: center;
-}
-
-.retry-btn {
-  padding: 0.5rem 1.1rem;
-  font-size: 0.88rem;
-  font-weight: 700;
-  background: var(--color-surface-muted, #f3eae3);
-  color: var(--color-ink, #2d3748);
-  border: 2px solid var(--color-ink, #2d3748);
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease,
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.retry-btn:hover {
-  background: var(--color-surface, #ffffff);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 0 var(--color-ink, #2d3748);
-}
-
-.retry-btn:active {
-  transform: translateY(3px);
-  box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
-}
-
-.retry-btn:focus-visible {
-  outline: 2px solid var(--color-accent, #d97732);
-  outline-offset: 2px;
 }
 
 .suggestions-list {

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
 import { PIN_LENGTH } from '../constants';
+import AppAlert from './AppAlert.vue';
+import AppButton from './AppButton.vue';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -104,26 +106,32 @@ onUnmounted(() => {
             />
           </div>
 
-          <div v-if="error" class="pin-error-banner" role="alert">
-            {{ error }}
-          </div>
+          <AppAlert v-if="error" class="pin-error-banner" :message="error" />
 
           <div class="actions">
-            <button
+            <AppButton
               type="submit"
               class="button primary unlock-btn"
+              variant="primary"
+              size="md"
+              block
               :disabled="pinInput.length !== PIN_LENGTH || isLoading"
+              :loading="isLoading"
+              loading-text="Перевірка..."
             >
-              {{ isLoading ? 'Перевірка...' : 'Розблокувати' }}
-            </button>
-            <button
+              Розблокувати
+            </AppButton>
+            <AppButton
               type="button"
               class="button outline cancel-btn"
+              variant="outline"
+              size="md"
+              block
               :disabled="isLoading"
               @click="emit('cancel')"
             >
               На головну
-            </button>
+            </AppButton>
           </div>
         </form>
       </div>
@@ -230,13 +238,6 @@ onUnmounted(() => {
 }
 
 .pin-error-banner {
-  padding: 0.65rem 0.9rem;
-  background-color: var(--color-error-bg, #fff5f5);
-  border: none;
-  border-radius: var(--radius-error, 10px);
-  color: var(--color-error, #c53030);
-  font-size: 0.88rem;
-  font-weight: 600;
   text-align: center;
   margin-bottom: 1.25rem;
 }
@@ -245,64 +246,5 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-}
-
-.actions button {
-  padding: 0.85rem 1.25rem;
-  min-height: 48px;
-  border-radius: 12px;
-  font-size: 1rem;
-  cursor: pointer;
-  border: 2px solid var(--color-ink, #2d3748);
-  font-weight: 700;
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    transform 0.1s ease,
-    box-shadow 0.1s ease,
-    background-color 0.15s ease,
-    color 0.15s ease;
-}
-
-.actions button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 var(--color-ink, #2d3748);
-}
-
-.actions button:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: var(--shadow-3d-pressed, 0 1px 0 var(--color-ink, #2d3748));
-}
-
-.actions button:focus-visible {
-  outline: 2px solid var(--color-accent, #d97732);
-  outline-offset: 2px;
-}
-
-.button.primary {
-  background: var(--color-accent, #d97732);
-  color: #ffffff;
-}
-
-.button.primary:hover:not(:disabled) {
-  background: var(--color-accent-hover, #c26522);
-}
-
-.button.outline {
-  background: #ffffff;
-  color: var(--color-ink, #2d3748);
-}
-
-.button.outline:hover:not(:disabled) {
-  background: var(--color-surface-muted, #f3eae3);
-}
-
-.actions button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: 0 2px 0 var(--color-ink, #2d3748);
 }
 </style>
