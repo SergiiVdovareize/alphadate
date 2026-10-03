@@ -16,17 +16,9 @@ import {
   getBoardPinStorageKey
 } from '../constants';
 import { encryptPin, decryptPin } from '../utils/crypto';
+import { ApiError } from '../utils/errors';
 
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    message: string,
-    public readonly responseBody?: unknown
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
+export { ApiError };
 
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||

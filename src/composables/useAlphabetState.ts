@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue';
 import { api, ApiError, setStoredPin, clearStoredPin } from '../services/api';
+import { getErrorMessage } from '../utils/errors';
 import {
   UKRAINIAN_ALPHABET,
   DEFAULT_BOARD_ID,
@@ -228,8 +229,7 @@ export function useAlphabetState(boardId: string) {
         fetchError.value = null;
       } else {
         console.error('Failed to sync state from backend:', e);
-        fetchError.value =
-          e instanceof Error ? e.message : 'Не вдалося завантажити дошку з сервера.';
+        fetchError.value = getErrorMessage(e, 'Не вдалося завантажити дошку з сервера.');
       }
     } finally {
       if (isSilent) {
@@ -274,7 +274,7 @@ export function useAlphabetState(boardId: string) {
       return true;
     } catch (e: unknown) {
       clearStoredPin(boardId);
-      pinError.value = e instanceof Error ? e.message : 'Невірний PIN-код. Спробуйте ще раз.';
+      pinError.value = getErrorMessage(e, 'Невірний PIN-код. Спробуйте ще раз.');
       return false;
     } finally {
       isLoadingBackend.value = false;
@@ -308,7 +308,7 @@ export function useAlphabetState(boardId: string) {
       };
       return true;
     } catch (e: unknown) {
-      pinError.value = e instanceof Error ? e.message : 'Не вдалося встановити PIN-код.';
+      pinError.value = getErrorMessage(e, 'Не вдалося встановити PIN-код.');
       return false;
     } finally {
       isLoadingBackend.value = false;

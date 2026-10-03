@@ -230,11 +230,11 @@ onUnmounted(() => {
 }
 
 .pin-error-banner {
-  padding: 0.6rem 0.8rem;
-  background-color: rgba(229, 62, 62, 0.1);
-  border: 1.5px solid #e53e3e;
-  border-radius: 10px;
-  color: #c53030;
+  padding: 0.65rem 0.9rem;
+  background-color: var(--color-error-bg, #fff5f5);
+  border: 1.5px solid var(--color-error-border, #feb2b2);
+  border-radius: var(--radius-error, 10px);
+  color: var(--color-error, #c53030);
   font-size: 0.88rem;
   font-weight: 600;
   text-align: center;

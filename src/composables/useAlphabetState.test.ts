@@ -207,7 +207,17 @@ describe('useAlphabetState', () => {
 
     const success = await state.unlockWithPin('0000');
     expect(success).toBe(false);
-    expect(state.pinError.value).toBe('Invalid PIN code');
+    expect(state.pinError.value).toBe('Невірний PIN-код. Спробуйте ще раз.');
+  });
+
+  it('unlockWithPin preserves Ukrainian error if provided', async () => {
+    const state = useAlphabetState('pin-board-fail-ua');
+
+    vi.mocked(api.getBoard).mockRejectedValue(new Error('Спробуйте через 5 хвилин'));
+
+    const success = await state.unlockWithPin('0000');
+    expect(success).toBe(false);
+    expect(state.pinError.value).toBe('Спробуйте через 5 хвилин');
   });
 
   it('deleteBoardState deletes board and cleans up storage and PIN', async () => {
@@ -260,7 +270,7 @@ describe('useAlphabetState', () => {
 
     const result = await state.setBoardPin('5678');
     expect(result).toBe(false);
-    expect(state.pinError.value).toBe('Network error');
+    expect(state.pinError.value).toBe('Немає зв’язку з сервером. Перевірте інтернет.');
   });
 
   it('initBoardLocalStorage respects hasPin parameter', () => {

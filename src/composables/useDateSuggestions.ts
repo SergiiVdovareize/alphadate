@@ -1,5 +1,6 @@
 import { ref, computed, watch } from 'vue';
 import { api, type DateSuggestion } from '../services/api';
+import { getErrorMessage } from '../utils/errors';
 
 export interface DateSuggestionsProps {
   boardId: string;
@@ -41,7 +42,7 @@ export function useDateSuggestions(props: DateSuggestionsProps) {
       }
     } catch (err: unknown) {
       console.error('Failed to load suggestions:', err);
-      error.value = err instanceof Error ? err.message : 'Не вдалося завантажити ідеї побачень.';
+      error.value = getErrorMessage(err, 'Не вдалося завантажити ідеї побачень.');
     } finally {
       isLoading.value = false;
     }

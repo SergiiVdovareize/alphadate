@@ -191,10 +191,17 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 }
 
 .error-text {
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  color: #c53030;
+  color: var(--color-error, #c53030);
+  background-color: var(--color-error-bg, #fff5f5);
+  border: 1.5px solid var(--color-error-border, #feb2b2);
+  border-radius: var(--radius-error, 10px);
+  padding: 0.65rem 0.9rem;
+  width: 100%;
+  max-width: 320px;
   margin: 0;
+  text-align: center;
 }
 
 .retry-btn {

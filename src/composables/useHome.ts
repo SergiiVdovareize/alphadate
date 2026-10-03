@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router';
 import { initBoardLocalStorage, type SavedBoard } from './useAlphabetState';
 import { api, setStoredPin } from '../services/api';
 import { STORAGE_KEYS, PIN_REGEX } from '../constants';
+import { getErrorMessage } from '../utils/errors';
 
 export function useHome() {
   const router = useRouter();
@@ -33,7 +34,7 @@ export function useHome() {
     errorMessage.value = null;
     const validPartners = partners.value.map((p) => p.trim()).filter(Boolean);
     if (validPartners.length < 1) {
-      errorMessage.value = "Будь ласка, введіть хоча б одне ім'я.";
+      errorMessage.value = 'Будь ласка, введіть хоча б одне ім’я.';
       return;
     }
 
@@ -78,10 +79,10 @@ export function useHome() {
       }
     } catch (error: unknown) {
       console.error('Error creating board:', error);
-      errorMessage.value =
-        error instanceof Error
-          ? error.message
-          : 'Помилка при створенні дошки. Перевірте зʼєднання з сервером.';
+      errorMessage.value = getErrorMessage(
+        error,
+        'Помилка при створенні дошки. Перевірте зʼєднання з сервером.'
+      );
     } finally {
       isLoading.value = false;
     }

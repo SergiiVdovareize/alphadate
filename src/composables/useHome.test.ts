@@ -31,7 +31,7 @@ describe('useHome', () => {
     vm.email.value = 'test@example.com';
 
     await vm.createBoard();
-    expect(vm.errorMessage.value).toBe("Будь ласка, введіть хоча б одне ім'я.");
+    expect(vm.errorMessage.value).toBe('Будь ласка, введіть хоча б одне ім’я.');
     expect(api.createBoard).not.toHaveBeenCalled();
   });
 
@@ -97,9 +97,24 @@ describe('useHome', () => {
 
     await vm.createBoard();
 
-    expect(vm.errorMessage.value).toBe('Server unavailable');
+    expect(vm.errorMessage.value).toBe(
+      'Помилка при створенні дошки. Перевірте зʼєднання з сервером.'
+    );
     expect(vm.isLoading.value).toBe(false);
     expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it('preserves Ukrainian error messages thrown by server', async () => {
+    vi.mocked(api.createBoard).mockRejectedValue(new Error('Пошта заблокована'));
+
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = 'couple@example.com';
+
+    await vm.createBoard();
+
+    expect(vm.errorMessage.value).toBe('Пошта заблокована');
+    expect(vm.isLoading.value).toBe(false);
   });
 
   it('handles server response with success: false', async () => {

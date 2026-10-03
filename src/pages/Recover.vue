@@ -3,6 +3,7 @@ import { ref, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AppLogo from '../components/AppLogo.vue';
 import { api } from '../services/api';
+import { getErrorMessage } from '../utils/errors';
 
 const router = useRouter();
 
@@ -58,11 +59,16 @@ const handleRecover = async () => {
     if (res.success) {
       isSuccess.value = true;
     } else {
-      errorMessage.value = res.message || 'Не вдалося надіслати посилання. Спробуйте пізніше.';
+      errorMessage.value = getErrorMessage(
+        res.message,
+        'Не вдалося надіслати посилання. Спробуйте пізніше.'
+      );
     }
   } catch (err: unknown) {
-    errorMessage.value =
-      err instanceof Error ? err.message : 'Помилка при відновленні дошки. Перевірте зʼєднання.';
+    errorMessage.value = getErrorMessage(
+      err,
+      'Помилка при відновленні дошки. Перевірте зʼєднання.'
+    );
   } finally {
     isLoading.value = false;
   }
@@ -545,12 +551,14 @@ h1 {
 }
 
 .error-banner {
-  background: #fff5f5;
-  color: #c53030;
-  border: 1px solid #feb2b2;
-  border-radius: 8px;
-  padding: 0.55rem 0.75rem;
-  font-size: 0.82rem;
+  background-color: var(--color-error-bg, #fff5f5);
+  border: 1.5px solid var(--color-error-border, #feb2b2);
+  border-radius: var(--radius-error, 10px);
+  color: var(--color-error, #c53030);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
   margin-bottom: 0.75rem;
 }
 

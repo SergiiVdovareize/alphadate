@@ -134,4 +134,18 @@ describe('Recover.vue', () => {
     await wrapper.vm.$nextTick();
     expect(wrapper.find('.error-banner').text()).toBe('Помилка сервера');
   });
+
+  it('translates network or technical English errors into Ukrainian', async () => {
+    vi.mocked(api.recoverBoard).mockRejectedValueOnce(new Error('Failed to fetch'));
+
+    const wrapper = mount(Recover);
+
+    await wrapper.find('#recovery-email-field').setValue('user@example.com');
+    await wrapper.find('form').trigger('submit.prevent');
+
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find('.error-banner').text()).toBe(
+      'Немає зв’язку з сервером. Перевірте інтернет.'
+    );
+  });
 });

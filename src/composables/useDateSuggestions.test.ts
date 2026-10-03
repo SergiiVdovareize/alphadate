@@ -80,9 +80,19 @@ describe('useDateSuggestions', () => {
     const vm = useDateSuggestions(props);
 
     await vm.fetchSuggestions();
-    expect(vm.error.value).toBe('Network failure');
+    expect(vm.error.value).toBe('Немає зв’язку з сервером. Перевірте інтернет.');
     expect(vm.suggestions.value).toEqual([]);
     expect(vm.isLoading.value).toBe(false);
+  });
+
+  it('preserves Ukrainian error message when api fails with Ukrainian error', async () => {
+    vi.mocked(api.getSuggestions).mockRejectedValue(new Error('Ліміт запитів вичерпано'));
+
+    const props = reactive({ boardId: 'test-board', letter: 'Б' });
+    const vm = useDateSuggestions(props);
+
+    await vm.fetchSuggestions();
+    expect(vm.error.value).toBe('Ліміт запитів вичерпано');
   });
 
   it('fetches new suggestions when letter changes and panel is open', async () => {
