@@ -159,7 +159,7 @@ watch(
                 <p v-else class="empty-note">Коментар не було додано</p>
               </div>
 
-              <div v-if="item.photo" class="memory-photo-box">
+              <div v-if="item.photo" class="memory-photo-box soft-album-frame">
                 <img
                   :src="item.photo"
                   :alt="'Фото з побачення на літеру «' + item.letter + '»'"
@@ -223,7 +223,7 @@ watch(
               <p v-else class="empty-note-small">Без коментаря</p>
             </div>
 
-            <div v-if="item.photo" class="item-photo-box">
+            <div v-if="item.photo" class="item-photo-box soft-album-mini">
               <img
                 :src="item.photo"
                 :alt="'Фото з побачення на літеру «' + item.letter + '»'"
@@ -646,14 +646,16 @@ watch(
   color: var(--color-ink-muted, #718096);
 }
 
+/* Soft Album Card styling for date memories (modern gallery minimalism, static image) */
 .memory-photo-box {
-  margin-top: 1rem;
+  margin: 1.25rem 0 0 0;
   width: 100%;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
-  border: 2px solid var(--color-ink, #2d3748);
-  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
-  background: #000;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.04),
+    0 12px 30px -4px rgba(45, 55, 72, 0.12);
+  background: #f1f5f9;
   box-sizing: border-box;
 }
 
@@ -664,21 +666,22 @@ watch(
   display: block;
 }
 
+/* Soft Album mini card for history list items (static image) */
 .item-photo-box {
-  margin-top: 0.65rem;
+  margin-top: 0.75rem;
   width: 100%;
-  max-height: 220px;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1.5px solid var(--color-ink, #2d3748);
-  background: #000;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 6px 18px -2px rgba(45, 55, 72, 0.1);
+  background: #f1f5f9;
   box-sizing: border-box;
 }
 
 .item-photo-img {
   width: 100%;
-  height: 100%;
-  max-height: 220px;
+  max-height: 240px;
   object-fit: cover;
   display: block;
 }
