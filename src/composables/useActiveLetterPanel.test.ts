@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useActiveLetterPanel, type ActiveLetterPanelProps } from './useActiveLetterPanel';
 
+vi.mock('../utils/image', () => ({
+  compressImageFile: vi.fn().mockImplementation(async (file: File) => {
+    if (file.name === 'error.jpg') {
+      throw new Error('Помилка обробки фото');
+    }
+    return 'data:image/jpeg;base64,compressed-photo-data';
+  })
+}));
+
 describe('useActiveLetterPanel', () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -10,7 +19,7 @@ describe('useActiveLetterPanel', () => {
     vi.useRealTimers();
   });
 
-  it('handles startCompleting, cancelCompleting and submitComplete', () => {
+  it('handles startCompleting, cancelCompleting and submitComplete without photo', () => {
     const props: ActiveLetterPanelProps = {
       letter: { letter: 'А', status: 'available', note: 'Existing note' },
       selectedAt: new Date().toISOString(),
@@ -22,6 +31,7 @@ describe('useActiveLetterPanel', () => {
 
     expect(vm.isCompleting.value).toBe(false);
     expect(vm.completionNote.value).toBe('');
+    expect(vm.attachedPhoto.value).toBeNull();
 
     vm.startCompleting();
     expect(vm.isCompleting.value).toBe(true);
@@ -30,12 +40,63 @@ describe('useActiveLetterPanel', () => {
     vm.completionNote.value = ' Updated note ';
     vm.submitComplete();
 
-    expect(emit).toHaveBeenCalledWith('complete', 'Updated note');
+    expect(emit).toHaveBeenCalledWith('complete', 'Updated note', undefined);
     expect(vm.isCompleting.value).toBe(false);
     expect(vm.completionNote.value).toBe('');
+    expect(vm.attachedPhoto.value).toBeNull();
   });
 
-  it('cancels completion correctly', () => {
+  it('handles photo file upload, removal, and submitting with photo', async () => {
+    const props: ActiveLetterPanelProps = {
+      letter: { letter: 'Б', status: 'available' },
+      selectedAt: null,
+      boardId: 'test-board'
+    };
+    const emit = vi.fn();
+    const vm = useActiveLetterPanel(props, emit);
+
+    vm.startCompleting();
+
+    const file = new File(['dummy'], 'photo.jpg', { type: 'image/jpeg' });
+    await vm.handlePhotoFile(file);
+
+    expect(vm.attachedPhoto.value).toBe('data:image/jpeg;base64,compressed-photo-data');
+    expect(vm.photoError.value).toBeNull();
+
+    vm.completionNote.value = 'Було чудово';
+    vm.submitComplete();
+
+    expect(emit).toHaveBeenCalledWith(
+      'complete',
+      'Було чудово',
+      'data:image/jpeg;base64,compressed-photo-data'
+    );
+    expect(vm.attachedPhoto.value).toBeNull();
+  });
+
+  it('handles photo compression error gracefully', async () => {
+    const props: ActiveLetterPanelProps = {
+      letter: { letter: 'Б', status: 'available' },
+      selectedAt: null,
+      boardId: 'test-board'
+    };
+    const emit = vi.fn();
+    const vm = useActiveLetterPanel(props, emit);
+
+    vm.startCompleting();
+
+    const badFile = new File(['dummy'], 'error.jpg', { type: 'image/jpeg' });
+    await vm.handlePhotoFile(badFile);
+
+    expect(vm.photoError.value).toBe('Помилка обробки фото');
+    expect(vm.attachedPhoto.value).toBeNull();
+
+    // Remove photo clears error
+    vm.removePhoto();
+    expect(vm.photoError.value).toBeNull();
+  });
+
+  it('cancels completion correctly and clears photo state', async () => {
     const props: ActiveLetterPanelProps = {
       letter: { letter: 'А', status: 'available' },
       selectedAt: null,
@@ -46,10 +107,16 @@ describe('useActiveLetterPanel', () => {
 
     vm.startCompleting();
     vm.completionNote.value = 'Draft note';
+    const file = new File(['dummy'], 'photo.jpg', { type: 'image/jpeg' });
+    await vm.handlePhotoFile(file);
+
+    expect(vm.attachedPhoto.value).toBeTruthy();
+
     vm.cancelCompleting();
 
     expect(vm.isCompleting.value).toBe(false);
     expect(vm.completionNote.value).toBe('');
+    expect(vm.attachedPhoto.value).toBeNull();
     expect(emit).not.toHaveBeenCalled();
   });
 

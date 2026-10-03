@@ -45,6 +45,7 @@ const letterHistoryItems = computed<LetterHistoryItem[]>(() => {
         letter: fallbackLetter.letter,
         status: 'used',
         note: fallbackLetter.note,
+        photo: fallbackLetter.photo,
         partnerName: 'Партнер',
         selectedAt: null,
         completedAt: ''
@@ -157,6 +158,15 @@ watch(
                 <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
                 <p v-else class="empty-note">Коментар не було додано</p>
               </div>
+
+              <div v-if="item.photo" class="memory-photo-box">
+                <img
+                  :src="item.photo"
+                  :alt="'Фото з побачення на літеру «' + item.letter + '»'"
+                  class="memory-photo-img"
+                  loading="lazy"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -211,6 +221,15 @@ watch(
             <div class="item-note">
               <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
               <p v-else class="empty-note-small">Без коментаря</p>
+            </div>
+
+            <div v-if="item.photo" class="item-photo-box">
+              <img
+                :src="item.photo"
+                :alt="'Фото з побачення на літеру «' + item.letter + '»'"
+                class="item-photo-img"
+                loading="lazy"
+              />
             </div>
           </article>
         </div>
@@ -625,5 +644,42 @@ watch(
   margin: 0;
   font-size: 0.85rem;
   color: var(--color-ink-muted, #718096);
+}
+
+.memory-photo-box {
+  margin-top: 1rem;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid var(--color-ink, #2d3748);
+  box-shadow: var(--shadow-3d, 0 4px 0 #2d3748);
+  background: #000;
+  box-sizing: border-box;
+}
+
+.memory-photo-img {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+.item-photo-box {
+  margin-top: 0.65rem;
+  width: 100%;
+  max-height: 220px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid var(--color-ink, #2d3748);
+  background: #000;
+  box-sizing: border-box;
+}
+
+.item-photo-img {
+  width: 100%;
+  height: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  display: block;
 }
 </style>

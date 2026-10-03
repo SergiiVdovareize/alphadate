@@ -12,6 +12,10 @@ vi.mock('../services/api', () => ({
   }
 }));
 
+vi.mock('../utils/image', () => ({
+  compressImageFile: vi.fn().mockResolvedValue('data:image/jpeg;base64,mock-photo')
+}));
+
 describe('ActiveLetterPanel.vue', () => {
   it('renders random pick button when no active letter is selected', () => {
     const pickRandom = vi.fn().mockReturnValue(null);
@@ -62,6 +66,7 @@ describe('ActiveLetterPanel.vue', () => {
 
     expect(wrapper.find('.comment-textarea').exists()).toBe(true);
     expect(wrapper.find('.confirm-btn').exists()).toBe(true);
+    expect(wrapper.find('.attach-photo-btn').exists()).toBe(true);
   });
 
   it('switches to full-width confirmation and supports canceling', async () => {
@@ -106,8 +111,46 @@ describe('ActiveLetterPanel.vue', () => {
     await wrapper.find('.confirm-btn').trigger('click');
 
     expect(wrapper.emitted('complete')).toBeTruthy();
-    expect(wrapper.emitted('complete')![0]).toEqual(['Чудова кава та прогулянка']);
+    expect(wrapper.emitted('complete')![0]).toEqual(['Чудова кава та прогулянка', undefined]);
     expect(wrapper.find('.completion-form').exists()).toBe(false);
+  });
+
+  it('allows attaching and removing photo in completion form', async () => {
+    const pickRandom = vi.fn().mockReturnValue(null);
+    const wrapper = mount(ActiveLetterPanel, {
+      props: {
+        letter: { letter: 'К', status: 'available' },
+        selectedAt: null,
+        boardId: 'test-board',
+        pickRandom
+      }
+    });
+
+    await wrapper.find('.complete-main-btn').trigger('click');
+
+    // Trigger file input click via attach button
+    const fileInput = wrapper.find<HTMLInputElement>('.photo-file-input');
+    const clickSpy = vi.spyOn(fileInput.element, 'click');
+    await wrapper.find('.attach-photo-btn').trigger('click');
+    expect(clickSpy).toHaveBeenCalled();
+
+    // Trigger file change
+    const file = new File(['image-bytes'], 'date.png', { type: 'image/png' });
+    Object.defineProperty(fileInput.element, 'files', {
+      value: [file]
+    });
+    await fileInput.trigger('change');
+
+    // Wait for async compression mock
+    await vi.waitFor(() => {
+      expect(wrapper.find('.photo-preview-card').exists()).toBe(true);
+    });
+    expect(wrapper.find('.photo-thumbnail').attributes('src')).toBe('data:image/jpeg;base64,mock-photo');
+
+    // Remove photo
+    await wrapper.find('.remove-photo-btn').trigger('click');
+    expect(wrapper.find('.photo-preview-card').exists()).toBe(false);
+    expect(wrapper.find('.attach-photo-btn').exists()).toBe(true);
   });
 
   it('cancels completion note form', async () => {

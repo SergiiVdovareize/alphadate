@@ -77,6 +77,20 @@ describe('useBoardPage', () => {
     expect(mockMarkAsStatus).toHaveBeenCalledWith('К', 'used', 'Класна кава');
   });
 
+  it('completes active letter with note and photo', () => {
+    mockActiveLetter.value = { letter: 'К', status: 'available' };
+    const vm = useBoardPage();
+
+    vm.handleCompleteLetter('Класна кава', 'data:image/jpeg;base64,photo-data');
+    expect(mockMarkAsStatus).toHaveBeenCalledWith(
+      'К',
+      'used',
+      'Класна кава',
+      true,
+      'data:image/jpeg;base64,photo-data'
+    );
+  });
+
   it('excludes active letter', () => {
     mockActiveLetter.value = { letter: 'Ь', status: 'available' };
     const vm = useBoardPage();

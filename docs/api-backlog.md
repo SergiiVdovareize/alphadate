@@ -37,3 +37,34 @@ This document tracks required backend changes, missing API endpoints, property p
   - [ ] Send email with direct link(s) to the board(s).
   - [ ] Always return `{ "success": true }` to prevent email enumeration.
   - [ ] Document endpoint in `docs/api/alphadate.md`.
+
+### 🟡 AP-002: Date completion photo support in board state
+- **Requested Date**: 2026-10-03
+- **Target Endpoints**: `PUT /alphadate/:key`, `GET /alphadate/:key`
+- **Frontend Need**: Users can attach 1 photo from their date when completing a letter. The client resizes & compresses the image into a data URL and includes `photo` in `LetterState` and `LetterHistoryItem`.
+- **Proposed Request / Response Addition**:
+  ```json
+  // In LetterState (PUT payload & GET response):
+  {
+    "letter": "К",
+    "status": "used",
+    "note": "Каяки на заході сонця",
+    "photo": "data:image/jpeg;base64,..."
+  }
+
+  // In LetterHistoryItem (GET response):
+  {
+    "letter": "К",
+    "partnerName": "Олена",
+    "status": "used",
+    "note": "Каяки на заході сонця",
+    "photo": "data:image/jpeg;base64,...",
+    "completedAt": "2026-10-03T18:00:00.000Z"
+  }
+  ```
+- **Client Mock Status**: Client compresses image to max 1200px JPEG quality 0.8 (~100-200KB), stores in localStorage, and sends via existing `updateBoard` payload.
+- **Backend Acceptance Criteria**:
+  - [ ] Persist `photo` (string / data URL) in letter objects in `letters` array on `PUT /alphadate/:key`.
+  - [ ] Return `photo` field in `letters` and `history` on `GET /alphadate/:key`.
+  - [ ] (Future enhancement) Dedicated photo upload endpoint `POST /alphadate/:key/photo` if payload sizes grow.
+

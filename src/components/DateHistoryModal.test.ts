@@ -128,4 +128,44 @@ describe('DateHistoryModal.vue', () => {
     expect(wrapper.text()).toContain('Щоденник побачень');
     expect(wrapper.text()).toContain('Андрій');
   });
+
+  it('renders photo in history list and single letter memory view when present', () => {
+    const historyWithPhoto: LetterHistoryItem[] = [
+      {
+        letter: 'Ф',
+        partnerName: 'Марія',
+        partnerId: 1,
+        status: 'used',
+        note: 'Фотосесія в парку',
+        photo: 'data:image/jpeg;base64,sample-photo-data',
+        selectedAt: '2026-09-20T10:00:00Z',
+        completedAt: '2026-09-24T10:00:00Z'
+      }
+    ];
+
+    // Single letter view
+    const singleWrapper = mount(DateHistoryModal, {
+      props: {
+        isOpen: true,
+        history: historyWithPhoto,
+        selectedLetter: 'Ф'
+      }
+    });
+
+    const singlePhoto = singleWrapper.find('.memory-photo-img');
+    expect(singlePhoto.exists()).toBe(true);
+    expect(singlePhoto.attributes('src')).toBe('data:image/jpeg;base64,sample-photo-data');
+
+    // List view
+    const listWrapper = mount(DateHistoryModal, {
+      props: {
+        isOpen: true,
+        history: historyWithPhoto
+      }
+    });
+
+    const listPhoto = listWrapper.find('.item-photo-img');
+    expect(listPhoto.exists()).toBe(true);
+    expect(listPhoto.attributes('src')).toBe('data:image/jpeg;base64,sample-photo-data');
+  });
 });

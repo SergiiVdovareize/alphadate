@@ -209,12 +209,16 @@ export function useBoardPage() {
     selectedHistoryLetter.value = null;
   };
 
-  const handleCompleteLetter = async (note: string) => {
+  const handleCompleteLetter = async (note: string, photo?: string) => {
     if (!activeLetter.value || isMarkingLetter.value || isSyncing.value) return;
     isMarkingLetter.value = true;
     markingLetterMessage.value = 'Зберігаємо побачення... 💕';
     try {
-      await markAsStatus(activeLetter.value.letter, 'used', note);
+      if (photo) {
+        await markAsStatus(activeLetter.value.letter, 'used', note, true, photo);
+      } else {
+        await markAsStatus(activeLetter.value.letter, 'used', note);
+      }
     } finally {
       isMarkingLetter.value = false;
       markingLetterMessage.value = '';

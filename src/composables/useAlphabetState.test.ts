@@ -60,6 +60,20 @@ describe('useAlphabetState', () => {
     expect(state.history.value[0].note).toBe('Сходили в боулінг');
   });
 
+  it('marks letter status and attaches completion note with photo', () => {
+    const state = useAlphabetState('test-board');
+    const letterB = state.letters.value[1];
+
+    state.selectLetter(letterB);
+    state.markAsStatus('Б', 'used', 'Сходили в боулінг', true, 'data:image/jpeg;base64,sample-photo');
+
+    const updatedB = state.letters.value.find((l) => l.letter === 'Б');
+    expect(updatedB?.status).toBe('used');
+    expect(updatedB?.note).toBe('Сходили в боулінг');
+    expect(updatedB?.photo).toBe('data:image/jpeg;base64,sample-photo');
+    expect(state.history.value[0].photo).toBe('data:image/jpeg;base64,sample-photo');
+  });
+
   it('pickRandom selects an available letter or returns null if all used', () => {
     const state = useAlphabetState('test-board');
     const random = state.pickRandom();

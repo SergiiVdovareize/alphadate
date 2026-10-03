@@ -1,6 +1,7 @@
 import { ref, onUnmounted } from 'vue';
 import { useCountdown } from './useCountdown';
 import { ACTION_CONFIRMATION_TIMEOUT_MS } from '../constants';
+import { compressImageFile } from '../utils/image';
 import type { LetterState } from './useAlphabetState';
 
 export interface ActiveLetterPanelProps {
@@ -10,7 +11,7 @@ export interface ActiveLetterPanelProps {
 }
 
 export type ActiveLetterPanelEmit = {
-  (e: 'complete', note: string): void;
+  (e: 'complete', note: string, photo?: string): void;
   (e: 'exclude'): void;
   (e: 'cancel'): void;
 };
@@ -20,6 +21,10 @@ export function useActiveLetterPanel(props: ActiveLetterPanelProps, emit: Active
 
   const isCompleting = ref(false);
   const completionNote = ref('');
+  const attachedPhoto = ref<string | null>(null);
+  const isProcessingPhoto = ref(false);
+  const photoError = ref<string | null>(null);
+
   const confirmingAction = ref<'exclude' | 'cancel' | null>(null);
   let confirmTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -38,18 +43,44 @@ export function useActiveLetterPanel(props: ActiveLetterPanelProps, emit: Active
     clearConfirmTimeout();
     confirmingAction.value = null;
     completionNote.value = props.letter?.note || '';
+    attachedPhoto.value = props.letter?.photo || null;
+    photoError.value = null;
     isCompleting.value = true;
   };
 
   const cancelCompleting = () => {
     isCompleting.value = false;
     completionNote.value = '';
+    attachedPhoto.value = null;
+    photoError.value = null;
+  };
+
+  const handlePhotoFile = async (file: File) => {
+    if (!file) return;
+    isProcessingPhoto.value = true;
+    photoError.value = null;
+    try {
+      const compressed = await compressImageFile(file);
+      attachedPhoto.value = compressed;
+    } catch (err: unknown) {
+      photoError.value =
+        err instanceof Error ? err.message : 'Не вдалося обробити фото. Спробуйте інше.';
+    } finally {
+      isProcessingPhoto.value = false;
+    }
+  };
+
+  const removePhoto = () => {
+    attachedPhoto.value = null;
+    photoError.value = null;
   };
 
   const submitComplete = () => {
-    emit('complete', completionNote.value.trim());
+    emit('complete', completionNote.value.trim(), attachedPhoto.value || undefined);
     isCompleting.value = false;
     completionNote.value = '';
+    attachedPhoto.value = null;
+    photoError.value = null;
     clearConfirmTimeout();
     confirmingAction.value = null;
   };
@@ -64,6 +95,8 @@ export function useActiveLetterPanel(props: ActiveLetterPanelProps, emit: Active
         emit('cancel');
         isCompleting.value = false;
         completionNote.value = '';
+        attachedPhoto.value = null;
+        photoError.value = null;
       }
     } else {
       clearConfirmTimeout();
@@ -83,9 +116,14 @@ export function useActiveLetterPanel(props: ActiveLetterPanelProps, emit: Active
     countdownInfo,
     isCompleting,
     completionNote,
+    attachedPhoto,
+    isProcessingPhoto,
+    photoError,
     confirmingAction,
     startCompleting,
     cancelCompleting,
+    handlePhotoFile,
+    removePhoto,
     submitComplete,
     handleConfirmableAction,
     cancelConfirmation

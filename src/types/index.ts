@@ -4,6 +4,7 @@ export interface LetterState {
   letter: string;
   status: LetterStatus;
   note?: string;
+  photo?: string;
 }
 
 export interface Partner {
@@ -38,6 +39,7 @@ export interface LetterHistoryItem {
   playerId?: number | null;
   status: 'used';
   note?: string;
+  photo?: string;
   selectedAt?: string | null;
   completedAt: string;
 }

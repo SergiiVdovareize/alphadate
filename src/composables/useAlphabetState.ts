@@ -397,13 +397,17 @@ export function useAlphabetState(boardId: string) {
     letterChar: string,
     status: LetterStatus,
     note?: string,
-    clearActive: boolean = true
+    clearActive: boolean = true,
+    photo?: string
   ) => {
     const item = letters.value.find((l) => l.letter === letterChar);
     if (item) {
       item.status = status;
       if (note !== undefined) {
         item.note = note.trim() || undefined;
+      }
+      if (photo !== undefined) {
+        item.photo = photo || undefined;
       }
       if (status === 'used') {
         const currentPartner = metadata.value.partners.find(
@@ -416,6 +420,7 @@ export function useAlphabetState(boardId: string) {
           playerId: (currentPartner as { playerId?: number | null })?.playerId ?? null,
           status: 'used',
           note: note?.trim() || undefined,
+          photo: photo || item.photo || undefined,
           selectedAt: metadata.value.currentLetterSelectedAt,
           completedAt: new Date().toISOString()
         });
