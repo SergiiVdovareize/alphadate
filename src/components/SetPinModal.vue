@@ -99,16 +99,19 @@ onUnmounted(() => {
           вміст дошки.
         </p>
 
-        <form @submit.prevent="submitPin">
+        <form autocomplete="off" @submit.prevent="submitPin">
           <div class="pin-field-wrap">
             <input
               ref="inputRef"
               :value="pinInput"
-              type="password"
+              type="text"
               inputmode="numeric"
               pattern="[0-9]*"
               :maxlength="PIN_LENGTH"
-              autocomplete="one-time-code"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
               class="pin-hidden-input"
               aria-label="Введіть 4-значний PIN-код"
               :disabled="isLoading"
@@ -231,6 +234,8 @@ onUnmounted(() => {
 }
 
 .pin-hidden-input {
+  -webkit-text-security: disc;
+  text-security: disc;
   position: absolute;
   top: 0;
   left: 0;

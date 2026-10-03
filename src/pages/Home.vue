@@ -141,12 +141,15 @@ const goToRecover = () => {
           <input
             id="board-pin"
             v-model="pin"
-            type="password"
+            type="text"
             inputmode="numeric"
             pattern="[0-9]*"
             maxlength="4"
             placeholder="4 цифри (наприклад: 1234)"
-            autocomplete="new-password"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
           />
         </div>
 
@@ -258,6 +261,11 @@ input:focus {
   outline: none;
   border-color: var(--color-accent, #d97732);
   box-shadow: 0 0 0 3px rgba(217, 119, 50, 0.15);
+}
+
+#board-pin {
+  -webkit-text-security: disc;
+  text-security: disc;
 }
 
 .start-btn {

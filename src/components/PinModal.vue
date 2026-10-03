@@ -83,18 +83,21 @@ onUnmounted(() => {
         <h2 id="pin-modal-title">Доступ захищено</h2>
         <p>Ця дошка захищена PIN-кодом. Введіть 4-значний код для доступу.</p>
 
-        <form @submit.prevent="submitPin">
+        <form autocomplete="off" @submit.prevent="submitPin">
           <div class="pin-field-wrap">
             <input
               ref="inputRef"
               :value="pinInput"
-              type="password"
+              type="text"
               inputmode="numeric"
               pattern="[0-9]*"
               :maxlength="PIN_LENGTH"
               class="pin-input"
               placeholder="••••"
-              autocomplete="current-password"
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
               :disabled="isLoading"
               aria-label="Введіть 4-значний PIN-код"
               @input="handleInput"
@@ -201,6 +204,8 @@ onUnmounted(() => {
 }
 
 .pin-input {
+  -webkit-text-security: disc;
+  text-security: disc;
   width: 200px;
   text-align: center;
   font-size: 2.3rem;
