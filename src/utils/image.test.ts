@@ -66,7 +66,10 @@ describe('image utils', () => {
 
     it('compresses image successfully using canvas', async () => {
       const mockDrawImage = vi.fn();
-      const mockToDataURL = vi.fn().mockReturnValue('data:image/jpeg;base64,mockCompressedData');
+      const mockToDataURL = vi.fn().mockImplementation((type: string) => {
+        if (type === 'image/webp') return 'data:image/webp;base64,mockWebpData';
+        return 'data:image/jpeg;base64,mockJpegData';
+      });
 
       // Mock canvas getContext and toDataURL
       const origCreateElement = document.createElement.bind(document);
@@ -112,10 +115,60 @@ describe('image utils', () => {
         maxHeight: DEFAULT_MAX_HEIGHT
       });
 
-      expect(result).toBe('data:image/jpeg;base64,mockCompressedData');
+      expect(result).toBe('data:image/webp;base64,mockWebpData');
       expect(mockDrawImage).toHaveBeenCalled();
-      expect(mockToDataURL).toHaveBeenCalledWith('image/jpeg', 0.8);
+      expect(mockToDataURL).toHaveBeenCalledWith('image/webp', 0.8);
       expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+
+      globalThis.Image = origImage;
+    });
+
+    it('falls back to JPEG when WebP export is not supported by canvas', async () => {
+      const mockDrawImage = vi.fn();
+      // Browser returns PNG instead of WebP when WebP is unsupported
+      const mockToDataURL = vi.fn().mockImplementation((type: string) => {
+        if (type === 'image/webp') return 'data:image/png;base64,unsupportedFallback';
+        return 'data:image/jpeg;base64,mockJpegFallback';
+      });
+
+      const origCreateElement = document.createElement.bind(document);
+      vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+        if (tagName === 'canvas') {
+          return {
+            width: 0,
+            height: 0,
+            getContext: vi.fn().mockReturnValue({
+              drawImage: mockDrawImage
+            }),
+            toDataURL: mockToDataURL
+          } as unknown as HTMLCanvasElement;
+        }
+        return origCreateElement(tagName);
+      });
+
+      const origImage = globalThis.Image;
+      class MockImage {
+        width = 800;
+        height = 600;
+        onload: (() => void) | null = null;
+        private _src = '';
+        set src(val: string) {
+          this._src = val;
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+        get src() {
+          return this._src;
+        }
+      }
+      globalThis.Image = MockImage as unknown as typeof Image;
+
+      const file = new File(['fake-image-bytes'], 'date-photo.jpg', { type: 'image/jpeg' });
+      const result = await compressImageFile(file);
+
+      expect(result).toBe('data:image/jpeg;base64,mockJpegFallback');
+      expect(mockToDataURL).toHaveBeenCalledWith('image/jpeg', 0.8);
 
       globalThis.Image = origImage;
     });

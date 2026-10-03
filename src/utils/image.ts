@@ -9,7 +9,7 @@ export interface CompressImageOptions {
 export const DEFAULT_MAX_WIDTH = 1200;
 export const DEFAULT_MAX_HEIGHT = 1200;
 export const DEFAULT_QUALITY = 0.8;
-export const DEFAULT_MIME_TYPE = 'image/jpeg';
+export const DEFAULT_MIME_TYPE = 'image/webp';
 export const DEFAULT_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
 
 /**
@@ -36,7 +36,7 @@ export function calculateAspectRatioFit(
 
 /**
  * Client-side image resize and compression.
- * Downscales images exceeding maxWidth / maxHeight and encodes them as a compressed data URL.
+ * Downscales images exceeding maxWidth / maxHeight and encodes them as a compressed data URL (WebP with JPEG fallback).
  */
 export async function compressImageFile(
   file: File,
@@ -82,7 +82,11 @@ export async function compressImageFile(
         }
 
         ctx.drawImage(img, 0, 0, width, height);
-        const dataUrl = canvas.toDataURL(mimeType, quality);
+        let dataUrl = canvas.toDataURL(mimeType, quality);
+        // Fallback to JPEG if the browser does not support WebP canvas export
+        if (mimeType === 'image/webp' && !dataUrl.startsWith('data:image/webp')) {
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
         resolve(dataUrl);
       } catch (err) {
         reject(err instanceof Error ? err : new Error('Не вдалося обробити фото.'));
