@@ -192,9 +192,9 @@ const handleRecover = async () => {
         </div>
 
         <!-- Step 3: Enter email to resend link -->
-        <section class="step-card highlight-card" aria-labelledby="step-3-heading">
+        <section class="step-card" aria-labelledby="step-3-heading">
           <div class="step-header">
-            <span class="step-number highlight-number" aria-hidden="true">3</span>
+            <span class="step-number" aria-hidden="true">3</span>
             <h2 id="step-3-heading" class="step-title">Надіслати посилання на Email</h2>
           </div>
           <p class="step-desc step-desc-form">
@@ -331,33 +331,34 @@ h1 {
 .steps-list {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 0.65rem;
 }
 
 .step-card {
-  background: transparent;
-  border: none;
-  padding: 0.25rem 0;
+  background: #fdfcfb;
+  border: 1.5px solid #ece5de;
+  border-radius: 16px;
+  padding: 1.25rem 1.25rem;
   text-align: left;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.step-card:hover {
+  border-color: #dfd5ca;
 }
 
 .or-divider {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  margin: 1.5rem 0;
+  justify-content: center;
+  padding: 0.2rem 0;
   color: var(--color-ink-muted, #718096);
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   font-weight: 700;
   user-select: none;
-}
-
-.or-divider::before,
-.or-divider::after {
-  content: '';
-  flex: 1;
-  height: 1.5px;
-  background: var(--color-border-subtle, #dfd5ca);
+  text-align: center;
 }
 
 .step-header {
@@ -371,7 +372,7 @@ h1 {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: var(--color-surface-muted, #f3eae3);
+  background: #e2e8f0;
   color: var(--color-ink, #2d3748);
   font-weight: 800;
   font-size: 0.85rem;
@@ -379,13 +380,6 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid var(--color-border-subtle, #dfd5ca);
-}
-
-.highlight-number {
-  background: var(--color-accent, #d97732);
-  color: #ffffff;
-  border-color: var(--color-accent, #d97732);
 }
 
 .step-title {
@@ -396,8 +390,8 @@ h1 {
 }
 
 .step-desc {
-  font-size: 0.92rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.5;
   color: #4a5568;
   margin: 0;
 }
