@@ -27,9 +27,13 @@ describe('Recover.vue', () => {
     expect(wrapper.find('h1').text()).toBe('Відновлення дошки');
     expect(wrapper.find('.back-link-btn').text()).toContain('На головну');
 
-    // 3 steps
+    // 3 steps and 2 or-dividers
     const stepCards = wrapper.findAll('.step-card');
     expect(stepCards).toHaveLength(3);
+
+    const dividers = wrapper.findAll('.or-divider');
+    expect(dividers).toHaveLength(2);
+    dividers.forEach((d) => expect(d.text()).toBe('або'));
 
     // Step 1: No action button
     const step1 = wrapper.find('.step-card');
@@ -84,6 +88,24 @@ describe('Recover.vue', () => {
     expect(wrapper.find('.error-banner').text()).toBe('Будь ласка, введіть електронну пошту.');
   });
 
+  it('validates invalid email format with custom error message and style', async () => {
+    const wrapper = mount(Recover);
+
+    const emailInput = wrapper.find('#recovery-email-field');
+    await emailInput.setValue('invalid-email');
+    await wrapper.find('form').trigger('submit.prevent');
+
+    expect(api.recoverBoard).not.toHaveBeenCalled();
+    expect(wrapper.find('.error-banner').text()).toBe(
+      'Будь ласка, введіть коректну електронну пошту.'
+    );
+    expect(emailInput.classes()).toContain('input-error');
+
+    // Clears error on input
+    await emailInput.setValue('a');
+    expect(wrapper.find('.error-banner').exists()).toBe(false);
+  });
+
   it('submits recovery request and shows success box', async () => {
     vi.mocked(api.recoverBoard).mockResolvedValueOnce({
       success: true,
@@ -102,10 +124,18 @@ describe('Recover.vue', () => {
     expect(wrapper.find('.success-box').exists()).toBe(true);
     expect(wrapper.find('.success-title').text()).toBe('Лист надіслано!');
     expect(wrapper.find('.success-desc').text()).toContain('Якщо дошка була зареєстрована');
+    expect(wrapper.find('.success-desc').text()).toContain(
+      'при реєстрації могла вводитись пошта будь-якого партнера'
+    );
 
     // Return to home from success box
     await wrapper.find('.success-box .outline-btn').trigger('click');
     expect(mockPush).toHaveBeenCalledWith('/');
+  });
+
+  it('displays partner email reminder in recovery steps', () => {
+    const wrapper = mount(Recover);
+    expect(wrapper.text()).toContain('при реєстрації могла вводитись пошта будь-якого партнера');
   });
 
   it('handles unsuccessful recovery response from api', async () => {

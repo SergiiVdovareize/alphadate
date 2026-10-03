@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, onUnmounted } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import AppLogo from '../components/AppLogo.vue';
 import { api } from '../services/api';
 import { getErrorMessage } from '../utils/errors';
+import { EMAIL_REGEX } from '../constants';
 
 const router = useRouter();
 
@@ -11,6 +12,10 @@ const email = ref('');
 const isLoading = ref(false);
 const isSuccess = ref(false);
 const errorMessage = ref<string | null>(null);
+
+const isEmailError = computed(
+  () => !!errorMessage.value && errorMessage.value.includes('електронну пошту')
+);
 
 const isCopied = ref(false);
 let copyTimeout: ReturnType<typeof setTimeout> | undefined;
@@ -48,6 +53,10 @@ const handleRecover = async () => {
   const trimmed = email.value.trim();
   if (!trimmed) {
     errorMessage.value = 'Будь ласка, введіть електронну пошту.';
+    return;
+  }
+  if (!EMAIL_REGEX.test(trimmed)) {
+    errorMessage.value = 'Будь ласка, введіть коректну електронну пошту.';
     return;
   }
 
@@ -122,6 +131,10 @@ const handleRecover = async () => {
           </p>
         </section>
 
+        <div class="or-divider" role="separator" aria-label="або">
+          <span>або</span>
+        </div>
+
         <!-- Step 2: Search in mail (Gmail direct search link) -->
         <section class="step-card" aria-labelledby="step-2-heading">
           <div class="step-header">
@@ -129,8 +142,9 @@ const handleRecover = async () => {
             <h2 id="step-2-heading" class="step-title">Пошукайте лист від AlphaDate у пошті</h2>
           </div>
           <p class="step-desc">
-            Одразу під час створення дошки ми надсилали вітальний лист із прямим посиланням.
-            Спробуйте знайти його за словом
+            Одразу під час створення дошки ми надсилали вітальний лист із прямим посиланням
+            (при реєстрації могла вводитись пошта будь-якого партнера). Спробуйте знайти його за
+            словом
             <button
               type="button"
               class="copy-keyword-btn"
@@ -173,28 +187,34 @@ const handleRecover = async () => {
           </p>
         </section>
 
+        <div class="or-divider" role="separator" aria-label="або">
+          <span>або</span>
+        </div>
+
         <!-- Step 3: Enter email to resend link -->
         <section class="step-card highlight-card" aria-labelledby="step-3-heading">
           <div class="step-header">
             <span class="step-number highlight-number" aria-hidden="true">3</span>
             <h2 id="step-3-heading" class="step-title">Надіслати посилання на Email</h2>
           </div>
-          <p class="step-desc">
+          <p class="step-desc step-desc-form">
             Якщо попередні способи не спрацювали, введіть електронну пошту, зазначену під час
-            створення дошки — ми повторно надішлемо вам посилання.
+            створення дошки (памʼятайте, що при реєстрації могла вводитись пошта будь-якого
+            партнера) — ми повторно надішлемо вам посилання.
           </p>
 
-          <form v-if="!isSuccess" class="recovery-form" @submit.prevent="handleRecover">
+          <form v-if="!isSuccess" class="recovery-form" novalidate @submit.prevent="handleRecover">
             <div class="input-group">
               <label for="recovery-email-field">Ваша електронна пошта</label>
               <input
                 id="recovery-email-field"
                 v-model="email"
                 type="email"
-                required
                 placeholder="Наприклад: couple@example.com"
                 :disabled="isLoading"
                 autocomplete="email"
+                :class="{ 'input-error': isEmailError }"
+                @input="errorMessage = null"
               />
             </div>
 
@@ -213,6 +233,8 @@ const handleRecover = async () => {
             <p class="success-desc">
               Якщо дошка була зареєстрована на цю адресу, ми надіслали лист із посиланням на неї.
               Будь ласка, перевірте поштову скриньку (і папку «Спам»).
+              Памʼятайте, що при реєстрації могла вводитись пошта будь-якого партнера — якщо листа немає,
+              спробуйте також адресу іншого партнера.
             </p>
             <button type="button" class="action-btn outline-btn" @click="router.push('/')">
               Повернутися на головну
@@ -309,27 +331,33 @@ h1 {
 .steps-list {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0;
 }
 
 .step-card {
-  background: #fdfcfb;
-  border: 1.5px solid #ece5de;
-  border-radius: 16px;
-  padding: 1.25rem 1.25rem;
+  background: transparent;
+  border: none;
+  padding: 0.25rem 0;
   text-align: left;
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
 }
 
-.step-card:hover {
-  border-color: #dfd5ca;
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 1.5rem 0;
+  color: var(--color-ink-muted, #718096);
+  font-size: 0.85rem;
+  font-weight: 700;
+  user-select: none;
 }
 
-.highlight-card {
-  border-color: rgba(217, 119, 50, 0.35);
-  background: #fffdfb;
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  height: 1.5px;
+  background: var(--color-border-subtle, #dfd5ca);
 }
 
 .step-header {
@@ -343,7 +371,7 @@ h1 {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: var(--color-surface-muted, #f3eae3);
   color: var(--color-ink, #2d3748);
   font-weight: 800;
   font-size: 0.85rem;
@@ -351,11 +379,13 @@ h1 {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid var(--color-border-subtle, #dfd5ca);
 }
 
 .highlight-number {
   background: var(--color-accent, #d97732);
   color: #ffffff;
+  border-color: var(--color-accent, #d97732);
 }
 
 .step-title {
@@ -366,10 +396,14 @@ h1 {
 }
 
 .step-desc {
-  font-size: 0.88rem;
-  line-height: 1.5;
+  font-size: 0.92rem;
+  line-height: 1.55;
   color: #4a5568;
-  margin: 0 0 0.85rem 0;
+  margin: 0;
+}
+
+.step-desc-form {
+  margin-bottom: 0.85rem;
 }
 
 .copy-keyword-btn {
@@ -510,6 +544,16 @@ h1 {
   box-shadow: 0 0 0 3px rgba(217, 119, 50, 0.15);
 }
 
+.input-group input.input-error {
+  border-color: var(--color-error, #c53030);
+  background-color: var(--color-error-bg, #fff5f5);
+}
+
+.input-group input.input-error:focus {
+  border-color: var(--color-error, #c53030);
+  box-shadow: 0 0 0 3px rgba(197, 48, 48, 0.2);
+}
+
 .submit-btn {
   width: 100%;
   padding: 0.85rem 1.25rem;
@@ -552,7 +596,7 @@ h1 {
 
 .error-banner {
   background-color: var(--color-error-bg, #fff5f5);
-  border: 1.5px solid var(--color-error-border, #feb2b2);
+  border: none;
   border-radius: var(--radius-error, 10px);
   color: var(--color-error, #c53030);
   padding: 0.65rem 0.9rem;

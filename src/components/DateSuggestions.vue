@@ -195,7 +195,7 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
   font-weight: 600;
   color: var(--color-error, #c53030);
   background-color: var(--color-error-bg, #fff5f5);
-  border: 1.5px solid var(--color-error-border, #feb2b2);
+  border: none;
   border-radius: var(--radius-error, 10px);
   padding: 0.65rem 0.9rem;
   width: 100%;

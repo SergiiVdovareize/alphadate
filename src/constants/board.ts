@@ -40,6 +40,7 @@ export const UKRAINIAN_ALPHABET = [
 
 export const PIN_LENGTH = 4;
 export const PIN_REGEX = /^\d{4}$/;
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const DEFAULT_COUNTDOWN_DAYS = 30;
 export const URGENT_DAYS_THRESHOLD = 3;

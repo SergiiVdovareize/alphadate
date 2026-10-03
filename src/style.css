@@ -36,7 +36,7 @@
   /* Error / Alert System Tokens */
   --color-error: #c53030;
   --color-error-bg: #fff5f5;
-  --color-error-border: #feb2b2;
+  --color-error-border: transparent;
   --radius-error: 10px;
 }
 

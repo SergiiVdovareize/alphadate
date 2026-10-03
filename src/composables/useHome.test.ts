@@ -45,6 +45,20 @@ describe('useHome', () => {
     expect(api.createBoard).not.toHaveBeenCalled();
   });
 
+  it('validates email format with custom error message', async () => {
+    const vm = useHome();
+    vm.partners.value = ['Оля', 'Максим'];
+    vm.email.value = 'invalid-email';
+
+    await vm.createBoard();
+    expect(vm.errorMessage.value).toBe('Будь ласка, введіть коректну електронну пошту.');
+    expect(api.createBoard).not.toHaveBeenCalled();
+
+    vm.email.value = 'no-domain@test';
+    await vm.createBoard();
+    expect(vm.errorMessage.value).toBe('Будь ласка, введіть коректну електронну пошту.');
+  });
+
   it('validates 4-digit format for PIN if provided', async () => {
     const vm = useHome();
     vm.partners.value = ['Оля', 'Максим'];

@@ -2,7 +2,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { initBoardLocalStorage, type SavedBoard } from './useAlphabetState';
 import { api, setStoredPin } from '../services/api';
-import { STORAGE_KEYS, PIN_REGEX } from '../constants';
+import { STORAGE_KEYS, PIN_REGEX, EMAIL_REGEX } from '../constants';
 import { getErrorMessage } from '../utils/errors';
 
 export function useHome() {
@@ -41,6 +41,10 @@ export function useHome() {
     const trimmedEmail = email.value.trim();
     if (!trimmedEmail) {
       errorMessage.value = 'Будь ласка, введіть електронну пошту.';
+      return;
+    }
+    if (!EMAIL_REGEX.test(trimmedEmail)) {
+      errorMessage.value = 'Будь ласка, введіть коректну електронну пошту.';
       return;
     }
 

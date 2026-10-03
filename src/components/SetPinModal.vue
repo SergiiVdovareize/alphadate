@@ -282,7 +282,7 @@ onUnmounted(() => {
 .pin-error {
   padding: 0.65rem 0.9rem;
   background-color: var(--color-error-bg, #fff5f5);
-  border: 1.5px solid var(--color-error-border, #feb2b2);
+  border: none;
   border-radius: var(--radius-error, 10px);
   color: var(--color-error, #c53030);
   font-size: 0.88rem;

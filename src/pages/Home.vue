@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
@@ -12,6 +12,16 @@ const isBoardsListOpen = ref(false);
 const goToRecover = () => {
   router.push('/recover');
 };
+
+const isEmailError = computed(
+  () => !!errorMessage.value && errorMessage.value.includes('електронну пошту')
+);
+const isPartnerError = computed(
+  () => !!errorMessage.value && errorMessage.value.includes('ім’я')
+);
+const isPinError = computed(
+  () => !!errorMessage.value && errorMessage.value.includes('PIN')
+);
 </script>
 
 <template>
@@ -108,7 +118,7 @@ const goToRecover = () => {
         </div>
       </div>
 
-      <form class="setup-form" @submit.prevent="createBoard">
+      <form class="setup-form" novalidate @submit.prevent="createBoard">
         <div v-for="(_, index) in partners" :key="index" class="input-group">
           <label :for="`partner-${index}`">
             {{ index === 0 ? "Ваше ім'я" : "Ім'я партнера" }}
@@ -117,8 +127,9 @@ const goToRecover = () => {
             :id="`partner-${index}`"
             v-model="partners[index]"
             type="text"
-            required
             :placeholder="index === 0 ? 'Наприклад: Олексій' : 'Наприклад: Марія'"
+            :class="{ 'input-error': isPartnerError }"
+            @input="errorMessage = null"
           />
         </div>
 
@@ -128,8 +139,9 @@ const goToRecover = () => {
             id="board-email"
             v-model="email"
             type="email"
-            required
             placeholder="Наприклад: email@example.com"
+            :class="{ 'input-error': isEmailError }"
+            @input="errorMessage = null"
           />
         </div>
 
@@ -143,13 +155,14 @@ const goToRecover = () => {
             v-model="pin"
             type="text"
             inputmode="numeric"
-            pattern="[0-9]*"
             maxlength="4"
             placeholder="4 цифри (наприклад: 1234)"
             autocomplete="off"
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
+            :class="{ 'input-error': isPinError }"
+            @input="errorMessage = null"
           />
         </div>
 
@@ -263,6 +276,16 @@ input:focus {
   box-shadow: 0 0 0 3px rgba(217, 119, 50, 0.15);
 }
 
+input.input-error {
+  border-color: var(--color-error, #c53030);
+  background-color: var(--color-error-bg, #fff5f5);
+}
+
+input.input-error:focus {
+  border-color: var(--color-error, #c53030);
+  box-shadow: 0 0 0 3px rgba(197, 48, 48, 0.2);
+}
+
 #board-pin {
   -webkit-text-security: disc;
   text-security: disc;
@@ -311,7 +334,7 @@ input:focus {
 .form-error-banner {
   padding: 0.65rem 0.9rem;
   background-color: var(--color-error-bg, #fff5f5);
-  border: 1.5px solid var(--color-error-border, #feb2b2);
+  border: none;
   border-radius: var(--radius-error, 10px);
   color: var(--color-error, #c53030);
   font-size: 0.88rem;

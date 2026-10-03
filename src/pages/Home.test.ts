@@ -138,6 +138,23 @@ describe('Home.vue', () => {
     expect(errorBanner.text()).toBe('Помилка сервера');
   });
 
+  it('applies input-error class when email field has error', () => {
+    vi.mocked(useHome).mockReturnValue({
+      partners: ref(['', '']),
+      email: ref(''),
+      pin: ref(''),
+      isLoading: ref(false),
+      errorMessage: ref('Будь ласка, введіть коректну електронну пошту.'),
+      savedBoards: ref([]),
+      openBoard: vi.fn(),
+      createBoard: vi.fn(),
+      removeSavedBoard: vi.fn()
+    });
+
+    const wrapper = mount(Home);
+    expect(wrapper.find('#board-email').classes()).toContain('input-error');
+  });
+
   it('renders recovery text button and navigates to /recover on click', async () => {
     mockPush.mockClear();
     vi.mocked(useHome).mockReturnValue({
