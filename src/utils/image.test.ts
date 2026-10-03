@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   calculateAspectRatioFit,
-  compressImageFile,
-  DEFAULT_MAX_WIDTH,
-  DEFAULT_MAX_HEIGHT
+  compressImageFile
 } from './image';
 
 describe('image utils', () => {
@@ -111,8 +109,8 @@ describe('image utils', () => {
 
       const file = new File(['fake-image-bytes'], 'date-photo.jpg', { type: 'image/jpeg' });
       const result = await compressImageFile(file, {
-        maxWidth: DEFAULT_MAX_WIDTH,
-        maxHeight: DEFAULT_MAX_HEIGHT
+        maxWidth: 1200,
+        maxHeight: 1200
       });
 
       expect(result).toBe('data:image/webp;base64,mockWebpData');

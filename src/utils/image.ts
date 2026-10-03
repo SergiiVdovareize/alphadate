@@ -6,11 +6,11 @@ export interface CompressImageOptions {
   maxSizeBytes?: number;
 }
 
-export const DEFAULT_MAX_WIDTH = 1200;
-export const DEFAULT_MAX_HEIGHT = 1200;
-export const DEFAULT_QUALITY = 0.8;
-export const DEFAULT_MIME_TYPE = 'image/webp';
-export const DEFAULT_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+const DEFAULT_MAX_WIDTH = 1200;
+const DEFAULT_MAX_HEIGHT = 1200;
+const DEFAULT_QUALITY = 0.8;
+const DEFAULT_MIME_TYPE = 'image/webp';
+const DEFAULT_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
 
 /**
  * Calculates target dimensions preserving aspect ratio within bounding limits.
