@@ -140,14 +140,17 @@ describe('useBoardPage', () => {
     vm.openHistory('Л');
     expect(vm.isHistoryModalOpen.value).toBe(true);
     expect(vm.selectedHistoryLetter.value).toBe('Л');
+    expect(mockPush).not.toHaveBeenCalled();
 
     vm.closeHistory();
     expect(vm.isHistoryModalOpen.value).toBe(false);
     expect(vm.selectedHistoryLetter.value).toBeNull();
 
     vm.openHistory();
-    expect(vm.isHistoryModalOpen.value).toBe(true);
-    expect(vm.selectedHistoryLetter.value).toBeNull();
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'memories',
+      params: { id: 'test-board-42' }
+    });
   });
 
   it('runs roulette animation across available letters when handlePickRandom is called', () => {

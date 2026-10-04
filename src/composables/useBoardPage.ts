@@ -200,8 +200,15 @@ export function useBoardPage() {
   };
 
   const openHistory = (letterChar?: string) => {
-    selectedHistoryLetter.value = letterChar || null;
-    isHistoryModalOpen.value = true;
+    if (letterChar) {
+      selectedHistoryLetter.value = letterChar;
+      isHistoryModalOpen.value = true;
+    } else {
+      router.push({
+        name: 'memories',
+        params: { id: boardId }
+      });
+    }
   };
 
   const closeHistory = () => {

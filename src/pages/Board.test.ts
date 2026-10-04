@@ -142,7 +142,6 @@ describe('Board.vue', () => {
     // All other board elements must be hidden
     expect(wrapper.findComponent({ name: 'AlphabetGrid' }).exists()).toBe(false);
     expect(wrapper.findComponent({ name: 'ActiveLetterPanel' }).exists()).toBe(false);
-    expect(wrapper.findComponent({ name: 'DateHistoryModal' }).exists()).toBe(false);
     expect(wrapper.findComponent({ name: 'DeleteConfirmModal' }).exists()).toBe(false);
     expect(wrapper.find('.turn-container').exists()).toBe(false);
     expect(wrapper.find('.history-trigger-section').exists()).toBe(false);
@@ -234,5 +233,31 @@ describe('Board.vue', () => {
     expect(grid.props('disabled')).toBe(true);
     const panel = wrapper.findComponent({ name: 'ActiveLetterPanel' });
     expect(panel.props('disabled')).toBe(true);
+  });
+
+  it('renders DateHistoryModal and handles close and view-all events', async () => {
+    const mockCloseHistory = vi.fn();
+    const mockOpenHistory = vi.fn();
+    vi.mocked(useBoardPage).mockReturnValue(
+      createMockBoardPage({
+        isHistoryModalOpen: ref(true),
+        selectedHistoryLetter: ref('А'),
+        closeHistory: mockCloseHistory,
+        openHistory: mockOpenHistory
+      })
+    );
+
+    const wrapper = mount(Board);
+    const historyModal = wrapper.findComponent({ name: 'DateHistoryModal' });
+    expect(historyModal.exists()).toBe(true);
+    expect(historyModal.props('isOpen')).toBe(true);
+    expect(historyModal.props('selectedLetter')).toBe('А');
+
+    await historyModal.vm.$emit('close');
+    expect(mockCloseHistory).toHaveBeenCalled();
+
+    await historyModal.vm.$emit('view-all');
+    expect(mockCloseHistory).toHaveBeenCalled();
+    expect(mockOpenHistory).toHaveBeenCalled();
   });
 });

@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../pages/Recover.vue')
     },
     {
+      path: '/:id/memories',
+      name: 'memories',
+      component: () => import('../pages/Memories.vue')
+    },
+    {
       path: '/:id',
       name: 'board',
       component: () => import('../pages/Board.vue')

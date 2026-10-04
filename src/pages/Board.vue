@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useBoardPage } from '../composables/useBoardPage';
 import AlphabetGrid from '../components/AlphabetGrid.vue';
-import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import DateHistoryModal from '../components/DateHistoryModal.vue';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.vue';
 import AppLogo from '../components/AppLogo.vue';
 import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
 import PinModal from '../components/PinModal.vue';
@@ -18,10 +18,10 @@ const {
   fetchError,
   isDeleteModalOpen,
   isHistoryModalOpen,
+  selectedHistoryLetter,
   isSetPinModalOpen,
   setPinError,
   isPinPromptVisible,
-  selectedHistoryLetter,
   openHistory,
   closeHistory,
   pickRandom,
@@ -49,6 +49,11 @@ const {
   handleDeleteConfirm,
   goHome
 } = useBoardPage();
+
+const goToMemories = () => {
+  closeHistory();
+  openHistory();
+};
 </script>
 
 <template>
@@ -183,14 +188,15 @@ const {
         </button>
       </div>
 
-      <!-- Date History Modal -->
+
+      <!-- Date History Modal for single letter view -->
       <DateHistoryModal
         :is-open="isHistoryModalOpen"
         :history="history"
         :letters="letters"
         :selected-letter="selectedHistoryLetter"
         @close="closeHistory"
-        @view-all="openHistory()"
+        @view-all="goToMemories"
       />
 
       <!-- Board Deletion Modal -->

@@ -27,7 +27,6 @@ watch(
 const currentSelectedLetter = internalLetter;
 
 const handleViewAll = () => {
-  internalLetter.value = null;
   emit('view-all');
 };
 
@@ -60,7 +59,6 @@ const letterHistoryItems = computed<LetterHistoryItem[]>(() => {
   const found = displayHistory.value.filter((h) => h.letter === currentSelectedLetter.value);
   if (found.length > 0) return found;
 
-  // Fallback to letter object from letters array if history not yet synced
   const fallbackLetter = props.letters?.find((l) => l.letter === currentSelectedLetter.value);
   if (fallbackLetter && (fallbackLetter.status === 'used' || fallbackLetter.status === 'excluded')) {
     return [
@@ -85,10 +83,28 @@ const getPartnerEmoji = (playerId?: number | null): string => {
   return Math.abs(playerId) % 2 === 0 ? '👩' : '👨';
 };
 
+// Fullscreen photo state
+const expandedPhoto = ref<{ src: string; alt: string } | null>(null);
+
+const openPhoto = (photo: string, letter: string) => {
+  expandedPhoto.value = {
+    src: photo,
+    alt: `Фото з побачення на літеру «${letter}»`
+  };
+};
+
+const closePhoto = () => {
+  expandedPhoto.value = null;
+};
+
 // Close modal on Escape
 const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && props.isOpen) {
-    emit('close');
+  if (e.key === 'Escape') {
+    if (expandedPhoto.value) {
+      closePhoto();
+    } else if (props.isOpen) {
+      emit('close');
+    }
   }
 };
 
@@ -98,19 +114,24 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown);
-  document.body.style.overflow = '';
+  if (typeof document !== 'undefined') {
+    document.body.style.overflow = '';
+  }
 });
 
 // Prevent body scroll when modal is open
 watch(
   () => props.isOpen,
   (val) => {
-    if (val) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+    if (typeof document !== 'undefined') {
+      if (val) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
     }
-  }
+  },
+  { immediate: true }
 );
 </script>
 
@@ -140,8 +161,8 @@ watch(
         </button>
       </header>
 
-      <!-- Single letter focused memory view (ONLY this letter) -->
-      <div v-if="currentSelectedLetter" class="single-letter-container">
+      <!-- Single letter focused memory view -->
+      <div class="single-letter-container">
         <div class="single-letter-content-scroll">
           <div v-if="letterHistoryItems.length === 0" class="empty-history">
             <div class="memory-letter-heading">
@@ -157,7 +178,9 @@ watch(
             <div v-for="(item, idx) in letterHistoryItems" :key="idx" class="single-memory-view">
               <div class="memory-letter-heading">
                 <span class="memory-letter-char">{{ item.letter }}</span>
-                <span v-if="item.status === 'excluded'" class="excluded-badge">✕ Виключено</span>
+                <span v-if="item.status === 'excluded'" class="excluded-badge">
+                  ✕ Літеру виключено з щоденнику
+                </span>
               </div>
 
               <div class="memory-meta">
@@ -186,102 +209,77 @@ watch(
                 </div>
               </div>
 
-              <div v-if="item.status === 'excluded'" class="memory-note-box is-excluded-box">
-                <span class="note-label">Статус літери:</span>
-                <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
-                <p v-else class="note-content">Цю літеру було виключено з челенджу.</p>
-              </div>
-              <div v-else class="memory-note-box">
+              <div v-if="item.status !== 'excluded'" class="memory-note-box">
                 <span class="note-label">Враження від побачення:</span>
                 <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
                 <p v-else class="empty-note">Коментар не було додано</p>
               </div>
 
-              <div v-if="item.photo" class="memory-photo-box soft-album-frame">
+              <button
+                v-if="item.photo"
+                type="button"
+                class="memory-photo-box soft-album-frame"
+                aria-label="Збільшити фото"
+                title="Натисніть, щоб збільшити"
+                @click="openPhoto(item.photo, item.letter)"
+              >
                 <img
                   :src="item.photo"
                   :alt="'Фото з побачення на літеру «' + item.letter + '»'"
                   class="memory-photo-img"
                   loading="lazy"
                 />
-              </div>
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- Link to open full history (fixed footer outside scrollbar) -->
+        <!-- Link to open full dedicated memories page -->
         <div class="view-all-history-section">
           <button type="button" class="view-all-history-link" @click="handleViewAll">
             <span class="view-all-icon" aria-hidden="true">📖</span>
-            <span class="view-all-text">Відкрити спільні спогади</span>
+            <span class="view-all-text">Відкрити всі спільні спогади</span>
           </button>
         </div>
       </div>
-
-      <!-- Multiple items history list view -->
-      <div v-else class="history-list-view">
-        <div v-if="displayHistory.length === 0" class="empty-history">
-          <span class="empty-icon" aria-hidden="true">💌</span>
-          <p class="empty-title">Поки що немає спільних спогадів</p>
-          <p class="empty-desc">
-            Оберіть літеру в щоденнику, проведіть незабутній час разом та збережіть перші враження!
-          </p>
-        </div>
-
-        <div v-else class="history-scroll-list">
-          <article
-            v-for="item in displayHistory"
-            :key="item.letter + item.completedAt + item.status"
-            class="history-card-item"
-            :class="{ 'is-excluded-item': item.status === 'excluded' }"
-          >
-            <div class="item-header">
-              <div class="item-letter-badge" :class="{ 'is-excluded': item.status === 'excluded' }">
-                <span>{{ item.letter }}</span>
-                <span v-if="item.status === 'excluded'" class="badge-sub-cross" aria-hidden="true">✕</span>
-              </div>
-              <div class="item-main-info">
-                <div class="item-top-line">
-                  <span class="partner-pill">
-                    <span class="partner-icon" aria-hidden="true">{{ getPartnerEmoji(item.playerId) }}</span>
-                    <strong>{{ item.partnerName || 'Партнер' }}</strong>
-                  </span>
-                  <span v-if="item.completedAt" class="date-badge">
-                    {{ formatCompletionDate(item.completedAt) }}
-                  </span>
-                </div>
-                <div class="item-duration-line">
-                  <span v-if="item.status === 'excluded'" class="excluded-pill">
-                    ✕ Виключено
-                  </span>
-                  <span v-else class="duration-badge">
-                    ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div v-if="item.status === 'excluded'" class="item-note is-excluded-note">
-              <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
-              <p v-else class="empty-note-small">Літеру виключено з челенджу</p>
-            </div>
-            <div v-else class="item-note">
-              <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
-              <p v-else class="empty-note-small">Без коментаря</p>
-            </div>
-
-            <div v-if="item.photo" class="item-photo-box soft-album-mini">
-              <img
-                :src="item.photo"
-                :alt="'Фото з побачення на літеру «' + item.letter + '»'"
-                class="item-photo-img"
-                loading="lazy"
-              />
-            </div>
-          </article>
-        </div>
-      </div>
     </div>
+
+    <!-- Fullscreen Photo Lightbox Modal inside letter modal -->
+    <Teleport to="body">
+      <Transition name="lightbox-fade">
+        <div
+          v-if="expandedPhoto"
+          class="lightbox-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Збільшене фото"
+        >
+          <button
+            type="button"
+            class="lightbox-backdrop"
+            aria-label="Закрити зображення"
+            tabindex="-1"
+            @click="closePhoto"
+          />
+          <button
+            type="button"
+            class="lightbox-close-btn"
+            aria-label="Закрити зображення"
+            title="Закрити зображення"
+            @click="closePhoto"
+          >
+            ✕
+          </button>
+          <div class="lightbox-image-wrap">
+            <img
+              :src="expandedPhoto.src"
+              :alt="expandedPhoto.alt"
+              class="lightbox-img"
+            />
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -504,6 +502,7 @@ watch(
   border: 1.5px solid #dfd5ca;
   border-radius: 12px;
   padding: 1rem;
+  box-sizing: border-box;
 }
 
 .note-label {
@@ -530,6 +529,34 @@ watch(
   margin: 0;
   font-size: 0.92rem;
   color: var(--color-ink-muted, #718096);
+}
+
+.memory-photo-box {
+  margin: 1.25rem 0 0 0;
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.04),
+    0 12px 30px -4px rgba(45, 55, 72, 0.12);
+  background: #f1f5f9;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.memory-photo-box:hover {
+  transform: scale(1.015);
+  box-shadow: 0 6px 20px rgba(45, 55, 72, 0.16);
+}
+
+.memory-photo-img {
+  width: 100%;
+  max-height: 380px;
+  object-fit: cover;
+  display: block;
 }
 
 .view-all-history-section {
@@ -587,13 +614,6 @@ watch(
   line-height: 1;
 }
 
-/* History List View */
-.history-list-view {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.25rem 1.5rem;
-}
-
 .empty-history {
   display: flex;
   flex-direction: column;
@@ -601,11 +621,6 @@ watch(
   text-align: center;
   padding: 2rem 1rem;
   color: var(--color-ink-muted, #718096);
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 0.75rem;
 }
 
 .empty-title {
@@ -621,154 +636,103 @@ watch(
   line-height: 1.45;
 }
 
-.history-scroll-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.history-card-item {
-  background: var(--color-bg, #fcf8f5);
-  border: 1.5px solid #dfd5ca;
-  border-radius: 14px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-  box-shadow: inset 0 1px 3px rgba(45, 55, 72, 0.04);
-}
-
-.item-header {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-}
-
-.item-letter-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(var(--color-accent-rgb, 217, 119, 50), 0.12);
-  color: var(--color-accent, #d97732);
+/* Lightbox Fullscreen */
+.lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.6rem;
-  font-weight: 900;
-  border: none;
-  box-shadow: none;
-  flex-shrink: 0;
-  user-select: none;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.item-letter-badge.is-excluded {
-  background: var(--color-surface-muted, #f3eae3);
-  color: var(--color-ink, #2d3748);
-  position: relative;
-}
-
-.badge-sub-cross {
+.lightbox-backdrop {
   position: absolute;
-  top: 2px;
-  right: 4px;
-  font-size: 0.65rem;
-  font-weight: 900;
-  color: var(--color-error, #c53030);
-  line-height: 1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  cursor: default;
+  z-index: 1;
 }
 
-.excluded-pill {
-  display: inline-flex;
+.lightbox-close-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10001;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
   font-weight: 700;
-  font-size: 0.8rem;
-  color: var(--color-error, #c53030);
-  background: var(--color-error-bg, #fff5f5);
-  padding: 0.15rem 0.5rem;
-  border-radius: 6px;
-  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+  line-height: 1;
+  backdrop-filter: blur(4px);
 }
 
-.item-main-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+.lightbox-close-btn:hover {
+  background: rgba(0, 0, 0, 0.85);
+  transform: scale(1.08);
 }
 
-.item-top-line {
+.lightbox-close-btn:active {
+  transform: scale(0.95);
+}
+
+.lightbox-close-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.lightbox-image-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  margin: 0;
+  padding: 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
+  justify-content: center;
 }
 
-.date-badge {
-  font-size: 0.82rem;
-  color: var(--color-ink-muted, #718096);
-  font-weight: 600;
-}
-
-.item-duration-line {
-  font-size: 0.88rem;
-}
-
-.item-note {
-  border-top: 1px dashed rgba(45, 55, 72, 0.12);
-  padding-top: 0.5rem;
-}
-
-.note-text {
-  margin: 0;
-  font-size: 0.92rem;
-  line-height: 1.45;
-  color: var(--color-ink, #2d3748);
-  font-style: italic;
-}
-
-.empty-note-small {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--color-ink-muted, #718096);
-}
-
-/* Soft Album Card styling for date memories (modern gallery minimalism, static image) */
-.memory-photo-box {
-  margin: 1.25rem 0 0 0;
+.lightbox-img {
   width: 100%;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.04),
-    0 12px 30px -4px rgba(45, 55, 72, 0.12);
-  background: #f1f5f9;
-  box-sizing: border-box;
-}
-
-.memory-photo-img {
-  width: 100%;
-  max-height: 380px;
-  object-fit: cover;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+  object-fit: contain;
+  border-radius: 0;
+  box-shadow: none;
+  user-select: none;
   display: block;
 }
 
-/* Soft Album mini card for history list items (static image) */
-.item-photo-box {
-  margin-top: 0.75rem;
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.04),
-    0 6px 18px -2px rgba(45, 55, 72, 0.1);
-  background: #f1f5f9;
-  box-sizing: border-box;
+.lightbox-fade-enter-active,
+.lightbox-fade-leave-active {
+  transition: opacity 0.2s ease;
 }
 
-.item-photo-img {
-  width: 100%;
-  max-height: 240px;
-  object-fit: cover;
-  display: block;
+.lightbox-fade-enter-from,
+.lightbox-fade-leave-to {
+  opacity: 0;
 }
 </style>
