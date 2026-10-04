@@ -79,13 +79,13 @@ export function useHome() {
 
         router.push(`/${data.key}`);
       } else {
-        errorMessage.value = 'Не вдалося створити дошку. Спробуйте ще раз.';
+        errorMessage.value = 'Не вдалося створити щоденник. Спробуйте ще раз.';
       }
     } catch (error: unknown) {
       console.error('Error creating board:', error);
       errorMessage.value = getErrorMessage(
         error,
-        'Помилка при створенні дошки. Перевірте з’єднання з сервером.'
+        'Помилка при створенні щоденника. Перевірте з’єднання з сервером.'
       );
     } finally {
       isLoading.value = false;

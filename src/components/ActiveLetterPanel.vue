@@ -322,7 +322,7 @@ onUnmounted(() => {
     </div>
 
     <div v-else class="panel-placeholder">
-      <p>Оберіть літеру вручну на дошці або натисніть кнопку випадкового вибору.</p>
+      <p>Оберіть літеру вручну в щоденнику або натисніть кнопку випадкового вибору.</p>
       <RandomPickButton
         :pick-random="pickRandom"
         :is-picking="isPicking"

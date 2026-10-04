@@ -34,11 +34,11 @@ describe('RomanticLoader.vue', () => {
     const wrapper = mount(RomanticLoader, {
       props: {
         visible: true,
-        message: 'Оновлюємо дошку... ✨',
+        message: 'Оновлюємо щоденник... ✨',
         submessage: 'Зачекайте декілька секунд'
       }
     });
-    expect(wrapper.find('.loader-title').text()).toBe('Оновлюємо дошку... ✨');
+    expect(wrapper.find('.loader-title').text()).toBe('Оновлюємо щоденник... ✨');
     expect(wrapper.find('.loader-submessage').text()).toBe('Зачекайте декілька секунд');
   });
 

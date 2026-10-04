@@ -31,19 +31,42 @@ const handleViewAll = () => {
   emit('view-all');
 };
 
+// Combined history: includes history array plus any letters with status 'used' or 'excluded' not yet in history
+const displayHistory = computed<LetterHistoryItem[]>(() => {
+  const items = [...props.history];
+  const historyLetters = new Set(items.map((i) => i.letter));
+
+  if (props.letters) {
+    for (const l of props.letters) {
+      if ((l.status === 'used' || l.status === 'excluded') && !historyLetters.has(l.letter)) {
+        items.push({
+          letter: l.letter,
+          status: l.status,
+          note: l.note,
+          photo: l.photo,
+          partnerName: 'Партнер',
+          selectedAt: null,
+          completedAt: ''
+        });
+      }
+    }
+  }
+  return items;
+});
+
 // Filter for a specific letter if selectedLetter is set (with fallback to letter object)
 const letterHistoryItems = computed<LetterHistoryItem[]>(() => {
   if (!currentSelectedLetter.value) return [];
-  const found = props.history.filter((h) => h.letter === currentSelectedLetter.value);
+  const found = displayHistory.value.filter((h) => h.letter === currentSelectedLetter.value);
   if (found.length > 0) return found;
 
   // Fallback to letter object from letters array if history not yet synced
   const fallbackLetter = props.letters?.find((l) => l.letter === currentSelectedLetter.value);
-  if (fallbackLetter && fallbackLetter.status === 'used') {
+  if (fallbackLetter && (fallbackLetter.status === 'used' || fallbackLetter.status === 'excluded')) {
     return [
       {
         letter: fallbackLetter.letter,
-        status: 'used',
+        status: fallbackLetter.status,
         note: fallbackLetter.note,
         photo: fallbackLetter.photo,
         partnerName: 'Партнер',
@@ -54,6 +77,13 @@ const letterHistoryItems = computed<LetterHistoryItem[]>(() => {
   }
   return [];
 });
+
+const getPartnerEmoji = (playerId?: number | null): string => {
+  if (playerId === null || playerId === undefined) {
+    return '👤';
+  }
+  return Math.abs(playerId) % 2 === 0 ? '👩' : '👨';
+};
 
 // Close modal on Escape
 const handleKeyDown = (e: KeyboardEvent) => {
@@ -103,7 +133,7 @@ watch(
       <header class="modal-header">
         <h3 id="history-modal-title" class="modal-title">
           <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
-          <span v-else>📖 Щоденник побачень</span>
+          <span v-else>📖 Спільні спогади</span>
         </h3>
         <button type="button" class="close-icon-btn" aria-label="Закрити" @click="emit('close')">
           ✕
@@ -119,7 +149,7 @@ watch(
             </div>
             <p class="empty-title">Спогадів для літери «{{ currentSelectedLetter }}» ще немає</p>
             <p class="empty-desc">
-              Виконайте побачення на цю літеру, щоб зберегти деталі в щоденник!
+              Виконайте побачення на цю літеру, щоб зберегти деталі у спільні спогади!
             </p>
           </div>
 
@@ -127,18 +157,19 @@ watch(
             <div v-for="(item, idx) in letterHistoryItems" :key="idx" class="single-memory-view">
               <div class="memory-letter-heading">
                 <span class="memory-letter-char">{{ item.letter }}</span>
+                <span v-if="item.status === 'excluded'" class="excluded-badge">✕ Виключено</span>
               </div>
 
               <div class="memory-meta">
                 <div v-if="item.partnerName" class="meta-row">
                   <span class="meta-label">Організатор:</span>
                   <span class="partner-pill">
-                    <span class="partner-icon" aria-hidden="true">👤</span>
+                    <span class="partner-icon" aria-hidden="true">{{ getPartnerEmoji(item.playerId) }}</span>
                     <strong>{{ item.partnerName }}</strong>
                   </span>
                 </div>
 
-                <div class="meta-row">
+                <div v-if="item.status !== 'excluded'" class="meta-row">
                   <span class="meta-label">Час на виконання:</span>
                   <span class="duration-badge">
                     ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
@@ -146,14 +177,21 @@ watch(
                 </div>
 
                 <div v-if="item.completedAt" class="meta-row">
-                  <span class="meta-label">Дата завершення:</span>
+                  <span class="meta-label">
+                    {{ item.status === 'excluded' ? 'Дата виключення:' : 'Дата завершення:' }}
+                  </span>
                   <span class="date-text">
                     {{ formatCompletionDate(item.completedAt) }}
                   </span>
                 </div>
               </div>
 
-              <div class="memory-note-box">
+              <div v-if="item.status === 'excluded'" class="memory-note-box is-excluded-box">
+                <span class="note-label">Статус літери:</span>
+                <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
+                <p v-else class="note-content">Цю літеру було виключено з челенджу.</p>
+              </div>
+              <div v-else class="memory-note-box">
                 <span class="note-label">Враження від побачення:</span>
                 <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
                 <p v-else class="empty-note">Коментар не було додано</p>
@@ -175,50 +213,59 @@ watch(
         <div class="view-all-history-section">
           <button type="button" class="view-all-history-link" @click="handleViewAll">
             <span class="view-all-icon" aria-hidden="true">📖</span>
-            <span class="view-all-text">Відкрити щоденник побачень</span>
+            <span class="view-all-text">Відкрити спільні спогади</span>
           </button>
         </div>
       </div>
 
       <!-- Multiple items history list view -->
       <div v-else class="history-list-view">
-        <div v-if="history.length === 0" class="empty-history">
+        <div v-if="displayHistory.length === 0" class="empty-history">
           <span class="empty-icon" aria-hidden="true">💌</span>
-          <p class="empty-title">Поки що немає виконаних побачень</p>
+          <p class="empty-title">Поки що немає спільних спогадів</p>
           <p class="empty-desc">
-            Оберіть літеру на дошці, проведіть незабутній час разом та відмітьте її виконаною!
+            Оберіть літеру в щоденнику, проведіть незабутній час разом та збережіть перші враження!
           </p>
         </div>
 
         <div v-else class="history-scroll-list">
           <article
-            v-for="item in history"
-            :key="item.letter + item.completedAt"
+            v-for="item in displayHistory"
+            :key="item.letter + item.completedAt + item.status"
             class="history-card-item"
+            :class="{ 'is-excluded-item': item.status === 'excluded' }"
           >
             <div class="item-header">
-              <div class="item-letter-badge">
-                {{ item.letter }}
+              <div class="item-letter-badge" :class="{ 'is-excluded': item.status === 'excluded' }">
+                <span>{{ item.letter }}</span>
+                <span v-if="item.status === 'excluded'" class="badge-sub-cross" aria-hidden="true">✕</span>
               </div>
               <div class="item-main-info">
                 <div class="item-top-line">
                   <span class="partner-pill">
-                    <span class="partner-icon" aria-hidden="true">👤</span>
+                    <span class="partner-icon" aria-hidden="true">{{ getPartnerEmoji(item.playerId) }}</span>
                     <strong>{{ item.partnerName || 'Партнер' }}</strong>
                   </span>
-                  <span class="date-badge">
+                  <span v-if="item.completedAt" class="date-badge">
                     {{ formatCompletionDate(item.completedAt) }}
                   </span>
                 </div>
                 <div class="item-duration-line">
-                  <span class="duration-badge">
+                  <span v-if="item.status === 'excluded'" class="excluded-pill">
+                    ✕ Виключено
+                  </span>
+                  <span v-else class="duration-badge">
                     ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div class="item-note">
+            <div v-if="item.status === 'excluded'" class="item-note is-excluded-note">
+              <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
+              <p v-else class="empty-note-small">Літеру виключено з челенджу</p>
+            </div>
+            <div v-else class="item-note">
               <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
               <p v-else class="empty-note-small">Без коментаря</p>
             </div>
@@ -379,7 +426,18 @@ watch(
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 0.75rem;
   margin-bottom: 0.25rem;
+}
+
+.excluded-badge {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-error, #c53030);
+  background: var(--color-error-bg, #fff5f5);
+  border: 1px solid rgba(197, 48, 48, 0.2);
+  padding: 0.25rem 0.65rem;
+  border-radius: 8px;
 }
 
 .memory-letter-char {
@@ -601,6 +659,34 @@ watch(
   box-shadow: none;
   flex-shrink: 0;
   user-select: none;
+}
+
+.item-letter-badge.is-excluded {
+  background: var(--color-surface-muted, #f3eae3);
+  color: var(--color-ink, #2d3748);
+  position: relative;
+}
+
+.badge-sub-cross {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: var(--color-error, #c53030);
+  line-height: 1;
+}
+
+.excluded-pill {
+  display: inline-flex;
+  align-items: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--color-error, #c53030);
+  background: var(--color-error-bg, #fff5f5);
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  line-height: 1.2;
 }
 
 .item-main-info {

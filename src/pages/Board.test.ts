@@ -42,7 +42,7 @@ function createMockBoardPage(overrides: Partial<ReturnType<typeof useBoardPage>>
     isMarkingLetter: ref(false),
     markingLetterMessage: ref(''),
     isPageLoaderVisible: computed(() => false),
-    pageLoaderMessage: computed(() => 'Завантажуємо дошку... 💕'),
+    pageLoaderMessage: computed(() => 'Завантажуємо щоденник... 💕'),
     pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...'),
     handleUnlockPin: vi.fn(),
     handleCancelPin: vi.fn(),
@@ -76,7 +76,7 @@ describe('Board.vue', () => {
     expect(wrapper.text()).toContain('Олена');
     expect(wrapper.find('.alphabet-grid').exists()).toBe(true);
     expect(wrapper.find('.history-journal-link').exists()).toBe(true);
-    expect(wrapper.find('.delete-board-link').text()).toBe('Видалити дошку');
+    expect(wrapper.find('.delete-board-link').text()).toBe('Видалити щоденник');
 
     wrapper.find('.brand-wrap').trigger('click');
     expect(mockGoHome).toHaveBeenCalled();
@@ -208,7 +208,7 @@ describe('Board.vue', () => {
     vi.mocked(useBoardPage).mockReturnValue(
       createMockBoardPage({
         isPageLoaderVisible: computed(() => true),
-        pageLoaderMessage: computed(() => 'Завантажуємо дошку... 💕'),
+        pageLoaderMessage: computed(() => 'Завантажуємо щоденник... 💕'),
         pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...')
       })
     );
@@ -217,7 +217,7 @@ describe('Board.vue', () => {
     const loader = wrapper.findComponent({ name: 'RomanticLoader' });
     expect(loader.exists()).toBe(true);
     expect(loader.props('visible')).toBe(true);
-    expect(loader.props('message')).toBe('Завантажуємо дошку... 💕');
+    expect(loader.props('message')).toBe('Завантажуємо щоденник... 💕');
     expect(loader.props('submessage')).toBe('Синхронізуємо ваші побачення з сервером...');
   });
 

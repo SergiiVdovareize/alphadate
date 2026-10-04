@@ -34,7 +34,7 @@ describe('Home.vue', () => {
     const inputs = wrapper.findAll('input');
     expect(inputs).toHaveLength(4); // 2 partner inputs + 1 email input + 1 PIN input
     expect(wrapper.find('#board-pin').exists()).toBe(true);
-    expect(wrapper.find('button[type="submit"]').text()).toBe('Створити спільну дошку');
+    expect(wrapper.find('button[type="submit"]').text()).toBe('Створити спільний щоденник');
   });
 
   it('renders saved board quick continue banner when available', async () => {
@@ -97,13 +97,13 @@ describe('Home.vue', () => {
 
     const toggleBtn = wrapper.find('.toggle-boards-btn');
     expect(toggleBtn.exists()).toBe(true);
-    expect(toggleBtn.text()).toContain('Обрати іншу дошку (1)');
+    expect(toggleBtn.text()).toContain('Обрати інший щоденник (1)');
     expect(wrapper.find('.saved-boards-dropdown').exists()).toBe(false);
 
     // Expand dropdown
     await toggleBtn.trigger('click');
     expect(wrapper.find('.saved-boards-dropdown').exists()).toBe(true);
-    expect(toggleBtn.text()).toContain('Сховати список дощок');
+    expect(toggleBtn.text()).toContain('Сховати список щоденників');
 
     // Click on the second board
     const selectButtons = wrapper.findAll('.board-select-btn');
@@ -173,7 +173,7 @@ describe('Home.vue', () => {
 
     const recoverBtn = wrapper.find('.recover-text-btn');
     expect(recoverBtn.exists()).toBe(true);
-    expect(recoverBtn.text()).toBe('Забули посилання на дошку?');
+    expect(recoverBtn.text()).toBe('Забули посилання на щоденник?');
 
     await recoverBtn.trigger('click');
     expect(mockPush).toHaveBeenCalledWith('/recover');

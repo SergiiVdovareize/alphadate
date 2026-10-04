@@ -44,7 +44,7 @@ export function getErrorMessage(error: unknown, fallbackMessage?: string): strin
       case 403:
         return 'Доступ заборонено.';
       case 404:
-        return 'Дошку не знайдено.';
+        return 'Щоденник не знайдено.';
       case 500:
       case 502:
       case 503:

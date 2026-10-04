@@ -194,7 +194,7 @@ export const api = {
       await new Promise((resolve) => setTimeout(resolve, 300));
       return {
         success: true,
-        message: 'Посилання на дошку надіслано на вашу пошту'
+        message: 'Посилання на щоденник надіслано на вашу пошту'
       };
     }
   }

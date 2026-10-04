@@ -83,7 +83,7 @@ onUnmounted(() => {
         </div>
 
         <h2 id="pin-modal-title">Доступ захищено</h2>
-        <p>Ця дошка захищена PIN-кодом. Введіть 4-значний код для доступу.</p>
+        <p>Цей щоденник захищено PIN-кодом. Введіть 4-значний код для доступу.</p>
 
         <form autocomplete="off" @submit.prevent="submitPin">
           <div class="pin-field-wrap">
@@ -119,7 +119,7 @@ onUnmounted(() => {
               :loading="isLoading"
               loading-text="Перевірка..."
             >
-              Відкрити дошку
+              Відкрити щоденник
             </AppButton>
             <AppButton
               type="button"

@@ -19,7 +19,7 @@ describe('SetPinModal.vue', () => {
 
     expect(wrapper.find('.set-pin-modal').exists()).toBe(true);
     expect(wrapper.find('.modal-overlay').exists()).toBe(true);
-    expect(wrapper.find('h2').text()).toBe('Захистіть вашу дошку');
+    expect(wrapper.find('h2').text()).toBe('Захистіть ваш щоденник');
     expect(wrapper.find('.description').text()).toContain('Встановіть 4-значний PIN-код');
     expect(wrapper.find('.pin-hidden-input').exists()).toBe(true);
     expect(wrapper.find('.cancel-btn').text()).toBe('Скасувати');

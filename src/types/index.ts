@@ -10,6 +10,7 @@ export interface LetterState {
 export interface Partner {
   id: number;
   name: string;
+  playerId?: number | null;
 }
 
 export interface BoardMetadata {
@@ -37,7 +38,7 @@ export interface LetterHistoryItem {
   partnerId?: number;
   partnerName?: string;
   playerId?: number | null;
-  status: 'used';
+  status: 'used' | 'excluded';
   note?: string;
   photo?: string;
   selectedAt?: string | null;

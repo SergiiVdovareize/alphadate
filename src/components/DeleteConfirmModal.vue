@@ -42,7 +42,7 @@ watch(
   <div>
     <dialog class="selection-modal" :open="isOpen">
       <div v-if="isOpen" class="modal-content">
-        <h2>Видалити дошку?</h2>
+        <h2>Видалити щоденник?</h2>
         <p>Усі заплановані побачення та збережені спогади буде втрачено. Цю дію неможливо скасувати.</p>
 
         <div class="actions">

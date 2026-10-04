@@ -24,7 +24,7 @@ describe('Recover.vue', () => {
   it('renders title, back button, and all 3 recovery steps', () => {
     const wrapper = mount(Recover);
 
-    expect(wrapper.find('h1').text()).toBe('Відновлення дошки');
+    expect(wrapper.find('h1').text()).toBe('Відновлення щоденника');
     expect(wrapper.find('.back-link-btn').text()).toContain('На головну');
 
     // 3 steps and 2 or-dividers
@@ -123,7 +123,7 @@ describe('Recover.vue', () => {
 
     expect(wrapper.find('.success-box').exists()).toBe(true);
     expect(wrapper.find('.success-title').text()).toBe('Лист надіслано!');
-    expect(wrapper.find('.success-desc').text()).toContain('Якщо дошка була зареєстрована');
+    expect(wrapper.find('.success-desc').text()).toContain('Якщо щоденник було зареєстровано');
     expect(wrapper.find('.success-desc').text()).toContain(
       'при реєстрації могла вводитись пошта будь-якого партнера'
     );

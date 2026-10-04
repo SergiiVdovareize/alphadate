@@ -112,7 +112,7 @@ describe('useHome', () => {
     await vm.createBoard();
 
     expect(vm.errorMessage.value).toBe(
-      'Помилка при створенні дошки. Перевірте з’єднання з сервером.'
+      'Помилка при створенні щоденника. Перевірте з’єднання з сервером.'
     );
     expect(vm.isLoading.value).toBe(false);
     expect(mockPush).not.toHaveBeenCalled();
@@ -143,7 +143,7 @@ describe('useHome', () => {
 
     await vm.createBoard();
 
-    expect(vm.errorMessage.value).toBe('Не вдалося створити дошку. Спробуйте ще раз.');
+    expect(vm.errorMessage.value).toBe('Не вдалося створити щоденник. Спробуйте ще раз.');
     expect(vm.isLoading.value).toBe(false);
   });
 
@@ -157,7 +157,7 @@ describe('useHome', () => {
     await vm.createBoard();
 
     expect(vm.errorMessage.value).toBe(
-      'Помилка при створенні дошки. Перевірте з’єднання з сервером.'
+      'Помилка при створенні щоденника. Перевірте з’єднання з сервером.'
     );
   });
 

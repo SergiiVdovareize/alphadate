@@ -91,7 +91,7 @@ const {
           key="pin-attention-btn"
           type="button"
           class="pin-attention-btn"
-          aria-label="Захистити дошку PIN-кодом"
+          aria-label="Захистити щоденник PIN-кодом"
           @click="handleOpenSetPin"
         >
           <svg
@@ -176,7 +176,7 @@ const {
       <div class="history-trigger-section">
         <button type="button" class="history-journal-link" @click="openHistory()">
           <span class="journal-icon" aria-hidden="true">📖</span>
-          <span class="journal-link-text">Щоденник побачень</span>
+          <span class="journal-link-text">Спільні спогади</span>
           <span v-if="history.length > 0" class="history-count-pill">
             {{ history.length }}
           </span>
@@ -202,7 +202,7 @@ const {
 
       <footer class="footer">
         <button type="button" class="delete-board-link" @click="isDeleteModalOpen = true">
-          Видалити дошку
+          Видалити щоденник
         </button>
       </footer>
     </template>

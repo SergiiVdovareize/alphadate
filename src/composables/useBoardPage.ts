@@ -228,7 +228,7 @@ export function useBoardPage() {
   const handleExcludeLetter = async () => {
     if (!activeLetter.value || isMarkingLetter.value || isSyncing.value) return;
     isMarkingLetter.value = true;
-    markingLetterMessage.value = 'Оновлюємо дошку... ✨';
+    markingLetterMessage.value = 'Оновлюємо щоденник... ✨';
     try {
       await markAsStatus(activeLetter.value.letter, 'excluded');
     } finally {
@@ -294,7 +294,7 @@ export function useBoardPage() {
     if (isMarkingLetter.value) {
       return markingLetterMessage.value || 'Зберігаємо побачення... 💕';
     }
-    return 'Завантажуємо дошку... 💕';
+    return 'Завантажуємо щоденник... 💕';
   });
 
   const pageLoaderSubmessage = computed(() => {

@@ -43,14 +43,15 @@ describe('AlphabetGrid.vue', () => {
     expect(wrapper.emitted('select')).toBeFalsy();
   });
 
-  it('does not emit select or view-history when clicking an excluded letter', async () => {
+  it('emits view-history when clicking an excluded letter', async () => {
     const wrapper = mount(AlphabetGrid, {
       props: { letters }
     });
 
     await wrapper.findAll('button')[2].trigger('click'); // excluded
+    expect(wrapper.emitted('view-history')).toBeTruthy();
+    expect(wrapper.emitted('view-history')![0]).toEqual([letters[2]]);
     expect(wrapper.emitted('select')).toBeFalsy();
-    expect(wrapper.emitted('view-history')).toBeFalsy();
   });
 
   it('does not emit select when grid is disabled', async () => {
@@ -60,5 +61,23 @@ describe('AlphabetGrid.vue', () => {
 
     await wrapper.findAll('button')[0].trigger('click');
     expect(wrapper.emitted('select')).toBeFalsy();
+  });
+
+  it('renders check badge for used letters and cross badge for excluded letters', () => {
+    const wrapper = mount(AlphabetGrid, {
+      props: { letters }
+    });
+
+    const buttons = wrapper.findAll('button');
+    expect(buttons[0].find('.used-check-badge').exists()).toBe(false);
+    expect(buttons[0].find('.excluded-cross-badge').exists()).toBe(false);
+
+    expect(buttons[1].find('.used-check-badge').exists()).toBe(true);
+    expect(buttons[1].find('.used-check-badge').text()).toBe('✓');
+    expect(buttons[1].find('.excluded-cross-badge').exists()).toBe(false);
+
+    expect(buttons[2].find('.excluded-cross-badge').exists()).toBe(true);
+    expect(buttons[2].find('.excluded-cross-badge').text()).toBe('✕');
+    expect(buttons[2].find('.used-check-badge').exists()).toBe(false);
   });
 });

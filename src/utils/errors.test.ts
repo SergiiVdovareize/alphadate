@@ -31,7 +31,7 @@ describe('getErrorMessage', () => {
       'Неправильний PIN-код. Спробуйте ще раз.'
     );
     expect(getErrorMessage(new ApiError(403, 'Forbidden'))).toBe('Доступ заборонено.');
-    expect(getErrorMessage(new ApiError(404, 'Not Found'))).toBe('Дошку не знайдено.');
+    expect(getErrorMessage(new ApiError(404, 'Not Found'))).toBe('Щоденник не знайдено.');
     expect(getErrorMessage(new ApiError(500, 'Internal Server Error'))).toBe(
       'Помилка сервера. Спробуйте пізніше.'
     );

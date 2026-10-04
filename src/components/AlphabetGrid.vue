@@ -15,12 +15,11 @@ const emit = defineEmits<{
 }>();
 
 const handleClick = (item: LetterState) => {
-  if (item.status === 'used') {
+  if (item.status === 'used' || item.status === 'excluded') {
     emit('view-history', item);
     return;
   }
   if (props.disabled) return;
-  if (item.status === 'excluded') return;
   emit('select', item);
 };
 </script>
@@ -43,12 +42,14 @@ const handleClick = (item: LetterState) => {
         disabled &&
         item.letter !== activeLetter &&
         item.status !== 'used' &&
+        item.status !== 'excluded' &&
         item.letter !== highlightedLetter
       "
       @click="handleClick(item)"
     >
       <span>{{ item.letter }}</span>
       <span v-if="item.status === 'used'" class="used-check-badge" aria-hidden="true">✓</span>
+      <span v-else-if="item.status === 'excluded'" class="excluded-cross-badge" aria-hidden="true">✕</span>
     </button>
   </div>
 </template>
@@ -183,7 +184,7 @@ const handleClick = (item: LetterState) => {
   }
 }
 
-.letter-btn:disabled:not(.status-used) {
+.letter-btn:disabled:not(.status-used):not(.status-excluded) {
   cursor: not-allowed;
   opacity: 0.3;
   box-shadow: 0 1.5px 0 var(--color-ink, #2d3748);
@@ -208,40 +209,55 @@ const handleClick = (item: LetterState) => {
   background-color: var(--color-surface, #ffffff);
 }
 
-.status-used {
+.status-used,
+.status-excluded {
   background-color: var(--color-surface-muted, #f3eae3);
   color: var(--color-ink, #2d3748);
   border: 2px solid var(--color-ink, #2d3748);
   box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
-  cursor: pointer;
   opacity: 1;
 }
 
-.status-used:hover {
+.status-used,
+.status-excluded {
+  cursor: pointer;
+}
+
+.status-used:hover,
+.status-excluded:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 0 var(--color-ink, #2d3748);
+}
+
+.status-used:hover {
   border-color: var(--color-accent-confirm, #5ea885);
 }
 
-.status-used:active {
+.status-excluded:hover {
+  border-color: var(--color-error, #c53030);
+}
+
+.status-used:active,
+.status-excluded:active {
   transform: translateY(2px);
   box-shadow: var(--shadow-3d-pressed, 0 1px 0 #2d3748);
 }
 
-.used-check-badge {
+.used-check-badge,
+.excluded-cross-badge {
   position: absolute;
   top: 3px;
   right: 5px;
   font-size: 0.7rem;
   font-weight: 900;
-  color: var(--color-accent-confirm, #5ea885);
   line-height: 1;
 }
 
-.status-excluded {
-  background-color: var(--color-surface-muted, #f3eae3);
-  color: var(--color-ink-muted, #718096);
-  border-color: var(--color-ink-muted, #718096);
-  box-shadow: 0 2px 0 var(--color-ink-muted, #718096);
+.used-check-badge {
+  color: var(--color-accent-confirm, #5ea885);
+}
+
+.excluded-cross-badge {
+  color: var(--color-error, #c53030);
 }
 </style>

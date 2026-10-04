@@ -43,7 +43,7 @@ const isPinError = computed(
             <div class="suggestion-header">
               <span class="suggestion-tag">
                 <span class="tag-heart" aria-hidden="true">💕</span>
-                {{ savedBoards.length > 1 ? 'Остання дошка' : 'Збережена дошка' }}
+                {{ savedBoards.length > 1 ? 'Останній щоденник' : 'Збережений щоденник' }}
               </span>
             </div>
             <div class="suggestion-partners">
@@ -79,8 +79,8 @@ const isPinError = computed(
             <span class="toggle-btn-text">
               {{
                 isBoardsListOpen
-                  ? 'Сховати список дощок'
-                  : `Обрати іншу дошку (${savedBoards.length - 1})`
+                  ? 'Сховати список щоденників'
+                  : `Обрати інший щоденник (${savedBoards.length - 1})`
               }}
             </span>
             <svg
@@ -111,7 +111,7 @@ const isPinError = computed(
                   >
                     <span class="board-bullet" aria-hidden="true">•</span>
                     <span class="board-select-names">{{ board.partners.join(' та ') }}</span>
-                    <span v-if="idx === 0" class="current-badge">(поточна)</span>
+                    <span v-if="idx === 0" class="current-badge">(поточний)</span>
                   </button>
                 </li>
               </ul>
@@ -184,14 +184,14 @@ const isPinError = computed(
           :loading="isLoading"
           loading-text="Створення..."
         >
-          Створити спільну дошку
+          Створити спільний щоденник
         </AppButton>
       </form>
 
       <!-- Recovery text button -->
       <div class="recovery-section">
         <button type="button" class="recover-text-btn" @click="goToRecover">
-          Забули посилання на дошку?
+          Забули посилання на щоденник?
         </button>
       </div>
     </div>

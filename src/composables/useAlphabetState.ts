@@ -229,7 +229,7 @@ export function useAlphabetState(boardId: string) {
         fetchError.value = null;
       } else {
         console.error('Failed to sync state from backend:', e);
-        fetchError.value = getErrorMessage(e, 'Не вдалося завантажити дошку з сервера.');
+        fetchError.value = getErrorMessage(e, 'Не вдалося завантажити щоденник з сервера.');
       }
     } finally {
       if (isSilent) {
@@ -409,7 +409,7 @@ export function useAlphabetState(boardId: string) {
       if (photo !== undefined) {
         item.photo = photo || undefined;
       }
-      if (status === 'used') {
+      if (status === 'used' || status === 'excluded') {
         const currentPartner = metadata.value.partners.find(
           (p) => p.id === metadata.value.currentPartnerId
         );
@@ -418,7 +418,7 @@ export function useAlphabetState(boardId: string) {
           partnerId: currentPartner?.id,
           partnerName: currentPartner?.name || 'Партнер',
           playerId: (currentPartner as { playerId?: number | null })?.playerId ?? null,
-          status: 'used',
+          status,
           note: note?.trim() || undefined,
           photo: photo || item.photo || undefined,
           selectedAt: metadata.value.currentLetterSelectedAt,

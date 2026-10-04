@@ -251,6 +251,6 @@ describe('api service', () => {
 
     const result = await api.recoverBoard('user@example.com');
     expect(result.success).toBe(true);
-    expect(result.message).toContain('Посилання на дошку надіслано');
+    expect(result.message).toContain('Посилання на щоденник надіслано');
   });
 });

@@ -74,6 +74,21 @@ describe('useAlphabetState', () => {
     expect(state.history.value[0].photo).toBe('data:image/jpeg;base64,sample-photo');
   });
 
+  it('marks letter status as excluded and records in history', () => {
+    const state = useAlphabetState('test-board');
+    const letterC = state.letters.value[2];
+
+    state.selectLetter(letterC);
+    state.markAsStatus('В', 'excluded');
+
+    const updatedC = state.letters.value.find((l) => l.letter === 'В');
+    expect(updatedC?.status).toBe('excluded');
+    expect(state.activeLetter.value).toBeNull();
+    expect(state.history.value).toHaveLength(1);
+    expect(state.history.value[0].letter).toBe('В');
+    expect(state.history.value[0].status).toBe('excluded');
+  });
+
   it('pickRandom selects an available letter or returns null if all used', () => {
     const state = useAlphabetState('test-board');
     const random = state.pickRandom();
