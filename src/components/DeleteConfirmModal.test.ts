@@ -19,7 +19,7 @@ describe('DeleteConfirmModal.vue', () => {
 
     expect(wrapper.find('.modal-content').exists()).toBe(true);
     expect(wrapper.find('.modal-overlay').exists()).toBe(true);
-    expect(wrapper.find('h2').text()).toBe('Підтвердження');
+    expect(wrapper.find('h2').text()).toBe('Видалити дошку?');
   });
 
   it('emits confirm when confirm button is clicked', async () => {

@@ -119,7 +119,7 @@ onUnmounted(() => {
               :loading="isLoading"
               loading-text="Перевірка..."
             >
-              Розблокувати
+              Відкрити дошку
             </AppButton>
             <AppButton
               type="button"
@@ -130,7 +130,7 @@ onUnmounted(() => {
               :disabled="isLoading"
               @click="emit('cancel')"
             >
-              На головну
+              Скасувати
             </AppButton>
           </div>
         </form>

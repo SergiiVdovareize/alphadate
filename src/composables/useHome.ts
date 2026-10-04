@@ -85,7 +85,7 @@ export function useHome() {
       console.error('Error creating board:', error);
       errorMessage.value = getErrorMessage(
         error,
-        'Помилка при створенні дошки. Перевірте зʼєднання з сервером.'
+        'Помилка при створенні дошки. Перевірте з’єднання з сервером.'
       );
     } finally {
       isLoading.value = false;

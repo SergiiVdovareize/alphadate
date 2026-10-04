@@ -25,10 +25,10 @@ describe('getErrorMessage', () => {
 
   it('translates ApiError status codes', () => {
     expect(getErrorMessage(new ApiError(400, 'Bad Request'))).toBe(
-      'Невірні дані запиту. Перевірте введену інформацію.'
+      'Некоректні дані. Перевірте введену інформацію.'
     );
     expect(getErrorMessage(new ApiError(401, 'Unauthorized'))).toBe(
-      'Невірний PIN-код. Спробуйте ще раз.'
+      'Неправильний PIN-код. Спробуйте ще раз.'
     );
     expect(getErrorMessage(new ApiError(403, 'Forbidden'))).toBe('Доступ заборонено.');
     expect(getErrorMessage(new ApiError(404, 'Not Found'))).toBe('Дошку не знайдено.');

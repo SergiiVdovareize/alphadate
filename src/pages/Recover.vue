@@ -78,7 +78,7 @@ const handleRecover = async () => {
   } catch (err: unknown) {
     errorMessage.value = getErrorMessage(
       err,
-      'Помилка при відновленні дошки. Перевірте зʼєднання.'
+      'Помилка при відновленні дошки. Перевірте з’єднання.'
     );
   } finally {
     isLoading.value = false;
@@ -129,7 +129,7 @@ const handleRecover = async () => {
           </div>
           <p class="step-desc">
             Якщо ви вже відкривали дошку раніше на телефоні, ноутбуці або планшеті — вона
-            зберігається у памʼяті цього браузера автоматично.
+            зберігається в пам’яті цього браузера автоматично.
           </p>
         </section>
 
@@ -201,13 +201,13 @@ const handleRecover = async () => {
           </div>
           <p class="step-desc step-desc-form">
             Якщо попередні способи не спрацювали, введіть електронну пошту, зазначену під час
-            створення дошки (памʼятайте, що при реєстрації могла вводитись пошта будь-якого
+            створення дошки (пам’ятайте, що при реєстрації могла вводитись пошта будь-якого
             партнера) — ми повторно надішлемо вам посилання.
           </p>
 
           <form v-if="!isSuccess" class="recovery-form" novalidate @submit.prevent="handleRecover">
             <div class="input-group">
-              <label for="recovery-email-field">Ваша електронна пошта</label>
+              <label for="recovery-email-field">Електронна пошта</label>
               <input
                 id="recovery-email-field"
                 v-model="email"

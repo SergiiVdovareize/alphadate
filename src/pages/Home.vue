@@ -79,8 +79,8 @@ const isPinError = computed(
             <span class="toggle-btn-text">
               {{
                 isBoardsListOpen
-                  ? 'Сховати список дошок'
-                  : `Вибрати іншу дошку (${savedBoards.length - 1})`
+                  ? 'Сховати список дощок'
+                  : `Обрати іншу дошку (${savedBoards.length - 1})`
               }}
             </span>
             <svg
@@ -111,7 +111,7 @@ const isPinError = computed(
                   >
                     <span class="board-bullet" aria-hidden="true">•</span>
                     <span class="board-select-names">{{ board.partners.join(' та ') }}</span>
-                    <span v-if="idx === 0" class="current-badge">(активна)</span>
+                    <span v-if="idx === 0" class="current-badge">(поточна)</span>
                   </button>
                 </li>
               </ul>
@@ -123,7 +123,7 @@ const isPinError = computed(
       <form class="setup-form" novalidate @submit.prevent="createBoard">
         <div v-for="(_, index) in partners" :key="index" class="input-group">
           <label :for="`partner-${index}`">
-            {{ index === 0 ? "Ваше ім'я" : "Ім'я партнера" }}
+            {{ index === 0 ? "Ваше ім’я" : "Ім’я партнера" }}
           </label>
           <input
             :id="`partner-${index}`"
@@ -150,7 +150,7 @@ const isPinError = computed(
         <div class="input-group">
           <div class="label-with-hint">
             <label for="board-pin">PIN-код для захисту</label>
-            <span class="hint-text">необов'язково</span>
+            <span class="hint-text">необов’язково</span>
           </div>
           <input
             id="board-pin"

@@ -38,9 +38,9 @@ export function getErrorMessage(error: unknown, fallbackMessage?: string): strin
 
     switch (error.status) {
       case 400:
-        return fallbackMessage || 'Невірні дані запиту. Перевірте введену інформацію.';
+        return fallbackMessage || 'Некоректні дані. Перевірте введену інформацію.';
       case 401:
-        return 'Невірний PIN-код. Спробуйте ще раз.';
+        return 'Неправильний PIN-код. Спробуйте ще раз.';
       case 403:
         return 'Доступ заборонено.';
       case 404:

@@ -144,7 +144,7 @@ onUnmounted(() => {
               :loading="isLoading"
               loading-text="Встановлення..."
             >
-              Встановити PIN
+              Зберегти PIN-код
             </AppButton>
             <AppButton
               type="button"

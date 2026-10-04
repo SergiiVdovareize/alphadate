@@ -112,7 +112,7 @@ describe('useHome', () => {
     await vm.createBoard();
 
     expect(vm.errorMessage.value).toBe(
-      'Помилка при створенні дошки. Перевірте зʼєднання з сервером.'
+      'Помилка при створенні дошки. Перевірте з’єднання з сервером.'
     );
     expect(vm.isLoading.value).toBe(false);
     expect(mockPush).not.toHaveBeenCalled();
@@ -157,7 +157,7 @@ describe('useHome', () => {
     await vm.createBoard();
 
     expect(vm.errorMessage.value).toBe(
-      'Помилка при створенні дошки. Перевірте зʼєднання з сервером.'
+      'Помилка при створенні дошки. Перевірте з’єднання з сервером.'
     );
   });
 

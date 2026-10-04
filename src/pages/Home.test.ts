@@ -97,13 +97,13 @@ describe('Home.vue', () => {
 
     const toggleBtn = wrapper.find('.toggle-boards-btn');
     expect(toggleBtn.exists()).toBe(true);
-    expect(toggleBtn.text()).toContain('Вибрати іншу дошку (1)');
+    expect(toggleBtn.text()).toContain('Обрати іншу дошку (1)');
     expect(wrapper.find('.saved-boards-dropdown').exists()).toBe(false);
 
     // Expand dropdown
     await toggleBtn.trigger('click');
     expect(wrapper.find('.saved-boards-dropdown').exists()).toBe(true);
-    expect(toggleBtn.text()).toContain('Сховати список дошок');
+    expect(toggleBtn.text()).toContain('Сховати список дощок');
 
     // Click on the second board
     const selectButtons = wrapper.findAll('.board-select-btn');

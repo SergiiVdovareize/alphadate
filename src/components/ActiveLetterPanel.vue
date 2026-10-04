@@ -185,7 +185,7 @@ onUnmounted(() => {
           v-model="completionNote"
           rows="3"
           class="comment-textarea"
-          placeholder="Опишіть ваші враження, куди сходили... (необов'язково)"
+          placeholder="Поділіться враженнями, куди сходили... (необов’язково)"
         ></textarea>
 
         <!-- Photo attachment section -->

@@ -73,7 +73,7 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 
       <!-- Empty fallback -->
       <div v-else class="empty-state">
-        <p>Не знайдено ідей на цю літеру.</p>
+        <p>Для цієї літери ще немає ідей.</p>
         <AppButton
           type="button"
           class="retry-btn"
@@ -81,7 +81,7 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
           size="sm"
           @click="() => fetchSuggestions(true)"
         >
-          Спробувати ще раз
+          Спробувати знову
         </AppButton>
       </div>
     </div>
