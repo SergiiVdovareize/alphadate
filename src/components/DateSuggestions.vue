@@ -45,6 +45,9 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
       <div v-if="isLoading" class="loading-state">
         <div class="loading-spinner" aria-hidden="true"></div>
         <p class="loading-text">Підбираємо романтичні ідеї на літеру «{{ letter }}»...</p>
+        <p class="ai-disclaimer-loading">
+          Ідеї генерує AI, тому вони можуть бути не завжди влучними.
+        </p>
       </div>
 
       <!-- Error State -->
@@ -63,6 +66,12 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 
       <!-- Suggestions List -->
       <div v-else-if="hasSuggestions" class="suggestions-content">
+        <div class="ai-disclaimer">
+          <span class="ai-sparkle" aria-hidden="true">🤖</span>
+          <span class="ai-disclaimer-text">
+            Ці ідеї згенеровано штучним інтелектом — сміливо адаптуйте їх під ваші спільні смаки!
+          </span>
+        </div>
         <ul class="suggestions-list">
           <li v-for="(item, idx) in suggestions" :key="idx" class="suggestion-item">
             <h4 class="suggestion-title">{{ item.title }}</h4>
@@ -204,11 +213,48 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
   margin: 0;
 }
 
+.ai-disclaimer-loading {
+  font-size: 0.8rem;
+  color: var(--color-ink-muted, #718096);
+  margin: 0;
+  max-width: 340px;
+  line-height: 1.35;
+}
+
 .error-text {
   width: 100%;
   max-width: 320px;
   margin: 0;
   text-align: center;
+}
+
+.ai-disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 0.8rem;
+  background: #fffbf3;
+  border: 1px dashed rgba(217, 119, 50, 0.3);
+  border-radius: 10px;
+  padding: 0.6rem 0.95rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.82rem;
+  color: var(--color-ink-muted, #718096);
+  line-height: 1.4;
+  box-shadow: 0 1px 3px rgba(45, 55, 72, 0.04);
+}
+
+.ai-sparkle {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.ai-disclaimer-text {
+  flex: 1;
+  text-align: left;
 }
 
 .suggestions-list {

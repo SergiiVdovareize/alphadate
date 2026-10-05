@@ -28,12 +28,22 @@ describe('DateSuggestions.vue', () => {
     expect(wrapper.find('.suggestions-drawer').exists()).toBe(false);
   });
 
-  it('expands drawer and renders suggestions list when clicked', async () => {
-    vi.mocked(api.getSuggestions).mockResolvedValue({
-      success: true,
-      letter: 'Д',
-      suggestions: [{ title: 'Дельфінарій', description: 'Спільний похід в дельфінарій' }]
+  it('expands drawer and renders suggestions list when clicked with AI disclaimer', async () => {
+    let resolveFn: (val: {
+      success: boolean;
+      letter: string;
+      suggestions: Array<{ title: string; description: string }>;
+    }) => void;
+    const promise = new Promise<{
+      success: boolean;
+      letter: string;
+      suggestions: Array<{ title: string; description: string }>;
+    }>((resolve) => {
+      resolveFn = resolve;
     });
+    vi.mocked(api.getSuggestions).mockReturnValue(
+      promise as unknown as ReturnType<typeof api.getSuggestions>
+    );
 
     const wrapper = mount(DateSuggestions, {
       props: {
@@ -44,6 +54,14 @@ describe('DateSuggestions.vue', () => {
 
     await wrapper.find('.suggestions-link-btn').trigger('click');
     expect(wrapper.find('.suggestions-drawer').exists()).toBe(true);
+    expect(wrapper.find('.loading-state').exists()).toBe(true);
+    expect(wrapper.find('.ai-disclaimer-loading').text()).toContain('AI');
+
+    resolveFn!({
+      success: true,
+      letter: 'Д',
+      suggestions: [{ title: 'Дельфінарій', description: 'Спільний похід в дельфінарій' }]
+    });
 
     await vi.waitFor(() => {
       expect(wrapper.find('.suggestion-title').exists()).toBe(true);
@@ -51,6 +69,9 @@ describe('DateSuggestions.vue', () => {
 
     expect(wrapper.find('.suggestion-title').text()).toBe('Дельфінарій');
     expect(wrapper.find('.suggestion-desc').text()).toBe('Спільний похід в дельфінарій');
+    expect(wrapper.find('.ai-disclaimer').exists()).toBe(true);
+    expect(wrapper.find('.ai-disclaimer').text()).toContain('штучним інтелектом');
+    expect(wrapper.find('.ai-disclaimer').text()).toContain('адаптуйте');
   });
 
   it('renders error message and retry button on fetch failure', async () => {
