@@ -22,6 +22,19 @@ const handleClick = (item: LetterState) => {
   if (props.disabled) return;
   emit('select', item);
 };
+
+const getLetterAriaLabel = (item: LetterState): string => {
+  if (item.letter === props.activeLetter) {
+    return `Літера ${item.letter}, поточна активна літера`;
+  }
+  if (item.status === 'used') {
+    return `Літера ${item.letter}, побачення виконано. Переглянути спогад`;
+  }
+  if (item.status === 'excluded') {
+    return `Літера ${item.letter}, виключено з щоденника. Переглянути спогад`;
+  }
+  return `Літера ${item.letter}, доступна для вибору`;
+};
 </script>
 
 <template>
@@ -38,6 +51,7 @@ const handleClick = (item: LetterState) => {
           'is-winner': isWinner && item.letter === highlightedLetter
         }
       ]"
+      :aria-label="getLetterAriaLabel(item)"
       :disabled="
         disabled &&
         item.letter !== activeLetter &&

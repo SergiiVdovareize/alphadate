@@ -19,6 +19,8 @@ describe('DeleteConfirmModal.vue', () => {
 
     expect(wrapper.find('.modal-content').exists()).toBe(true);
     expect(wrapper.find('.modal-overlay').exists()).toBe(true);
+    expect(wrapper.find('dialog').attributes('aria-modal')).toBe('true');
+    expect(wrapper.find('dialog').attributes('aria-labelledby')).toBe('delete-dialog-title');
     expect(wrapper.find('h2').text()).toBe('Видалити щоденник?');
   });
 

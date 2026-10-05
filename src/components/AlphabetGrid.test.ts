@@ -80,4 +80,18 @@ describe('AlphabetGrid.vue', () => {
     expect(buttons[2].find('.excluded-cross-badge').text()).toBe('✕');
     expect(buttons[2].find('.used-check-badge').exists()).toBe(false);
   });
+
+  it('provides descriptive aria-labels for assistive technologies', () => {
+    const wrapper = mount(AlphabetGrid, {
+      props: {
+        letters,
+        activeLetter: 'А'
+      }
+    });
+
+    const buttons = wrapper.findAll('button');
+    expect(buttons[0].attributes('aria-label')).toBe('Літера А, поточна активна літера');
+    expect(buttons[1].attributes('aria-label')).toBe('Літера Б, побачення виконано. Переглянути спогад');
+    expect(buttons[2].attributes('aria-label')).toBe('Літера В, виключено з щоденника. Переглянути спогад');
+  });
 });

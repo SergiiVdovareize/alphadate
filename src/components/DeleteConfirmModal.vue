@@ -40,9 +40,14 @@ watch(
 
 <template>
   <div>
-    <dialog class="selection-modal" :open="isOpen">
+    <dialog
+      class="selection-modal"
+      :open="isOpen"
+      aria-modal="true"
+      aria-labelledby="delete-dialog-title"
+    >
       <div v-if="isOpen" class="modal-content">
-        <h2>Видалити щоденник?</h2>
+        <h2 id="delete-dialog-title">Видалити щоденник?</h2>
         <p>Усі заплановані побачення та збережені спогади буде втрачено. Цю дію неможливо скасувати.</p>
 
         <div class="actions">
