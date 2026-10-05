@@ -50,7 +50,7 @@ const displayHistory = computed<LetterHistoryItem[]>(() => {
       }
     }
   }
-  return items;
+  return items.reverse();
 });
 
 // Filter for a specific letter if selectedLetter is set (with fallback to letter object)
@@ -641,7 +641,8 @@ watch(
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background-color: rgba(0, 0, 0, 0.95);
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -667,8 +668,8 @@ watch(
   top: 1rem;
   right: 1rem;
   z-index: 10001;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
   color: #ffffff;
   border-radius: 50%;
   width: 44px;

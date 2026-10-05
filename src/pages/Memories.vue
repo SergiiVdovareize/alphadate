@@ -106,7 +106,7 @@ const displayHistory = computed<LetterHistoryItem[]>(() => {
       }
     }
   }
-  return items;
+  return items.reverse();
 });
 
 // Filter for a specific letter if currentSelectedLetter is set (with fallback to letter object)
@@ -759,8 +759,8 @@ const vSyncBadge = {
 
 .badge-sub-cross {
   position: absolute;
-  top: 2px;
-  right: 4px;
+  top: 4px;
+  right: 5px;
   font-size: 0.65rem;
   font-weight: 900;
   color: var(--color-error, #c53030);
@@ -887,7 +887,8 @@ const vSyncBadge = {
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background-color: rgba(0, 0, 0, 0.95);
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -913,8 +914,8 @@ const vSyncBadge = {
   top: 1rem;
   right: 1rem;
   z-index: 10001;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
   color: #ffffff;
   border-radius: 50%;
   width: 44px;

@@ -101,22 +101,31 @@ describe('Memories.vue', () => {
     expect(wrapper.text()).toContain('Опера у театрі');
   });
 
-  it('renders correct partner gender emojis: odd=👨, even=👩, null=👤', () => {
+  it('renders correct partner gender emojis: odd=👨, even=👩, null=👤 in reversed order', () => {
     const wrapper = mount(Memories);
     const partnerPills = wrapper.findAll('.partner-pill');
 
     expect(partnerPills).toHaveLength(3);
-    // 1st: playerId 1 (odd) -> 👨
-    expect(partnerPills[0].find('.partner-icon').text()).toBe('👨');
-    expect(partnerPills[0].text()).toContain('Андрій');
+    // 1st (reversed from sampleHistory[2]): playerId null -> 👤
+    expect(partnerPills[0].find('.partner-icon').text()).toBe('👤');
+    expect(partnerPills[0].text()).toContain('Гість');
 
-    // 2nd: playerId 2 (even) -> 👩
+    // 2nd (reversed from sampleHistory[1]): playerId 2 (even) -> 👩
     expect(partnerPills[1].find('.partner-icon').text()).toBe('👩');
     expect(partnerPills[1].text()).toContain('Олена');
 
-    // 3rd: playerId null -> 👤
-    expect(partnerPills[2].find('.partner-icon').text()).toBe('👤');
-    expect(partnerPills[2].text()).toContain('Гість');
+    // 3rd (reversed from sampleHistory[0]): playerId 1 (odd) -> 👨
+    expect(partnerPills[2].find('.partner-icon').text()).toBe('👨');
+    expect(partnerPills[2].text()).toContain('Андрій');
+  });
+
+  it('displays memories in reverse chronological order (newest first)', () => {
+    const wrapper = mount(Memories);
+    const letterBadges = wrapper.findAll('.item-letter-badge');
+    expect(letterBadges).toHaveLength(3);
+    expect(letterBadges[0].text()).toContain('Е');
+    expect(letterBadges[1].text()).toContain('О');
+    expect(letterBadges[2].text()).toContain('К');
   });
 
   it('resolves partner playerId from metadata if not directly on history item', () => {
@@ -132,7 +141,8 @@ describe('Memories.vue', () => {
 
     vi.mocked(useAlphabetState).mockReturnValue(
       createMockAlphabetState({
-        history: ref(historyWithoutPlayerId)
+        history: ref(historyWithoutPlayerId),
+        letters: ref([])
       }) as never
     );
 
@@ -144,7 +154,7 @@ describe('Memories.vue', () => {
   it('renders excluded items with cross badge and excluded pill', () => {
     const wrapper = mount(Memories);
     const cards = wrapper.findAll('.history-card-item');
-    const excludedCard = cards[2]; // letter 'Е'
+    const excludedCard = cards[0]; // letter 'Е' (first item in reversed order)
 
     expect(excludedCard.classes()).toContain('is-excluded-item');
     expect(excludedCard.find('.item-letter-badge').classes()).toContain('is-excluded');
