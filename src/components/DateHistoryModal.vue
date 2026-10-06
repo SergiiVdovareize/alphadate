@@ -359,7 +359,6 @@ useBodyScrollLock(() => props.isOpen);
 .memory-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
   width: 100%;
 }
 
@@ -367,31 +366,31 @@ useBodyScrollLock(() => props.isOpen);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: var(--color-bg, #fcf8f5);
-  border-radius: 10px;
-  font-size: 0.92rem;
+  gap: 0.75rem;
+  padding: 0.65rem 0.25rem;
+  border-bottom: 1px solid var(--color-surface-muted, #f3eae3);
+  font-size: 0.95rem;
+}
+
+.meta-row:last-child {
+  border-bottom: none;
 }
 
 .meta-label {
   color: var(--color-ink-muted, #718096);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .partner-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  background: #ffffff;
-  padding: 0.2rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid rgba(45, 55, 72, 0.15);
   color: var(--color-ink, #2d3748);
+  font-weight: 700;
 }
 
 .partner-icon {
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .duration-badge {
