@@ -178,4 +178,66 @@ describe('Home.vue', () => {
     await recoverBtn.trigger('click');
     expect(mockPush).toHaveBeenCalledWith('/recover');
   });
+
+  it('renders "Як це працює" collapsed block when savedBoards is empty and toggles content on click', async () => {
+    vi.mocked(useHome).mockReturnValue({
+      partners: ref(['', '']),
+      email: ref(''),
+      pin: ref(''),
+      isLoading: ref(false),
+      errorMessage: ref(null),
+      savedBoards: ref([]),
+      openBoard: vi.fn(),
+      createBoard: vi.fn(),
+      removeSavedBoard: vi.fn()
+    });
+
+    const wrapper = mount(Home);
+
+    const section = wrapper.find('.how-it-works-section');
+    expect(section.exists()).toBe(true);
+
+    const toggleBtn = wrapper.find('.how-it-works-toggle');
+    expect(toggleBtn.exists()).toBe(true);
+    expect(toggleBtn.text()).toContain('Як це працює?');
+
+    // Initially collapsed
+    expect(wrapper.find('.how-it-works-content').exists()).toBe(false);
+
+    // Expand
+    await toggleBtn.trigger('click');
+    expect(wrapper.find('.how-it-works-content').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Alphabet Dating');
+    expect(wrapper.text()).toContain('Обирайте літеру по черзі');
+    expect(wrapper.text()).toContain('Придумуйте ідею на обрану літеру');
+    expect(wrapper.text()).toContain('Встигніть до завершення таймера');
+    expect(wrapper.text()).toContain('Зберігайте спільні спогади');
+
+    // Collapse
+    await toggleBtn.trigger('click');
+    expect(wrapper.find('.how-it-works-content').exists()).toBe(false);
+  });
+
+  it('does not render "Як це працює" block when savedBoards has items', () => {
+    vi.mocked(useHome).mockReturnValue({
+      partners: ref(['', '']),
+      email: ref(''),
+      pin: ref(''),
+      isLoading: ref(false),
+      errorMessage: ref(null),
+      savedBoards: ref([
+        {
+          key: 'saved-key',
+          partners: ['Олег', 'Катя'],
+          createdAt: new Date().toISOString()
+        }
+      ]),
+      openBoard: vi.fn(),
+      createBoard: vi.fn(),
+      removeSavedBoard: vi.fn()
+    });
+
+    const wrapper = mount(Home);
+    expect(wrapper.find('.how-it-works-section').exists()).toBe(false);
+  });
 });

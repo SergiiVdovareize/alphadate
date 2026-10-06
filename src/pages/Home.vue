@@ -11,6 +11,7 @@ const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, c
   useHome();
 
 const isBoardsListOpen = ref(false);
+const isHowItWorksOpen = ref(false);
 const goToRecover = () => {
   router.push('/recover');
 };
@@ -101,42 +102,143 @@ const isPinError = computed(
 
           <Transition name="expand">
             <div v-if="isBoardsListOpen" class="saved-boards-dropdown">
-              <ul class="dropdown-list">
-                <li v-for="(board, idx) in savedBoards" :key="board.key" class="dropdown-item">
-                  <button
-                    type="button"
-                    class="board-select-btn"
-                    :class="{ 'board-select-current': idx === 0 }"
-                    @click="openBoard(board.key)"
-                  >
-                    <span class="board-bullet" aria-hidden="true">•</span>
+              <div class="dropdown-list" role="list">
+                <button
+                  v-for="(board, idx) in savedBoards"
+                  :key="board.key"
+                  type="button"
+                  class="board-select-btn"
+                  :class="{ 'board-select-current': idx === 0 }"
+                  @click="openBoard(board.key)"
+                >
+                  <div class="board-card-icon-wrap" aria-hidden="true">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke-width="1.8"
+                      stroke="currentColor"
+                      class="board-card-icon"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+                      />
+                    </svg>
+                  </div>
+                  <div class="board-card-content">
                     <span class="board-select-names">{{ board.partners.join(' та ') }}</span>
-                    <span v-if="idx === 0" class="current-badge">(поточний)</span>
-                  </button>
-                </li>
-              </ul>
+                    <span v-if="idx === 0" class="current-badge">Останній</span>
+                  </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke="currentColor"
+                    class="board-card-arrow"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
           </Transition>
         </div>
       </div>
 
+      <!-- How it works collapsible guide (shown only when no saved boards) -->
+      <div v-if="savedBoards.length === 0" class="how-it-works-section">
+        <button
+          type="button"
+          class="how-it-works-toggle"
+          :aria-expanded="isHowItWorksOpen"
+          @click="isHowItWorksOpen = !isHowItWorksOpen"
+        >
+          <span class="how-it-works-toggle-title">
+            Як це працює?
+          </span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            class="how-it-works-chevron"
+            :class="{ 'chevron-rotated': isHowItWorksOpen }"
+            aria-hidden="true"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </button>
+
+        <Transition name="expand">
+          <div v-if="isHowItWorksOpen" class="how-it-works-content">
+            <p class="how-it-works-lead">
+              <strong>Alphabet Dating</strong> — це романтична традиція для пари, яка перетворює побачення на спільну захопливу пригоду за українським алфавітом від <strong>А</strong> до <strong>Я</strong>.
+            </p>
+            <ol class="how-it-works-steps">
+              <li class="how-step">
+                <span class="step-num" aria-hidden="true">1</span>
+                <div class="step-text">
+                  <strong>Обирайте літеру по черзі</strong>
+                  <span>Обирайте разом або довіртеся рандомайзеру. Хто обрав — той планує побачення-сюрприз!</span>
+                </div>
+              </li>
+              <li class="how-step">
+                <span class="step-num" aria-hidden="true">2</span>
+                <div class="step-text">
+                  <strong>Придумуйте ідею на обрану літеру</strong>
+                  <span>Наприклад: <em>«А»</em> — Астрономічна обсерваторія, <em>«К»</em> — Каякінг, <em>«П»</em> — Пікнік на заході сонця.</span>
+                </div>
+              </li>
+              <li class="how-step">
+                <span class="step-num" aria-hidden="true">3</span>
+                <div class="step-text">
+                  <strong>Встигніть до завершення таймера</strong>
+                  <span>На виконання кожної літери є 30 днів, щоб не відкладати романтичні плани на потім.</span>
+                </div>
+              </li>
+              <li class="how-step">
+                <span class="step-num" aria-hidden="true">4</span>
+                <div class="step-text">
+                  <strong>Зберігайте спільні спогади</strong>
+                  <span>Відзначайте літеру виконаною, додавайте фотографії та щирі враження до вашого щоденника.</span>
+                </div>
+              </li>
+            </ol>
+          </div>
+        </Transition>
+      </div>
+
       <form class="setup-form" novalidate @submit.prevent="createBoard">
         <div v-for="(_, index) in partners" :key="index" class="input-group">
           <label :for="`partner-${index}`">
-            {{ index === 0 ? "Ваше ім’я" : "Ім’я партнера" }}
+            {{ index === 0 ? "Ваше ім’я" : "Ім’я партнера або партнерки" }}
           </label>
           <input
             :id="`partner-${index}`"
             v-model="partners[index]"
             type="text"
-            :placeholder="index === 0 ? 'Наприклад: Олексій' : 'Наприклад: Марія'"
+            :placeholder="index === 0 ? 'Наприклад: Марія' : 'Наприклад: Олексій'"
             :class="{ 'input-error': isPartnerError }"
             @input="errorMessage = null"
           />
         </div>
 
         <div class="input-group">
-          <label for="board-email">Електронна пошта</label>
+          <div class="label-with-hint">
+            <label for="board-email">Електронна пошта</label>
+            <span class="hint-text">для відновлення доступу</span>
+          </div>
           <input
             id="board-email"
             v-model="email"
@@ -262,6 +364,8 @@ label {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .hint-text {
@@ -312,6 +416,131 @@ input.input-error:focus {
   text-align: center;
   margin-top: -0.25rem;
   margin-bottom: 0.5rem;
+}
+
+.how-it-works-section {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.how-it-works-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-ink-muted, #718096);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  user-select: none;
+  transition: color 0.15s ease;
+}
+
+.how-it-works-toggle:hover {
+  color: var(--color-accent, #d97732);
+}
+
+.how-it-works-toggle:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
+}
+
+.how-it-works-toggle-title {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(113, 128, 150, 0.4);
+  transition: text-decoration-color 0.15s ease;
+}
+
+.how-it-works-toggle:hover .how-it-works-toggle-title {
+  text-decoration-color: var(--color-accent, #d97732);
+}
+
+.how-it-works-chevron {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.how-it-works-content {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 1.15rem 1.25rem;
+  background: var(--color-surface, #ffffff);
+  border: 1.5px solid #dfd5ca;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(45, 55, 72, 0.05);
+  text-align: left;
+}
+
+.how-it-works-lead {
+  margin: 0.75rem 0 1rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-ink, #2d3748);
+}
+
+.how-it-works-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.how-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--color-ink, #2d3748);
+}
+
+.step-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-accent, #d97732);
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.step-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.step-text strong {
+  font-weight: 700;
+  color: var(--color-ink, #2d3748);
+}
+
+.step-text span {
+  color: var(--color-ink-muted, #718096);
+  font-size: 0.85rem;
+}
+
+.step-text em {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--color-accent, #d97732);
 }
 
 .saved-boards-section {
@@ -486,51 +715,51 @@ input.input-error:focus {
 
 .saved-boards-dropdown {
   width: 100%;
-  margin-top: 0.4rem;
-  padding: 0.4rem 0.5rem;
+  margin-top: 0.65rem;
+  padding: 0;
   background: transparent;
   border: none;
   box-shadow: none;
 }
 
 .dropdown-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-}
-
-.dropdown-item {
-  margin: 0;
-  padding: 0;
+  gap: 0.5rem;
 }
 
 .board-select-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.75rem;
   width: 100%;
-  padding: 0.35rem 0.5rem;
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  padding: 0.65rem 0.85rem;
+  background: var(--color-surface, #ffffff);
+  border: 1.5px solid #dfd5ca;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(45, 55, 72, 0.04);
   font-family: inherit;
   font-size: 0.92rem;
   font-weight: 600;
-  color: var(--color-ink-muted, #718096);
+  color: var(--color-ink, #2d3748);
   cursor: pointer;
   text-align: left;
-  border-radius: 6px;
   transition:
-    color 0.12s ease,
-    background-color 0.12s ease;
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.12s ease,
+    box-shadow 0.15s ease;
 }
 
 .board-select-btn:hover {
-  color: var(--color-accent, #d97732);
-  background-color: rgba(217, 119, 50, 0.08);
+  background-color: var(--color-bg, #fcf8f5);
+  border-color: var(--color-accent, #d97732);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(45, 55, 72, 0.08);
+}
+
+.board-select-btn:active {
+  transform: translateY(0);
 }
 
 .board-select-btn:focus-visible {
@@ -539,34 +768,88 @@ input.input-error:focus {
 }
 
 .board-select-current {
-  color: var(--color-ink, #2d3748);
-  font-weight: 700;
+  border-color: rgba(226, 92, 117, 0.4);
+  background-color: #fff9fa;
 }
 
-.board-bullet {
+.board-select-current:hover {
+  border-color: #e25c75;
+  background-color: #fff5f7;
+}
+
+.board-card-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  background-color: rgba(217, 119, 50, 0.1);
   color: var(--color-accent, #d97732);
-  font-size: 1rem;
-  line-height: 1;
+  flex-shrink: 0;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.board-select-current .board-card-icon-wrap {
+  background-color: rgba(226, 92, 117, 0.12);
+  color: #e25c75;
+}
+
+.board-card-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.board-card-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-grow: 1;
+  min-width: 0;
 }
 
 .board-select-names {
   flex-grow: 1;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: rgba(113, 128, 150, 0.25);
-  word-break: break-word;
-  transition: text-decoration-color 0.12s ease;
-}
-
-.board-select-btn:hover .board-select-names {
-  text-decoration-color: var(--color-accent, #d97732);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--color-ink, #2d3748);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .current-badge {
-  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.68rem;
   font-weight: 600;
+  color: #e25c75;
+  background: rgba(226, 92, 117, 0.1);
+  border: 1px solid rgba(226, 92, 117, 0.2);
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.board-card-arrow {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-ink-muted, #718096);
+  opacity: 0.4;
+  flex-shrink: 0;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    color 0.15s ease;
+}
+
+.board-select-btn:hover .board-card-arrow {
+  opacity: 1;
   color: var(--color-accent, #d97732);
-  margin-left: 0.35rem;
+  transform: translateX(2px);
 }
 
 .expand-enter-active,
