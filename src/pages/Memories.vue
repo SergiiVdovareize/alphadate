@@ -1,193 +1,34 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useAlphabetState } from '../composables/useAlphabetState';
-import { DEFAULT_BOARD_ID } from '../constants';
 import { formatDurationBetween, formatCompletionDate } from '../utils/formatDuration';
-import type { LetterHistoryItem } from '../types';
 import PinModal from '../components/PinModal.vue';
 import RomanticLoader from '../components/RomanticLoader.vue';
 import InlineMemoryEditor from '../components/InlineMemoryEditor.vue';
-import { getErrorMessage } from '../utils/errors';
-
-const route = useRoute();
-const router = useRouter();
-const boardId = (route.params.id as string) || DEFAULT_BOARD_ID;
+import PhotoLightboxModal from '../components/PhotoLightboxModal.vue';
+import { useMemoriesPage } from '../composables/useMemoriesPage';
 
 const {
-  letters,
-  metadata,
-  history,
   isPinRequired,
   pinError,
   isLoadingBackend,
-  unlockWithPin,
-  updateCompletedLetter
-} = useAlphabetState(boardId);
-
-const currentSelectedLetter = computed<string | null>(() => {
-  return (route.query.letter as string) || null;
-});
-
-const goBackToBoard = () => {
-  router.push({ name: 'board', params: { id: boardId } });
-};
-
-const handleViewAll = () => {
-  router.replace({
-    name: 'memories',
-    params: { id: boardId },
-    query: {}
-  });
-};
-
-const handleCancelPin = () => {
-  router.push('/');
-};
-
-const handleUnlockPin = async (enteredPin: string) => {
-  await unlockWithPin(enteredPin);
-};
-
-const expandedPhoto = ref<{ src: string; alt: string } | null>(null);
-
-const openPhoto = (photo: string, letter: string) => {
-  expandedPhoto.value = {
-    src: photo,
-    alt: `Фото з побачення на літеру «${letter}»`
-  };
-};
-
-const closePhoto = () => {
-  expandedPhoto.value = null;
-};
-
-// Inline memory editing state
-const editingLetter = ref<string | null>(null);
-const isSavingEdit = ref(false);
-const editError = ref<string | null>(null);
-
-const startEditing = (item: LetterHistoryItem) => {
-  editingLetter.value = item.letter;
-  editError.value = null;
-};
-
-const cancelEditing = () => {
-  if (isSavingEdit.value) return;
-  editingLetter.value = null;
-  editError.value = null;
-};
-
-const handleSaveInline = async (payload: { note: string; photo?: string | null }) => {
-  if (!editingLetter.value) return;
-  isSavingEdit.value = true;
-  editError.value = null;
-
-  try {
-    await updateCompletedLetter(editingLetter.value, {
-      note: payload.note,
-      photo: payload.photo
-    });
-    editingLetter.value = null;
-  } catch (err) {
-    editError.value = getErrorMessage(err, 'Не вдалося зберегти зміни. Спробуйте ще раз.');
-  } finally {
-    isSavingEdit.value = false;
-  }
-};
-
-const handleKeyDown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && expandedPhoto.value) {
-    closePhoto();
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyDown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyDown);
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = '';
-  }
-});
-
-watch(expandedPhoto, (val) => {
-  if (typeof document !== 'undefined') {
-    if (val) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-  }
-});
-
-// Combined history: includes history array plus any letters with status 'used' or 'excluded' not yet in history
-const displayHistory = computed<LetterHistoryItem[]>(() => {
-  const items = [...history.value];
-  const historyLetters = new Set(items.map((i) => i.letter));
-
-  if (letters.value) {
-    for (const l of letters.value) {
-      if ((l.status === 'used' || l.status === 'excluded') && !historyLetters.has(l.letter)) {
-        items.push({
-          letter: l.letter,
-          status: l.status,
-          note: l.note,
-          photo: l.photo,
-          partnerName: 'Партнер',
-          selectedAt: null,
-          completedAt: ''
-        });
-      }
-    }
-  }
-  return items.reverse();
-});
-
-// Filter for a specific letter if currentSelectedLetter is set (with fallback to letter object)
-const letterHistoryItems = computed<LetterHistoryItem[]>(() => {
-  if (!currentSelectedLetter.value) return [];
-  const found = displayHistory.value.filter((h) => h.letter === currentSelectedLetter.value);
-  if (found.length > 0) return found;
-
-  const fallbackLetter = letters.value.find((l) => l.letter === currentSelectedLetter.value);
-  if (fallbackLetter && (fallbackLetter.status === 'used' || fallbackLetter.status === 'excluded')) {
-    return [
-      {
-        letter: fallbackLetter.letter,
-        status: fallbackLetter.status,
-        note: fallbackLetter.note,
-        photo: fallbackLetter.photo,
-        partnerName: 'Партнер',
-        selectedAt: null,
-        completedAt: ''
-      }
-    ];
-  }
-  return [];
-});
-
-const resolvePlayerId = (item: LetterHistoryItem): number | null | undefined => {
-  if (item.playerId !== undefined) return item.playerId;
-  if (metadata.value?.partners) {
-    const p = metadata.value.partners.find(
-      (partner) =>
-        (item.partnerId && partner.id === item.partnerId) ||
-        (item.partnerName && partner.name === item.partnerName)
-    );
-    if (p?.playerId !== undefined) return p.playerId;
-  }
-  return null;
-};
-
-const getPartnerEmoji = (playerId?: number | null): string => {
-  if (playerId === null || playerId === undefined) {
-    return '👤';
-  }
-  return Math.abs(playerId) % 2 === 0 ? '👩' : '👨';
-};
+  currentSelectedLetter,
+  displayHistory,
+  letterHistoryItems,
+  expandedPhoto,
+  editingLetter,
+  isSavingEdit,
+  editError,
+  goBackToBoard,
+  handleViewAll,
+  handleCancelPin,
+  handleUnlockPin,
+  openPhoto,
+  closePhoto,
+  startEditing,
+  cancelEditing,
+  handleSaveInline,
+  resolvePlayerId,
+  getPartnerEmoji
+} = useMemoriesPage();
 
 const vSyncBadge = {
   mounted(el: HTMLElement) {
@@ -488,41 +329,7 @@ const vSyncBadge = {
     />
 
     <!-- Fullscreen Photo Lightbox Modal -->
-    <Teleport to="body">
-      <Transition name="lightbox-fade">
-        <div
-          v-if="expandedPhoto"
-          class="lightbox-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Збільшене фото"
-        >
-          <button
-            type="button"
-            class="lightbox-backdrop"
-            aria-label="Закрити зображення"
-            tabindex="-1"
-            @click="closePhoto"
-          />
-          <button
-            type="button"
-            class="lightbox-close-btn"
-            aria-label="Закрити зображення"
-            title="Закрити зображення"
-            @click="closePhoto"
-          >
-            ✕
-          </button>
-          <div class="lightbox-image-wrap">
-            <img
-              :src="expandedPhoto.src"
-              :alt="expandedPhoto.alt"
-              class="lightbox-img"
-            />
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <PhotoLightboxModal :photo="expandedPhoto" @close="closePhoto" />
   </main>
 </template>
 
@@ -1044,106 +851,5 @@ const vSyncBadge = {
   max-height: 240px;
   object-fit: cover;
   display: block;
-}
-
-/* Lightbox Fullscreen Modal */
-.lightbox-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background-color: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.lightbox-backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  border: none;
-  cursor: default;
-  z-index: 1;
-}
-
-.lightbox-close-btn {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10001;
-  background: rgba(0, 0, 0, 0.4);
-  border: none;
-  color: #ffffff;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    transform 0.1s ease;
-  line-height: 1;
-  backdrop-filter: blur(4px);
-}
-
-.lightbox-close-btn:hover {
-  background: rgba(0, 0, 0, 0.85);
-  transform: scale(1.08);
-}
-
-.lightbox-close-btn:active {
-  transform: scale(0.95);
-}
-
-.lightbox-close-btn:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 2px;
-}
-
-.lightbox-image-wrap {
-  position: relative;
-  z-index: 2;
-  width: 100vw;
-  height: 100vh;
-  max-width: 100vw;
-  max-height: 100vh;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lightbox-img {
-  width: 100%;
-  height: 100%;
-  max-width: 100vw;
-  max-height: 100vh;
-  object-fit: contain;
-  border-radius: 0;
-  box-shadow: none;
-  user-select: none;
-  display: block;
-}
-
-.lightbox-fade-enter-active,
-.lightbox-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.lightbox-fade-enter-from,
-.lightbox-fade-leave-to {
-  opacity: 0;
 }
 </style>

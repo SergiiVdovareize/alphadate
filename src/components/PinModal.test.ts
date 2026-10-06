@@ -1,8 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import PinModal from './PinModal.vue';
+import { _resetBodyScrollLockForTesting } from '../composables/useBodyScrollLock';
 
 describe('PinModal.vue', () => {
+  afterEach(() => {
+    _resetBodyScrollLockForTesting();
+  });
   it('does not render content when isOpen is false', () => {
     const wrapper = mount(PinModal, {
       props: { isOpen: false }

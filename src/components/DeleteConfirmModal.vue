@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import AppButton from './AppButton.vue';
+import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -10,6 +11,8 @@ const emit = defineEmits<{
   (e: 'confirm'): void;
   (e: 'cancel'): void;
 }>();
+
+useBodyScrollLock(() => props.isOpen);
 
 const handleKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Escape' && props.isOpen) {
@@ -23,19 +26,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown);
-  document.body.style.overflow = '';
 });
-
-watch(
-  () => props.isOpen,
-  (val) => {
-    if (val) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-  }
-);
 </script>
 
 <template>

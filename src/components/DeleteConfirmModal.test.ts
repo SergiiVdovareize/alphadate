@@ -1,8 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import DeleteConfirmModal from './DeleteConfirmModal.vue';
+import { _resetBodyScrollLockForTesting } from '../composables/useBodyScrollLock';
 
 describe('DeleteConfirmModal.vue', () => {
+  beforeEach(() => {
+    _resetBodyScrollLockForTesting();
+  });
+
+  afterEach(() => {
+    _resetBodyScrollLockForTesting();
+  });
   it('does not render content when isOpen is false', () => {
     const wrapper = mount(DeleteConfirmModal, {
       props: { isOpen: false }

@@ -2,6 +2,9 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import type { LetterHistoryItem, LetterState } from '../types';
 import { formatDurationBetween, formatCompletionDate } from '../utils/formatDuration';
+import { buildDisplayHistory, filterLetterHistory, getPartnerEmoji } from '../utils/history';
+import PhotoLightboxModal from './PhotoLightboxModal.vue';
+import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -30,58 +33,13 @@ const handleViewAll = () => {
   emit('view-all');
 };
 
-// Combined history: includes history array plus any letters with status 'used' or 'excluded' not yet in history
 const displayHistory = computed<LetterHistoryItem[]>(() => {
-  const items = [...props.history];
-  const historyLetters = new Set(items.map((i) => i.letter));
-
-  if (props.letters) {
-    for (const l of props.letters) {
-      if ((l.status === 'used' || l.status === 'excluded') && !historyLetters.has(l.letter)) {
-        items.push({
-          letter: l.letter,
-          status: l.status,
-          note: l.note,
-          photo: l.photo,
-          partnerName: 'Партнер',
-          selectedAt: null,
-          completedAt: ''
-        });
-      }
-    }
-  }
-  return items.reverse();
+  return buildDisplayHistory(props.history, props.letters);
 });
 
-// Filter for a specific letter if selectedLetter is set (with fallback to letter object)
 const letterHistoryItems = computed<LetterHistoryItem[]>(() => {
-  if (!currentSelectedLetter.value) return [];
-  const found = displayHistory.value.filter((h) => h.letter === currentSelectedLetter.value);
-  if (found.length > 0) return found;
-
-  const fallbackLetter = props.letters?.find((l) => l.letter === currentSelectedLetter.value);
-  if (fallbackLetter && (fallbackLetter.status === 'used' || fallbackLetter.status === 'excluded')) {
-    return [
-      {
-        letter: fallbackLetter.letter,
-        status: fallbackLetter.status,
-        note: fallbackLetter.note,
-        photo: fallbackLetter.photo,
-        partnerName: 'Партнер',
-        selectedAt: null,
-        completedAt: ''
-      }
-    ];
-  }
-  return [];
+  return filterLetterHistory(displayHistory.value, currentSelectedLetter.value, props.letters);
 });
-
-const getPartnerEmoji = (playerId?: number | null): string => {
-  if (playerId === null || playerId === undefined) {
-    return '👤';
-  }
-  return Math.abs(playerId) % 2 === 0 ? '👩' : '👨';
-};
 
 // Fullscreen photo state
 const expandedPhoto = ref<{ src: string; alt: string } | null>(null);
@@ -114,25 +72,10 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyDown);
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = '';
-  }
 });
 
 // Prevent body scroll when modal is open
-watch(
-  () => props.isOpen,
-  (val) => {
-    if (typeof document !== 'undefined') {
-      if (val) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    }
-  },
-  { immediate: true }
-);
+useBodyScrollLock(() => props.isOpen);
 </script>
 
 <template>
@@ -245,41 +188,7 @@ watch(
     </div>
 
     <!-- Fullscreen Photo Lightbox Modal inside letter modal -->
-    <Teleport to="body">
-      <Transition name="lightbox-fade">
-        <div
-          v-if="expandedPhoto"
-          class="lightbox-overlay"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Збільшене фото"
-        >
-          <button
-            type="button"
-            class="lightbox-backdrop"
-            aria-label="Закрити зображення"
-            tabindex="-1"
-            @click="closePhoto"
-          />
-          <button
-            type="button"
-            class="lightbox-close-btn"
-            aria-label="Закрити зображення"
-            title="Закрити зображення"
-            @click="closePhoto"
-          >
-            ✕
-          </button>
-          <div class="lightbox-image-wrap">
-            <img
-              :src="expandedPhoto.src"
-              :alt="expandedPhoto.alt"
-              class="lightbox-img"
-            />
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <PhotoLightboxModal :photo="expandedPhoto" @close="closePhoto" />
   </div>
 </template>
 
@@ -634,106 +543,5 @@ watch(
   font-size: 0.92rem;
   margin: 0;
   line-height: 1.45;
-}
-
-/* Lightbox Fullscreen */
-.lightbox-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background-color: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(6px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-  overflow: hidden;
-}
-
-.lightbox-backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background: transparent;
-  border: none;
-  cursor: default;
-  z-index: 1;
-}
-
-.lightbox-close-btn {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10001;
-  background: rgba(0, 0, 0, 0.4);
-  border: none;
-  color: #ffffff;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    transform 0.1s ease;
-  line-height: 1;
-  backdrop-filter: blur(4px);
-}
-
-.lightbox-close-btn:hover {
-  background: rgba(0, 0, 0, 0.85);
-  transform: scale(1.08);
-}
-
-.lightbox-close-btn:active {
-  transform: scale(0.95);
-}
-
-.lightbox-close-btn:focus-visible {
-  outline: 2px solid #ffffff;
-  outline-offset: 2px;
-}
-
-.lightbox-image-wrap {
-  position: relative;
-  z-index: 2;
-  width: 100vw;
-  height: 100vh;
-  max-width: 100vw;
-  max-height: 100vh;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lightbox-img {
-  width: 100%;
-  height: 100%;
-  max-width: 100vw;
-  max-height: 100vh;
-  object-fit: contain;
-  border-radius: 0;
-  box-shadow: none;
-  user-select: none;
-  display: block;
-}
-
-.lightbox-fade-enter-active,
-.lightbox-fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.lightbox-fade-enter-from,
-.lightbox-fade-leave-to {
-  opacity: 0;
 }
 </style>

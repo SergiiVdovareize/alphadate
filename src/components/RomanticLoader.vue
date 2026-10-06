@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, onUnmounted } from 'vue';
+import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 
 const props = withDefaults(
   defineProps<{
@@ -13,25 +13,7 @@ const props = withDefaults(
   }
 );
 
-watch(
-  () => props.visible,
-  (val) => {
-    if (typeof document !== 'undefined') {
-      if (val) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    }
-  },
-  { immediate: true }
-);
-
-onUnmounted(() => {
-  if (typeof document !== 'undefined') {
-    document.body.style.overflow = '';
-  }
-});
+useBodyScrollLock(() => props.visible);
 </script>
 
 <template>

@@ -1,14 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mount } from '@vue/test-utils';
 import RomanticLoader from './RomanticLoader.vue';
+import { _resetBodyScrollLockForTesting } from '../composables/useBodyScrollLock';
 
 describe('RomanticLoader.vue', () => {
   beforeEach(() => {
-    document.body.style.overflow = '';
+    _resetBodyScrollLockForTesting();
   });
 
   afterEach(() => {
-    document.body.style.overflow = '';
+    _resetBodyScrollLockForTesting();
   });
 
   it('does not render when visible is false', () => {

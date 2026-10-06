@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, watch, onMounted, nextTick } from 'vue';
 import { PIN_LENGTH } from '../constants';
 import AppAlert from './AppAlert.vue';
 import AppButton from './AppButton.vue';
+import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -17,6 +18,8 @@ const emit = defineEmits<{
 
 const pinInput = ref('');
 const inputRef = ref<HTMLInputElement | null>(null);
+
+useBodyScrollLock(() => props.isOpen);
 
 const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement;
@@ -37,15 +40,11 @@ const submitPin = () => {
 watch(
   () => props.isOpen,
   (val) => {
+    pinInput.value = '';
     if (val) {
-      document.body.style.overflow = 'hidden';
-      pinInput.value = '';
       nextTick(() => {
         inputRef.value?.focus();
       });
-    } else {
-      document.body.style.overflow = '';
-      pinInput.value = '';
     }
   },
   { immediate: true }
@@ -55,10 +54,6 @@ onMounted(() => {
   if (props.isOpen) {
     inputRef.value?.focus();
   }
-});
-
-onUnmounted(() => {
-  document.body.style.overflow = '';
 });
 </script>
 
