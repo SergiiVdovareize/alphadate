@@ -5,7 +5,8 @@ import type {
   UpdateBoardResponse,
   DateSuggestion,
   DateSuggestionsResponse,
-  RecoverBoardResponse
+  RecoverBoardResponse,
+  UpdateLetterResponse
 } from '../types';
 import { getDefaultBoardSuggestions } from './mocks/defaultSuggestions';
 import {
@@ -197,6 +198,36 @@ export const api = {
         message: 'Посилання на щоденник надіслано на вашу пошту'
       };
     }
+  },
+
+  async updateLetter(
+    key: string,
+    letter: string,
+    payload: { note?: string | null; photo?: string | null },
+    signal?: AbortSignal,
+    pin?: string
+  ): Promise<UpdateLetterResponse> {
+    if (key === DEFAULT_BOARD_ID) {
+      return {
+        success: true,
+        letter,
+        note: payload.note ?? null,
+        photo: payload.photo ?? null
+      };
+    }
+
+    const headers = await buildHeaders(key, pin);
+    const encodedKey = encodeURIComponent(key);
+    const encodedLetter = encodeURIComponent(letter);
+    return request<UpdateLetterResponse>(
+      `/alphadate/${encodedKey}/letters/${encodedLetter}`,
+      {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(payload),
+        signal
+      }
+    );
   }
 };
 
@@ -206,5 +237,6 @@ export type {
   UpdateBoardResponse,
   DateSuggestion,
   DateSuggestionsResponse,
-  RecoverBoardResponse
+  RecoverBoardResponse,
+  UpdateLetterResponse
 };

@@ -76,3 +76,10 @@ export interface RecoverBoardResponse {
   success: boolean;
   message?: string;
 }
+
+export interface UpdateLetterResponse {
+  success: boolean;
+  letter: string;
+  note?: string | null;
+  photo?: string | null;
+}

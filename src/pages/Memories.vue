@@ -7,6 +7,8 @@ import { formatDurationBetween, formatCompletionDate } from '../utils/formatDura
 import type { LetterHistoryItem } from '../types';
 import PinModal from '../components/PinModal.vue';
 import RomanticLoader from '../components/RomanticLoader.vue';
+import InlineMemoryEditor from '../components/InlineMemoryEditor.vue';
+import { getErrorMessage } from '../utils/errors';
 
 const route = useRoute();
 const router = useRouter();
@@ -19,7 +21,8 @@ const {
   isPinRequired,
   pinError,
   isLoadingBackend,
-  unlockWithPin
+  unlockWithPin,
+  updateCompletedLetter
 } = useAlphabetState(boardId);
 
 const currentSelectedLetter = computed<string | null>(() => {
@@ -57,6 +60,40 @@ const openPhoto = (photo: string, letter: string) => {
 
 const closePhoto = () => {
   expandedPhoto.value = null;
+};
+
+// Inline memory editing state
+const editingLetter = ref<string | null>(null);
+const isSavingEdit = ref(false);
+const editError = ref<string | null>(null);
+
+const startEditing = (item: LetterHistoryItem) => {
+  editingLetter.value = item.letter;
+  editError.value = null;
+};
+
+const cancelEditing = () => {
+  if (isSavingEdit.value) return;
+  editingLetter.value = null;
+  editError.value = null;
+};
+
+const handleSaveInline = async (payload: { note: string; photo?: string | null }) => {
+  if (!editingLetter.value) return;
+  isSavingEdit.value = true;
+  editError.value = null;
+
+  try {
+    await updateCompletedLetter(editingLetter.value, {
+      note: payload.note,
+      photo: payload.photo
+    });
+    editingLetter.value = null;
+  } catch (err) {
+    editError.value = getErrorMessage(err, 'Не вдалося зберегти зміни. Спробуйте ще раз.');
+  } finally {
+    isSavingEdit.value = false;
+  }
 };
 
 const handleKeyDown = (e: KeyboardEvent) => {
@@ -253,7 +290,7 @@ const vSyncBadge = {
                 </span>
               </div>
 
-              <div v-if="item.completedAt" class="meta-row">
+              <div v-if="item.completedAt" class="meta-row meta-date-row">
                 <span class="meta-label">
                   {{ item.status === 'excluded' ? 'Дата виключення:' : 'Дата завершення:' }}
                 </span>
@@ -263,14 +300,50 @@ const vSyncBadge = {
               </div>
             </div>
 
-            <div v-if="item.status !== 'excluded'" class="memory-note-box">
-              <span class="note-label">Враження від побачення:</span>
-              <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
-              <p v-else class="empty-note">Коментар не було додано</p>
+            <!-- Inline editor in this card OR static note & photo -->
+            <div v-if="item.status !== 'excluded'" class="single-letter-note-wrap">
+              <div v-if="editingLetter === item.letter" class="item-note single-letter-item-note">
+                <InlineMemoryEditor
+                  :letter="item.letter"
+                  :initial-note="item.note"
+                  :initial-photo="item.photo"
+                  :is-loading="isSavingEdit"
+                  :error="editError"
+                  @save="handleSaveInline"
+                  @cancel="cancelEditing"
+                />
+              </div>
+              <div v-else class="memory-note-box">
+                <div class="note-display-row">
+                  <div class="note-content-col">
+                    <p v-if="item.note" class="note-content">«{{ item.note }}»</p>
+                    <p v-else class="empty-note">Без коментаря</p>
+                  </div>
+                  <button
+                    v-if="item.status === 'used'"
+                    type="button"
+                    class="edit-note-btn edit-memory-under-date-btn"
+                    title="Редагувати спогад"
+                    :aria-label="'Редагувати спогад на літеру «' + item.letter + '»'"
+                    @click="startEditing(item)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                      class="edit-icon-svg"
+                      aria-hidden="true"
+                    >
+                      <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                      <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <button
-              v-if="item.photo"
+              v-if="editingLetter !== item.letter && item.photo"
               type="button"
               class="memory-photo-box soft-album-frame"
               aria-label="Збільшити фото"
@@ -340,13 +413,47 @@ const vSyncBadge = {
             </div>
           </div>
 
+          <!-- Inline editor in item-note OR static note & photo -->
           <div v-if="item.status !== 'excluded'" class="item-note">
-            <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
-            <p v-else class="empty-note-small">Без коментаря</p>
+            <InlineMemoryEditor
+              v-if="editingLetter === item.letter"
+              :letter="item.letter"
+              :initial-note="item.note"
+              :initial-photo="item.photo"
+              :is-loading="isSavingEdit"
+              :error="editError"
+              @save="handleSaveInline"
+              @cancel="cancelEditing"
+            />
+            <div v-else class="note-display-row">
+              <div class="note-content-col">
+                <p v-if="item.note" class="note-text">«{{ item.note }}»</p>
+                <p v-else class="empty-note-small">Без коментаря</p>
+              </div>
+              <button
+                v-if="item.status === 'used'"
+                type="button"
+                class="edit-note-btn edit-memory-under-date-btn"
+                title="Редагувати спогад"
+                :aria-label="'Редагувати спогад на літеру «' + item.letter + '»'"
+                @click="startEditing(item)"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  class="edit-icon-svg"
+                  aria-hidden="true"
+                >
+                  <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
+                  <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <button
-            v-if="item.photo"
+            v-if="editingLetter !== item.letter && item.photo"
             type="button"
             class="item-photo-box soft-album-mini"
             aria-label="Збільшити фото"
@@ -516,6 +623,61 @@ const vSyncBadge = {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.edit-note-btn,
+.edit-memory-under-date-btn {
+  background: transparent;
+  border: none;
+  padding: 0.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-muted, #718096);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  flex-shrink: 0;
+  line-height: 1;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.edit-note-btn:hover,
+.edit-memory-under-date-btn:hover {
+  color: var(--color-accent, #d97732);
+  background-color: rgba(217, 119, 50, 0.08);
+}
+
+.edit-note-btn:active,
+.edit-memory-under-date-btn:active {
+  transform: scale(0.92);
+}
+
+.edit-note-btn:focus-visible,
+.edit-memory-under-date-btn:focus-visible {
+  outline: 2px solid var(--color-accent, #d97732);
+  outline-offset: 2px;
+}
+
+.single-letter-note-wrap {
+  width: 100%;
+}
+
+.single-letter-item-note {
+  border-top: 1px dashed rgba(45, 55, 72, 0.12);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  width: 100%;
+}
+
+.edit-icon-svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
 }
 
 .excluded-badge {
@@ -594,16 +756,6 @@ const vSyncBadge = {
   border-radius: 12px;
   padding: 1rem;
   box-sizing: border-box;
-}
-
-.note-label {
-  display: block;
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--color-ink-muted, #718096);
-  margin-bottom: 0.4rem;
-  letter-spacing: 0.04em;
 }
 
 .note-content {
@@ -807,6 +959,18 @@ const vSyncBadge = {
 .item-note {
   border-top: 1px dashed rgba(45, 55, 72, 0.12);
   padding-top: 0.5rem;
+}
+
+.note-display-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.note-content-col {
+  flex: 1;
+  min-width: 0;
 }
 
 .note-text {

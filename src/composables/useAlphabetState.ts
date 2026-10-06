@@ -469,6 +469,57 @@ export function useAlphabetState(boardId: string) {
     }
   };
 
+  const updateCompletedLetter = async (
+    letterChar: string,
+    payload: { note?: string | null; photo?: string | null }
+  ): Promise<{ note?: string | null; photo?: string | null }> => {
+    const formattedNote =
+      payload.note !== undefined ? (payload.note ? payload.note.trim() : null) : undefined;
+    const formattedPhoto =
+      payload.photo !== undefined ? (payload.photo || null) : undefined;
+
+    let finalNote = formattedNote;
+    let finalPhoto = formattedPhoto;
+
+    if (boardId !== DEFAULT_BOARD_ID) {
+      const res = await api.updateLetter(boardId, letterChar, {
+        note: formattedNote,
+        photo: formattedPhoto
+      });
+      if (res.note !== undefined) {
+        finalNote = res.note;
+      }
+      if (res.photo !== undefined) {
+        finalPhoto = res.photo;
+      }
+    }
+
+    // Update letters array
+    const item = letters.value.find((l) => l.letter === letterChar);
+    if (item) {
+      if (payload.note !== undefined) {
+        item.note = finalNote || undefined;
+      }
+      if (payload.photo !== undefined) {
+        item.photo = finalPhoto || undefined;
+      }
+    }
+
+    // Update history array
+    history.value.forEach((h) => {
+      if (h.letter === letterChar) {
+        if (payload.note !== undefined) {
+          h.note = finalNote || undefined;
+        }
+        if (payload.photo !== undefined) {
+          h.photo = finalPhoto || undefined;
+        }
+      }
+    });
+
+    return { note: finalNote, photo: finalPhoto };
+  };
+
   return {
     letters,
     metadata,
@@ -482,6 +533,7 @@ export function useAlphabetState(boardId: string) {
     pinError,
     fetchState,
     markAsStatus,
+    updateCompletedLetter,
     pickRandom,
     resetState,
     initBoardMetadata,

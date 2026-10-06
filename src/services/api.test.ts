@@ -253,4 +253,59 @@ describe('api service', () => {
     expect(result.success).toBe(true);
     expect(result.message).toContain('Посилання на щоденник надіслано');
   });
+
+  it('updateLetter returns mock response for DEFAULT_BOARD_ID', async () => {
+    const fetchSpy = vi.fn();
+    globalThis.fetch = fetchSpy;
+
+    const res = await api.updateLetter('default', 'А', {
+      note: 'Оновлена замітка',
+      photo: 'data:image/webp;base64,abc'
+    });
+
+    expect(res).toEqual({
+      success: true,
+      letter: 'А',
+      note: 'Оновлена замітка',
+      photo: 'data:image/webp;base64,abc'
+    });
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it('updateLetter makes a PATCH request with encoded letter, payload, and PIN header', async () => {
+    const mockResponse = {
+      success: true,
+      letter: 'А',
+      note: 'Нова замітка',
+      photo: 'https://blob.vercel.com/photo.webp'
+    };
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => mockResponse
+    } as Response);
+
+    const res = await api.updateLetter(
+      'custom-key',
+      'А',
+      { note: 'Нова замітка', photo: 'data:image/webp;base64,123' },
+      undefined,
+      '4321'
+    );
+
+    expect(res).toEqual(mockResponse);
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/alphadate/custom-key/letters/%D0%90'),
+      expect.objectContaining({
+        method: 'PATCH',
+        headers: expect.objectContaining({
+          'Content-Type': 'application/json',
+          'x-board-pin': '4321'
+        }),
+        body: JSON.stringify({
+          note: 'Нова замітка',
+          photo: 'data:image/webp;base64,123'
+        })
+      })
+    );
+  });
 });

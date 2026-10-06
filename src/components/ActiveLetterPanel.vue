@@ -270,7 +270,7 @@ onUnmounted(() => {
             :disabled="isProcessingPhoto"
             @click="submitComplete"
           >
-            Підтвердити виконання
+            Зберегти спогад
           </AppButton>
           <AppButton
             type="button"

@@ -81,6 +81,7 @@ describe('Memories.vue', () => {
       pinError: ref(null),
       isLoadingBackend: ref(false),
       unlockWithPin: vi.fn().mockResolvedValue(true),
+      updateCompletedLetter: vi.fn().mockResolvedValue({ note: 'Оновлено', photo: null }),
       ...overrides
     };
   };
@@ -287,5 +288,62 @@ describe('Memories.vue', () => {
     expect(document.body.querySelector('.lightbox-overlay')).toBeNull();
 
     wrapper.unmount();
+  });
+
+  it('renders inline InlineMemoryEditor when clicking edit button in list view, and saves changes', async () => {
+    const mockUpdateLetter = vi.fn().mockResolvedValue({ note: 'Оновлена замітка', photo: null });
+    vi.mocked(useAlphabetState).mockReturnValue(
+      createMockAlphabetState({ updateCompletedLetter: mockUpdateLetter }) as never
+    );
+
+    const wrapper = mount(Memories);
+    const editBtn = wrapper.find('.edit-memory-under-date-btn');
+    expect(editBtn.exists()).toBe(true);
+
+    await editBtn.trigger('click');
+
+    const inlineEditor = wrapper.findComponent({ name: 'InlineMemoryEditor' });
+    expect(inlineEditor.exists()).toBe(true);
+    expect(inlineEditor.props('letter')).toBe('О');
+    expect(wrapper.find('.item-note').findComponent({ name: 'InlineMemoryEditor' }).exists()).toBe(true);
+
+    // Emit save
+    inlineEditor.vm.$emit('save', { note: 'Оновлена замітка', photo: null });
+    await wrapper.vm.$nextTick();
+
+    expect(mockUpdateLetter).toHaveBeenCalledWith('О', {
+      note: 'Оновлена замітка',
+      photo: null
+    });
+  });
+
+  it('renders inline InlineMemoryEditor in single letter view and handles save error', async () => {
+    mockRouteQuery = { letter: 'К' };
+    const mockUpdateLetter = vi.fn().mockRejectedValue(new Error('Server error'));
+    vi.mocked(useAlphabetState).mockReturnValue(
+      createMockAlphabetState({ updateCompletedLetter: mockUpdateLetter }) as never
+    );
+
+    const wrapper = mount(Memories);
+    const editBtn = wrapper.find('.edit-memory-under-date-btn');
+    expect(editBtn.exists()).toBe(true);
+
+    await editBtn.trigger('click');
+
+    const inlineEditor = wrapper.findComponent({ name: 'InlineMemoryEditor' });
+    expect(inlineEditor.exists()).toBe(true);
+    expect(inlineEditor.props('letter')).toBe('К');
+
+    // Emit save which fails
+    inlineEditor.vm.$emit('save', { note: 'Помилкова замітка', photo: null });
+    await wrapper.vm.$nextTick();
+    await wrapper.vm.$nextTick();
+
+    expect(mockUpdateLetter).toHaveBeenCalledWith('К', {
+      note: 'Помилкова замітка',
+      photo: null
+    });
+    expect(wrapper.findComponent({ name: 'InlineMemoryEditor' }).exists()).toBe(true); // Still editing on error
+    expect(inlineEditor.props('error')).toContain('Не вдалося зберегти зміни');
   });
 });

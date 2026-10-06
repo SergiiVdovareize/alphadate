@@ -9,7 +9,8 @@ vi.mock('../services/api', async (importOriginal) => {
     api: {
       getBoard: vi.fn(),
       updateBoard: vi.fn(),
-      deleteBoard: vi.fn()
+      deleteBoard: vi.fn(),
+      updateLetter: vi.fn()
     }
   };
 });
@@ -306,5 +307,62 @@ describe('useAlphabetState', () => {
     initBoardLocalStorage('test-has-pin', ['Оля', 'Ігор'], true);
     const stored = JSON.parse(localStorage.getItem('alphadate_state_test-has-pin') || '{}');
     expect(stored.metadata.hasPin).toBe(true);
+  });
+
+  it('updateCompletedLetter updates letter and history items and calls api.updateLetter', async () => {
+    const state = useAlphabetState('board-update-letter');
+    await state.markAsStatus('А', 'used', 'Початковий відгук', true, 'data:image/webp;base64,old');
+
+    vi.mocked(api.updateLetter).mockResolvedValue({
+      success: true,
+      letter: 'А',
+      note: 'Оновлений відгук',
+      photo: 'https://cdn.example.com/photo.webp'
+    });
+
+    const res = await state.updateCompletedLetter('А', {
+      note: '  Оновлений відгук  ',
+      photo: 'data:image/webp;base64,new'
+    });
+
+    expect(api.updateLetter).toHaveBeenCalledWith('board-update-letter', 'А', {
+      note: 'Оновлений відгук',
+      photo: 'data:image/webp;base64,new'
+    });
+
+    expect(res).toEqual({
+      note: 'Оновлений відгук',
+      photo: 'https://cdn.example.com/photo.webp'
+    });
+
+    const letterItem = state.letters.value.find((l) => l.letter === 'А');
+    expect(letterItem?.note).toBe('Оновлений відгук');
+    expect(letterItem?.photo).toBe('https://cdn.example.com/photo.webp');
+
+    const historyItem = state.history.value.find((h) => h.letter === 'А');
+    expect(historyItem?.note).toBe('Оновлений відгук');
+    expect(historyItem?.photo).toBe('https://cdn.example.com/photo.webp');
+  });
+
+  it('updateCompletedLetter works for default board locally', async () => {
+    const state = useAlphabetState('default');
+    await state.markAsStatus('Б', 'used', 'Старий відгук');
+
+    vi.mocked(api.updateLetter).mockClear();
+
+    const res = await state.updateCompletedLetter('Б', {
+      note: 'Новий відгук',
+      photo: null
+    });
+
+    expect(api.updateLetter).not.toHaveBeenCalled();
+    expect(res).toEqual({
+      note: 'Новий відгук',
+      photo: null
+    });
+
+    const letterItem = state.letters.value.find((l) => l.letter === 'Б');
+    expect(letterItem?.note).toBe('Новий відгук');
+    expect(letterItem?.photo).toBeUndefined();
   });
 });

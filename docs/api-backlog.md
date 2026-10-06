@@ -38,33 +38,13 @@ This document tracks required backend changes, missing API endpoints, property p
   - [ ] Always return `{ "success": true }` to prevent email enumeration.
   - [ ] Document endpoint in `docs/api/alphadate.md`.
 
-### 🟡 AP-002: Date completion photo support in board state
+### 🟢 AP-002: Date completion photo support and update completed letter
 - **Requested Date**: 2026-10-03
-- **Target Endpoints**: `PUT /alphadate/:key`, `GET /alphadate/:key`
-- **Frontend Need**: Users can attach 1 photo from their date when completing a letter. The client resizes & compresses the image into a WebP data URL (with JPEG fallback) and includes `photo` in `LetterState` and `LetterHistoryItem`.
-- **Proposed Request / Response Addition**:
-  ```json
-  // In LetterState (PUT payload & GET response):
-  {
-    "letter": "К",
-    "status": "used",
-    "note": "Каяки на заході сонця",
-    "photo": "data:image/webp;base64,..."
-  }
-
-  // In LetterHistoryItem (GET response):
-  {
-    "letter": "К",
-    "partnerName": "Олена",
-    "status": "used",
-    "note": "Каяки на заході сонця",
-    "photo": "data:image/webp;base64,...",
-    "completedAt": "2026-10-03T18:00:00.000Z"
-  }
-  ```
-- **Client Mock Status**: Client compresses image to max 1200px WebP quality 0.8 (~60-100KB, fallback JPEG ~100-160KB), stores in localStorage, and sends via existing `updateBoard` payload.
-- **Backend Acceptance Criteria**:
-  - [ ] Persist `photo` (string / data URL) in letter objects in `letters` array on `PUT /alphadate/:key`.
-  - [ ] Return `photo` field in `letters` and `history` on `GET /alphadate/:key`.
-  - [ ] (Future enhancement) Dedicated photo upload endpoint `POST /alphadate/:key/photo` if payload sizes grow.
+- **Completed Date**: 2026-10-06
+- **Target Endpoints**: `PUT /alphadate/:key`, `GET /alphadate/:key`, `PATCH /alphadate/:key/letters/:letter`
+- **Frontend Need**: Users can attach 1 photo when completing a letter, and edit/update the note or photo of completed letters directly from the memories page.
+- **Implemented Contract**:
+  - `PATCH /alphadate/:key/letters/:letter` with `{ note: string | null, photo: string | null }`
+  - Headers: `x-board-pin` for protected boards.
+- **Status**: Completed in backend (`api-me`) and integrated in frontend via `api.updateLetter`, `useAlphabetState.updateCompletedLetter`, and `InlineMemoryEditor.vue` in `Memories.vue`.
 
