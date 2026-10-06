@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
 
-export interface LightboxPhoto {
+interface LightboxPhoto {
   src: string;
   alt?: string;
 }
