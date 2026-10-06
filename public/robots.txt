@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /$
+Allow: /assets/
+Allow: /favicon.png
+Allow: /logo.png
+Disallow: /
