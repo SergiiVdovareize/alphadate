@@ -16,6 +16,37 @@ const goToRecover = () => {
   router.push('/recover');
 };
 
+const onExpandEnter = (element: Element) => {
+  const el = element as HTMLElement;
+  el.style.height = '0';
+  el.style.opacity = '0';
+  el.style.overflow = 'hidden';
+  void el.offsetHeight;
+  el.style.transition = 'height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease';
+  const targetHeight = el.scrollHeight;
+  el.style.height = targetHeight > 0 ? `${targetHeight}px` : 'auto';
+  el.style.opacity = '1';
+};
+
+const onExpandAfterEnter = (element: Element) => {
+  const el = element as HTMLElement;
+  el.style.height = '';
+  el.style.opacity = '';
+  el.style.overflow = '';
+  el.style.transition = '';
+};
+
+const onExpandLeave = (element: Element) => {
+  const el = element as HTMLElement;
+  el.style.height = `${el.offsetHeight}px`;
+  el.style.opacity = '1';
+  el.style.overflow = 'hidden';
+  void el.offsetHeight;
+  el.style.transition = 'height 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease';
+  el.style.height = '0';
+  el.style.opacity = '0';
+};
+
 const isEmailError = computed(
   () => !!errorMessage.value && errorMessage.value.includes('електронну пошту')
 );
@@ -100,8 +131,14 @@ const isPinError = computed(
             </svg>
           </button>
 
-          <Transition name="expand">
-            <div v-if="isBoardsListOpen" class="saved-boards-dropdown">
+          <Transition
+            name="expand"
+            @enter="onExpandEnter"
+            @after-enter="onExpandAfterEnter"
+            @leave="onExpandLeave"
+          >
+            <div v-if="isBoardsListOpen" class="saved-boards-collapse">
+              <div class="saved-boards-dropdown">
               <div class="dropdown-list" role="list">
                 <button
                   v-for="(board, idx) in savedBoards"
@@ -149,7 +186,8 @@ const isPinError = computed(
                 </button>
               </div>
             </div>
-          </Transition>
+          </div>
+        </Transition>
         </div>
       </div>
 
@@ -180,41 +218,48 @@ const isPinError = computed(
           </svg>
         </button>
 
-        <Transition name="expand">
-          <div v-if="isHowItWorksOpen" class="how-it-works-content">
-            <p class="how-it-works-lead">
-              <strong>Alphabet Dating</strong> — це романтична традиція для пари, яка перетворює побачення на спільну захопливу пригоду за українським алфавітом від <strong>А</strong> до <strong>Я</strong>.
-            </p>
-            <ol class="how-it-works-steps">
-              <li class="how-step">
-                <span class="step-num" aria-hidden="true">1</span>
-                <div class="step-text">
-                  <strong>Обирайте літеру по черзі</strong>
-                  <span>Обирайте разом або довіртеся рандомайзеру. Хто обрав — той планує побачення-сюрприз!</span>
-                </div>
-              </li>
-              <li class="how-step">
-                <span class="step-num" aria-hidden="true">2</span>
-                <div class="step-text">
-                  <strong>Придумуйте ідею на обрану літеру</strong>
-                  <span>Наприклад: <em>«А»</em> — Астрономічна обсерваторія, <em>«К»</em> — Каякінг, <em>«П»</em> — Пікнік на заході сонця.</span>
-                </div>
-              </li>
-              <li class="how-step">
-                <span class="step-num" aria-hidden="true">3</span>
-                <div class="step-text">
-                  <strong>Встигніть до завершення таймера</strong>
-                  <span>На виконання кожної літери є 30 днів, щоб не відкладати романтичні плани на потім.</span>
-                </div>
-              </li>
-              <li class="how-step">
-                <span class="step-num" aria-hidden="true">4</span>
-                <div class="step-text">
-                  <strong>Зберігайте спільні спогади</strong>
-                  <span>Відзначайте літеру виконаною, додавайте фотографії та щирі враження до вашого щоденника.</span>
-                </div>
-              </li>
-            </ol>
+        <Transition
+          name="expand"
+          @enter="onExpandEnter"
+          @after-enter="onExpandAfterEnter"
+          @leave="onExpandLeave"
+        >
+          <div v-if="isHowItWorksOpen" class="how-it-works-collapse">
+            <div class="how-it-works-content">
+              <p class="how-it-works-lead">
+                <strong>Alphabet Dating</strong> — це романтична традиція для пари, яка перетворює побачення на спільну захопливу пригоду за українським алфавітом від <strong>А</strong> до <strong>Я</strong>.
+              </p>
+              <ol class="how-it-works-steps">
+                <li class="how-step">
+                  <span class="step-num" aria-hidden="true">1</span>
+                  <div class="step-text">
+                    <strong>Обирайте літеру по черзі</strong>
+                    <span>Обирайте разом або довіртеся рандомайзеру. Хто обрав — той планує побачення-сюрприз!</span>
+                  </div>
+                </li>
+                <li class="how-step">
+                  <span class="step-num" aria-hidden="true">2</span>
+                  <div class="step-text">
+                    <strong>Придумуйте ідею на обрану літеру</strong>
+                    <span>Наприклад: <em>«А»</em> — Астрономічна обсерваторія, <em>«К»</em> — Каякінг, <em>«П»</em> — Пікнік на заході сонця.</span>
+                  </div>
+                </li>
+                <li class="how-step">
+                  <span class="step-num" aria-hidden="true">3</span>
+                  <div class="step-text">
+                    <strong>Встигніть до завершення таймера</strong>
+                    <span>На виконання кожної літери є 30 днів, щоб не відкладати романтичні плани на потім.</span>
+                  </div>
+                </li>
+                <li class="how-step">
+                  <span class="step-num" aria-hidden="true">4</span>
+                  <div class="step-text">
+                    <strong>Зберігайте спільні спогади</strong>
+                    <span>Відзначайте літеру виконаною, додавайте фотографії та щирі враження до вашого щоденника.</span>
+                  </div>
+                </li>
+              </ol>
+            </div>
           </div>
         </Transition>
       </div>
@@ -852,16 +897,31 @@ input.input-error:focus {
   transform: translateX(2px);
 }
 
-.expand-enter-active,
+.how-it-works-collapse,
+.saved-boards-collapse {
+  width: 100%;
+  overflow: hidden;
+}
+
+.expand-enter-active {
+  transition:
+    height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.25s ease;
+  overflow: hidden;
+}
+
 .expand-leave-active {
-  transition: all 0.2s ease-out;
+  transition:
+    height 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.2s ease;
   overflow: hidden;
 }
 
 .expand-enter-from,
 .expand-leave-to {
-  opacity: 0;
-  transform: translateY(-4px);
+  height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
 }
 
 .recovery-section {
