@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import type { LetterState } from '../composables/useAlphabetState';
+import IconDice from './icons/IconDice.vue';
+
 
 const props = defineProps<{
   pickRandom: () => LetterState | null;
@@ -47,7 +49,9 @@ const handleRandomPick = () => {
       @click="handleRandomPick"
     >
       <span v-if="isPicking" class="picking-label">
-        <span class="dice-icon" aria-hidden="true">🎲</span>
+        <span class="dice-icon" aria-hidden="true">
+          <IconDice class="dice-icon-svg" />
+        </span>
         Обираємо...
       </span>
       <span v-else>Випадкова літера</span>
@@ -122,8 +126,15 @@ const handleRandomPick = () => {
 }
 
 .dice-icon {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   animation: dice-wobble 0.6s ease-in-out infinite;
+}
+
+.dice-icon-svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 @keyframes dice-wobble {

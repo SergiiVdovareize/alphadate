@@ -73,12 +73,13 @@ describe('AlphabetGrid.vue', () => {
     expect(buttons[0].find('.excluded-cross-badge').exists()).toBe(false);
 
     expect(buttons[1].find('.used-check-badge').exists()).toBe(true);
-    expect(buttons[1].find('.used-check-badge').text()).toBe('✓');
+    expect(buttons[1].find('.used-check-badge .used-check-svg').exists()).toBe(true);
     expect(buttons[1].find('.excluded-cross-badge').exists()).toBe(false);
 
     expect(buttons[2].find('.excluded-cross-badge').exists()).toBe(true);
-    expect(buttons[2].find('.excluded-cross-badge').text()).toBe('✕');
+    expect(buttons[2].find('.excluded-cross-badge .excluded-cross-svg').exists()).toBe(true);
     expect(buttons[2].find('.used-check-badge').exists()).toBe(false);
+
   });
 
   it('provides descriptive aria-labels for assistive technologies', () => {

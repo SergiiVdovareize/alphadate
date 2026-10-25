@@ -5,6 +5,7 @@ import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
 import AppAlert from '../components/AppAlert.vue';
 import AppButton from '../components/AppButton.vue';
+import IconHeart from '../components/icons/IconHeart.vue';
 
 const router = useRouter();
 const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, createBoard } =
@@ -74,7 +75,9 @@ const isPinError = computed(
           <div class="suggestion-content">
             <div class="suggestion-header">
               <span class="suggestion-tag">
-                <span class="tag-heart" aria-hidden="true">💕</span>
+                <span class="tag-heart" aria-hidden="true">
+                  <IconHeart class="tag-heart-svg" />
+                </span>
                 {{ savedBoards.length > 1 ? 'Останній щоденник' : 'Збережений щоденник' }}
               </span>
             </div>
@@ -664,8 +667,15 @@ input.input-error:focus {
 }
 
 .tag-heart {
-  font-size: 0.75rem;
-  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tag-heart-svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  color: #e25c75;
 }
 
 .suggestion-partners {

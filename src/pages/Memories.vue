@@ -5,6 +5,11 @@ import RomanticLoader from '../components/RomanticLoader.vue';
 import InlineMemoryEditor from '../components/InlineMemoryEditor.vue';
 import PhotoLightboxModal from '../components/PhotoLightboxModal.vue';
 import { useMemoriesPage } from '../composables/useMemoriesPage';
+import IconBook from '../components/icons/IconBook.vue';
+import IconClose from '../components/icons/IconClose.vue';
+import IconClock from '../components/icons/IconClock.vue';
+import IconMail from '../components/icons/IconMail.vue';
+import IconPartnerAvatar from '../components/icons/IconPartnerAvatar.vue';
 
 const {
   isPinRequired,
@@ -27,8 +32,10 @@ const {
   cancelEditing,
   handleSaveInline,
   resolvePlayerId,
-  getPartnerEmoji
+  getPartnerAvatarType
 } = useMemoriesPage();
+
+
 
 const vSyncBadge = {
   mounted(el: HTMLElement) {
@@ -91,7 +98,10 @@ const vSyncBadge = {
     <header class="page-header">
       <h1 class="page-title">
         <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
-        <span v-else>📖 Спільні спогади</span>
+        <span v-else class="title-with-icon">
+          <IconBook class="page-title-book-svg" />
+          <span>Спільні спогади</span>
+        </span>
       </h1>
     </header>
 
@@ -112,14 +122,23 @@ const vSyncBadge = {
           <div v-for="(item, idx) in letterHistoryItems" :key="idx" class="single-memory-view">
             <div class="memory-letter-heading">
               <span class="memory-letter-char">{{ item.letter }}</span>
-              <span v-if="item.status === 'excluded'" class="excluded-badge">✕ Літеру виключено з щоденнику</span>
+              <span v-if="item.status === 'excluded'" class="excluded-badge">
+                <IconClose class="badge-cross-svg" />
+                <span>Літеру виключено з щоденнику</span>
+              </span>
             </div>
 
             <div class="memory-meta">
               <div v-if="item.partnerName" class="meta-row">
                 <span class="meta-label">Організатор:</span>
                 <span class="partner-pill">
-                  <span class="partner-icon" aria-hidden="true">{{ getPartnerEmoji(resolvePlayerId(item)) }}</span>
+                  <span
+                    class="partner-icon"
+                    :class="'avatar-' + getPartnerAvatarType(resolvePlayerId(item))"
+                    aria-hidden="true"
+                  >
+                    <IconPartnerAvatar :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
+                  </span>
                   <strong>{{ item.partnerName }}</strong>
                 </span>
               </div>
@@ -127,7 +146,8 @@ const vSyncBadge = {
               <div v-if="item.status !== 'excluded'" class="meta-row">
                 <span class="meta-label">Час на виконання:</span>
                 <span class="duration-badge">
-                  ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
+                  <IconClock class="duration-clock-svg" />
+                  <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                 </span>
               </div>
 
@@ -205,7 +225,9 @@ const vSyncBadge = {
       <!-- Link to open full history -->
       <div class="view-all-history-section">
         <button type="button" class="view-all-history-link" @click="handleViewAll">
-          <span class="view-all-icon" aria-hidden="true">📖</span>
+          <span class="view-all-icon" aria-hidden="true">
+            <IconBook class="view-all-book-svg" />
+          </span>
           <span class="view-all-text">Відкрити спільні спогади</span>
         </button>
       </div>
@@ -214,7 +236,9 @@ const vSyncBadge = {
     <!-- Multiple items history list view -->
     <div v-else class="history-list-view">
       <div v-if="displayHistory.length === 0" class="empty-history">
-        <span class="empty-icon" aria-hidden="true">💌</span>
+        <span class="empty-icon" aria-hidden="true">
+          <IconMail class="empty-envelope-svg" />
+        </span>
         <p class="empty-title">Поки що немає спільних спогадів</p>
         <p class="empty-desc">
           Оберіть літеру в щоденнику, проведіть незабутній час разом та збережіть перші враження!
@@ -231,12 +255,20 @@ const vSyncBadge = {
           <div v-sync-badge class="item-header">
             <div class="item-letter-badge" :class="{ 'is-excluded': item.status === 'excluded' }">
               <span>{{ item.letter }}</span>
-              <span v-if="item.status === 'excluded'" class="badge-sub-cross" aria-hidden="true">✕</span>
+              <span v-if="item.status === 'excluded'" class="badge-sub-cross" aria-hidden="true">
+                <IconClose class="badge-cross-svg" />
+              </span>
             </div>
             <div class="item-main-info">
               <div class="item-top-line">
                 <span class="partner-pill">
-                  <span class="partner-icon" aria-hidden="true">{{ getPartnerEmoji(resolvePlayerId(item)) }}</span>
+                  <span
+                    class="partner-icon"
+                    :class="'avatar-' + getPartnerAvatarType(resolvePlayerId(item))"
+                    aria-hidden="true"
+                  >
+                    <IconPartnerAvatar :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
+                  </span>
                   <strong>{{ item.partnerName || 'Партнер' }}</strong>
                 </span>
                 <span v-if="item.completedAt" class="date-badge">
@@ -245,10 +277,12 @@ const vSyncBadge = {
               </div>
               <div class="item-duration-line">
                 <span v-if="item.status === 'excluded'" class="excluded-pill">
-                  ✕ Літеру виключено з щоденнику
+                  <IconClose class="badge-cross-svg" />
+                  <span>Літеру виключено з щоденнику</span>
                 </span>
                 <span v-else class="duration-badge">
-                  ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
+                  <IconClock class="duration-clock-svg" />
+                  <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                 </span>
               </div>
             </div>
@@ -324,7 +358,7 @@ const vSyncBadge = {
     <!-- Romantic Loader while loading backend data -->
     <RomanticLoader
       :visible="isLoadingBackend"
-      message="Завантажуємо спільні спогади... 💕"
+      message="Завантажуємо спільні спогади..."
       submessage="Відкриваємо вашу романтичну історію..."
     />
 
@@ -393,6 +427,19 @@ const vSyncBadge = {
   color: var(--color-ink, #2d3748);
   letter-spacing: -0.02em;
 }
+
+.title-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-title-book-svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: var(--color-accent, #d97732);
+}
+
 
 /* Single Letter View */
 .single-letter-container {
@@ -488,6 +535,9 @@ const vSyncBadge = {
 }
 
 .excluded-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-error, #c53030);
@@ -495,6 +545,12 @@ const vSyncBadge = {
   border: 1px solid rgba(197, 48, 48, 0.2);
   padding: 0.25rem 0.65rem;
   border-radius: 8px;
+}
+
+.badge-cross-svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
 }
 
 .memory-letter-char {
@@ -542,13 +598,44 @@ const vSyncBadge = {
 }
 
 .partner-icon {
-  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.partner-avatar-svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.avatar-female-svg {
+  color: var(--color-primary, #e11d48);
+}
+
+.avatar-male-svg {
+  color: #0284c7;
+}
+
+.avatar-neutral-svg {
+  color: #64748b;
 }
 
 .duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-weight: 700;
   color: var(--color-accent-confirm, #5ea885);
 }
+
+.duration-clock-svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
 
 .date-text {
   font-weight: 600;
@@ -628,8 +715,14 @@ const vSyncBadge = {
 }
 
 .view-all-icon {
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
+}
+
+.view-all-book-svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 /* History List View */
@@ -651,9 +744,19 @@ const vSyncBadge = {
 }
 
 .empty-icon {
-  font-size: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 0.75rem;
 }
+
+.empty-envelope-svg {
+  width: 3rem;
+  height: 3rem;
+  color: var(--color-ink-muted, #718096);
+  opacity: 0.8;
+}
+
 
 .empty-title {
   font-size: 1.1rem;
@@ -720,15 +823,22 @@ const vSyncBadge = {
   position: absolute;
   top: 4px;
   right: 5px;
-  font-size: 0.65rem;
-  font-weight: 900;
   color: var(--color-error, #c53030);
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-sub-cross .badge-cross-svg {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .excluded-pill {
   display: inline-flex;
   align-items: center;
+  gap: 0.3rem;
   font-weight: 700;
   font-size: 0.8rem;
   color: var(--color-error, #c53030);
@@ -737,6 +847,13 @@ const vSyncBadge = {
   border-radius: 6px;
   line-height: 1.2;
 }
+
+.excluded-pill .badge-cross-svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex-shrink: 0;
+}
+
 
 .item-main-info {
   flex: 1;

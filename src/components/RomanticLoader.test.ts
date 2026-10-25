@@ -24,7 +24,7 @@ describe('RomanticLoader.vue', () => {
       props: { visible: true }
     });
     expect(wrapper.find('.romantic-loader-overlay').exists()).toBe(true);
-    expect(wrapper.find('.loader-title').text()).toBe('Зберігаємо побачення... 💕');
+    expect(wrapper.find('.loader-title').text()).toBe('Зберігаємо побачення...');
     expect(wrapper.find('.loader-submessage').text()).toBe(
       'Синхронізуємо ваші спогади з сервером...'
     );
@@ -35,11 +35,11 @@ describe('RomanticLoader.vue', () => {
     const wrapper = mount(RomanticLoader, {
       props: {
         visible: true,
-        message: 'Оновлюємо щоденник... ✨',
+        message: 'Оновлюємо щоденник...',
         submessage: 'Зачекайте декілька секунд'
       }
     });
-    expect(wrapper.find('.loader-title').text()).toBe('Оновлюємо щоденник... ✨');
+    expect(wrapper.find('.loader-title').text()).toBe('Оновлюємо щоденник...');
     expect(wrapper.find('.loader-submessage').text()).toBe('Зачекайте декілька секунд');
   });
 

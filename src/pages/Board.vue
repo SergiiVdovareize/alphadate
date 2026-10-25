@@ -8,6 +8,9 @@ import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
 import PinModal from '../components/PinModal.vue';
 import SetPinModal from '../components/SetPinModal.vue';
 import RomanticLoader from '../components/RomanticLoader.vue';
+import IconAlertTriangle from '../components/icons/IconAlertTriangle.vue';
+import IconBook from '../components/icons/IconBook.vue';
+
 
 const {
   boardId,
@@ -99,21 +102,7 @@ const goToMemories = () => {
           aria-label="Захистити щоденник PIN-кодом"
           @click="handleOpenSetPin"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.3"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="attention-icon"
-            aria-hidden="true"
-          >
-            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-            <line x1="12" y1="9" x2="12" y2="13" />
-            <line x1="12" y1="17" x2="12.01" y2="17" stroke-width="3" />
-          </svg>
+          <IconAlertTriangle class="attention-icon" />
         </button>
       </Transition>
     </header>
@@ -121,7 +110,8 @@ const goToMemories = () => {
     <template v-if="!isPinRequired">
       <!-- Sync error notification banner -->
       <div v-if="fetchError" class="sync-warning-banner" role="alert">
-        <span>⚠️ {{ fetchError }} (показано локальні дані)</span>
+        <IconAlertTriangle class="sync-warning-icon" />
+        <span>{{ fetchError }} (показано локальні дані)</span>
       </div>
 
       <!-- Partner turns banner -->
@@ -180,7 +170,9 @@ const goToMemories = () => {
       <!-- History Journal Trigger Link -->
       <div class="history-trigger-section">
         <button type="button" class="history-journal-link" @click="openHistory()">
-          <span class="journal-icon" aria-hidden="true">📖</span>
+          <span class="journal-icon" aria-hidden="true">
+            <IconBook class="journal-icon-svg" />
+          </span>
           <span class="journal-link-text">Спільні спогади</span>
           <span v-if="history.length > 0" class="history-count-pill">
             {{ history.length }}
@@ -359,6 +351,10 @@ const goToMemories = () => {
 }
 
 .sync-warning-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   background: rgba(var(--color-accent-rgb, 217, 119, 50), 0.12);
   border: 1.5px solid var(--color-accent, #d97732);
   border-radius: 12px;
@@ -368,6 +364,13 @@ const goToMemories = () => {
   font-size: 0.88rem;
   font-weight: 600;
   text-align: center;
+}
+
+.sync-warning-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex-shrink: 0;
+  color: var(--color-accent, #d97732);
 }
 
 .brand-wrap {
@@ -608,8 +611,15 @@ const goToMemories = () => {
 }
 
 .journal-icon {
-  font-size: 1.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+}
+
+.journal-icon-svg {
+  width: 1.15rem;
+  height: 1.15rem;
 }
 
 .history-count-pill {

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { LetterState } from '../composables/useAlphabetState';
+import IconCheck from './icons/IconCheck.vue';
+import IconClose from './icons/IconClose.vue';
+
 
 const props = defineProps<{
   letters: LetterState[];
@@ -62,8 +65,12 @@ const getLetterAriaLabel = (item: LetterState): string => {
       @click="handleClick(item)"
     >
       <span>{{ item.letter }}</span>
-      <span v-if="item.status === 'used'" class="used-check-badge" aria-hidden="true">✓</span>
-      <span v-else-if="item.status === 'excluded'" class="excluded-cross-badge" aria-hidden="true">✕</span>
+      <span v-if="item.status === 'used'" class="used-check-badge" aria-hidden="true">
+        <IconCheck class="used-check-svg" />
+      </span>
+      <span v-else-if="item.status === 'excluded'" class="excluded-cross-badge" aria-hidden="true">
+        <IconClose class="excluded-cross-svg" />
+      </span>
     </button>
   </div>
 </template>
@@ -261,10 +268,17 @@ const getLetterAriaLabel = (item: LetterState): string => {
 .excluded-cross-badge {
   position: absolute;
   top: 3px;
-  right: 5px;
-  font-size: 0.7rem;
-  font-weight: 900;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+}
+
+.used-check-svg,
+.excluded-cross-svg {
+  width: 0.75rem;
+  height: 0.75rem;
 }
 
 .used-check-badge {
@@ -274,4 +288,5 @@ const getLetterAriaLabel = (item: LetterState): string => {
 .excluded-cross-badge {
   color: var(--color-error, #c53030);
 }
+
 </style>

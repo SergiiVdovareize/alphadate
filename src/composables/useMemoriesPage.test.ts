@@ -106,13 +106,14 @@ describe('useMemoriesPage', () => {
     expect(page.editingLetter.value).toBeNull();
   });
 
-  it('resolves partner playerId and emojis correctly', () => {
+  it('resolves partner playerId and avatar types correctly', () => {
     const page = useMemoriesPage('test-board');
 
-    expect(page.getPartnerEmoji(1)).toBe('👨');
-    expect(page.getPartnerEmoji(2)).toBe('👩');
-    expect(page.getPartnerEmoji(null)).toBe('👤');
-    expect(page.getPartnerEmoji(undefined)).toBe('👤');
+    expect(page.getPartnerAvatarType(1)).toBe('male');
+    expect(page.getPartnerAvatarType(2)).toBe('female');
+    expect(page.getPartnerAvatarType(null)).toBe('neutral');
+    expect(page.getPartnerAvatarType(undefined)).toBe('neutral');
+
 
     const resolved = page.resolvePlayerId({
       letter: 'А',
@@ -123,3 +124,4 @@ describe('useMemoriesPage', () => {
     expect(resolved).toBe(2);
   });
 });
+

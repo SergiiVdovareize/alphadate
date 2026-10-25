@@ -25,7 +25,8 @@ describe('PhotoUploadInput.vue', () => {
 
     expect(wrapper.find('.photo-preview-card').exists()).toBe(true);
     expect(wrapper.find('.photo-thumbnail').attributes('src')).toBe('data:image/webp;base64,sample');
-    expect(wrapper.find('.photo-success-label').text()).toContain('📸 Фото прикріплено');
+    expect(wrapper.find('.photo-success-label').text()).toContain('Фото прикріплено');
+    expect(wrapper.find('.photo-success-icon').exists()).toBe(true);
   });
 
   it('emits update:modelValue null when remove button is clicked', async () => {

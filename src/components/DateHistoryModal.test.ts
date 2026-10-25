@@ -59,14 +59,14 @@ describe('DateHistoryModal.vue', () => {
     expect(wrapper.find('.modal-title').text()).toContain('Спогад про літеру «А»');
     expect(wrapper.find('.memory-letter-char').text()).toBe('А');
     expect(wrapper.text()).toContain('Сергій');
-    expect(wrapper.text()).toContain('👨');
+    expect(wrapper.find('.partner-icon.avatar-male').exists()).toBe(true);
     expect(wrapper.text()).toContain('Враження від побачення:');
     expect(wrapper.text()).toContain('Чудове побачення в кав’ярні');
     expect(wrapper.find('.duration-badge').exists()).toBe(true);
     expect(wrapper.find('.memory-photo-box').exists()).toBe(true);
   });
 
-  it('renders female partner emoji for even playerId and neutral for null', () => {
+  it('renders female partner avatar for even playerId and neutral for null', () => {
     const wrapperEven = mount(DateHistoryModal, {
       props: {
         isOpen: true,
@@ -74,7 +74,7 @@ describe('DateHistoryModal.vue', () => {
         selectedLetter: 'Б'
       }
     });
-    expect(wrapperEven.text()).toContain('👩');
+    expect(wrapperEven.find('.partner-icon.avatar-female').exists()).toBe(true);
 
     const wrapperNull = mount(DateHistoryModal, {
       props: {
@@ -91,7 +91,7 @@ describe('DateHistoryModal.vue', () => {
         selectedLetter: 'Д'
       }
     });
-    expect(wrapperNull.text()).toContain('👤');
+    expect(wrapperNull.find('.partner-icon.avatar-neutral').exists()).toBe(true);
   });
 
   it('renders excluded badge and hides note box and duration for excluded letter', () => {
@@ -105,10 +105,12 @@ describe('DateHistoryModal.vue', () => {
     });
 
     expect(wrapper.find('.excluded-badge').exists()).toBe(true);
-    expect(wrapper.find('.excluded-badge').text()).toBe('✕ Літеру виключено з щоденнику');
+    expect(wrapper.find('.excluded-badge').text()).toContain('Літеру виключено з щоденнику');
+    expect(wrapper.find('.excluded-badge .badge-cross-svg').exists()).toBe(true);
     expect(wrapper.find('.memory-note-box').exists()).toBe(false);
     expect(wrapper.find('.duration-badge').exists()).toBe(false);
   });
+
 
   it('renders fallback for used letter from letters array when not in history prop', () => {
     const wrapper = mount(DateHistoryModal, {

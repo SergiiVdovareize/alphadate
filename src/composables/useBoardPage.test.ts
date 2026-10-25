@@ -305,7 +305,7 @@ describe('useBoardPage', () => {
       const vm = useBoardPage();
 
       expect(vm.isPageLoaderVisible.value).toBe(true);
-      expect(vm.pageLoaderMessage.value).toBe('Завантажуємо щоденник... 💕');
+      expect(vm.pageLoaderMessage.value).toBe('Завантажуємо щоденник...');
       expect(vm.pageLoaderSubmessage.value).toBe('Синхронізуємо ваші побачення з сервером...');
     });
 
@@ -332,7 +332,7 @@ describe('useBoardPage', () => {
 
       expect(vm.isMarkingLetter.value).toBe(true);
       expect(vm.isPageLoaderVisible.value).toBe(true);
-      expect(vm.pageLoaderMessage.value).toBe('Зберігаємо побачення... 💕');
+      expect(vm.pageLoaderMessage.value).toBe('Зберігаємо побачення...');
       expect(vm.pageLoaderSubmessage.value).toBe('Синхронізуємо ваші спогади з сервером...');
 
       resolveMock!();
@@ -358,7 +358,7 @@ describe('useBoardPage', () => {
 
       expect(vm.isMarkingLetter.value).toBe(true);
       expect(vm.isPageLoaderVisible.value).toBe(true);
-      expect(vm.pageLoaderMessage.value).toBe('Оновлюємо щоденник... ✨');
+      expect(vm.pageLoaderMessage.value).toBe('Оновлюємо щоденник...');
 
       resolveMock!();
       await excludePromise;

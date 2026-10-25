@@ -56,7 +56,8 @@ describe('RandomPickButton.vue', () => {
     expect(button.attributes('disabled')).toBeDefined();
     expect(wrapper.find('.picking-label').exists()).toBe(true);
     expect(wrapper.text()).toContain('Обираємо...');
-    expect(wrapper.text()).toContain('🎲');
+    expect(wrapper.find('.dice-icon').exists()).toBe(true);
+    expect(wrapper.find('.dice-icon-svg').exists()).toBe(true);
 
     await button.trigger('click');
     expect(pickRandom).not.toHaveBeenCalled();

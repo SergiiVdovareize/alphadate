@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
+import IconClose from './icons/IconClose.vue';
+
 
 interface LightboxPhoto {
   src: string;
@@ -58,7 +60,7 @@ onUnmounted(() => {
           title="Закрити зображення"
           @click="emit('close')"
         >
-          ✕
+          <IconClose class="lightbox-close-icon" />
         </button>
         <div class="lightbox-image-wrap">
           <img
@@ -138,6 +140,12 @@ onUnmounted(() => {
   outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
+
+.lightbox-close-icon {
+  width: 20px;
+  height: 20px;
+}
+
 
 .lightbox-image-wrap {
   position: relative;

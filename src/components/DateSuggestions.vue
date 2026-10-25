@@ -2,6 +2,10 @@
 import { useDateSuggestions } from '../composables/useDateSuggestions';
 import AppAlert from './AppAlert.vue';
 import AppButton from './AppButton.vue';
+import IconLightbulb from './icons/IconLightbulb.vue';
+import IconRefresh from './icons/IconRefresh.vue';
+import IconSparkle from './icons/IconSparkle.vue';
+
 
 const props = defineProps<{
   boardId: string;
@@ -22,7 +26,9 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
       :aria-expanded="isOpen"
       @click="toggleOpen"
     >
-      <span class="btn-icon">💡</span>
+      <span class="btn-icon" aria-hidden="true">
+        <IconLightbulb class="btn-bulb-svg" />
+      </span>
       <span class="btn-text">Ідеї для побачення на літеру «{{ letter }}»</span>
       <svg
         class="chevron-icon"
@@ -60,14 +66,19 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
           size="sm"
           @click="() => fetchSuggestions(true)"
         >
-          Спробувати знову ↻
+          <span class="retry-btn-content">
+            <IconRefresh class="retry-icon-svg" />
+            <span>Спробувати знову</span>
+          </span>
         </AppButton>
       </div>
 
       <!-- Suggestions List -->
       <div v-else-if="hasSuggestions" class="suggestions-content">
         <div class="ai-disclaimer">
-          <span class="ai-sparkle" aria-hidden="true">🤖</span>
+          <span class="ai-sparkle" aria-hidden="true">
+            <IconSparkle class="ai-sparkle-svg" />
+          </span>
           <span class="ai-disclaimer-text">
             Ці ідеї згенеровано штучним інтелектом — сміливо адаптуйте їх під ваші спільні смаки!
           </span>
@@ -156,8 +167,26 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 }
 
 .btn-icon {
-  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+}
+
+.btn-bulb-svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.retry-btn-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.retry-icon-svg {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 .chevron-icon {
@@ -246,10 +275,16 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
 }
 
 .ai-sparkle {
-  font-size: 1.05rem;
-  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-accent, #d97732);
+}
+
+.ai-sparkle-svg {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 .ai-disclaimer-text {

@@ -4,7 +4,7 @@ import { useAlphabetState } from './useAlphabetState';
 import { DEFAULT_BOARD_ID } from '../constants';
 import type { LetterHistoryItem } from '../types';
 import { getErrorMessage } from '../utils/errors';
-import { buildDisplayHistory, filterLetterHistory, getPartnerEmoji } from '../utils/history';
+import { buildDisplayHistory, filterLetterHistory, getPartnerAvatarType } from '../utils/history';
 
 export function useMemoriesPage(initialBoardId?: string) {
   const route = useRoute();
@@ -139,6 +139,8 @@ export function useMemoriesPage(initialBoardId?: string) {
     cancelEditing,
     handleSaveInline,
     resolvePlayerId,
-    getPartnerEmoji
+    getPartnerAvatarType
   };
 }
+
+

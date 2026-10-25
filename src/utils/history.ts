@@ -51,9 +51,13 @@ export function filterLetterHistory(
   return [];
 }
 
-export function getPartnerEmoji(playerId?: number | null): string {
+export type PartnerAvatarType = 'female' | 'male' | 'neutral';
+
+export function getPartnerAvatarType(playerId?: number | null): PartnerAvatarType {
   if (playerId === null || playerId === undefined) {
-    return '👤';
+    return 'neutral';
   }
-  return Math.abs(playerId) % 2 === 0 ? '👩' : '👨';
+  return Math.abs(playerId) % 2 === 0 ? 'female' : 'male';
 }
+
+

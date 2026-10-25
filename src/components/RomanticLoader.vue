@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
+import IconSparkle from './icons/IconSparkle.vue';
+import IconHeart from './icons/IconHeart.vue';
+
 
 const props = withDefaults(
   defineProps<{
@@ -8,7 +11,7 @@ const props = withDefaults(
     submessage?: string;
   }>(),
   {
-    message: 'Зберігаємо побачення... 💕',
+    message: 'Зберігаємо побачення...',
     submessage: 'Синхронізуємо ваші спогади з сервером...'
   }
 );
@@ -29,9 +32,16 @@ useBodyScrollLock(() => props.visible);
         <!-- Thematic floating romantic elements -->
         <div class="heart-animation-wrapper">
           <div class="heart-halo" aria-hidden="true"></div>
-          <span class="sparkle sparkle-1" aria-hidden="true">✨</span>
-          <span class="sparkle sparkle-2" aria-hidden="true">💖</span>
-          <span class="sparkle sparkle-3" aria-hidden="true">✨</span>
+          <span class="sparkle sparkle-1" aria-hidden="true">
+            <IconSparkle class="sparkle-icon" />
+          </span>
+          <span class="sparkle sparkle-2" aria-hidden="true">
+            <IconHeart class="sparkle-icon sparkle-heart" />
+          </span>
+          <span class="sparkle sparkle-3" aria-hidden="true">
+            <IconSparkle class="sparkle-icon" />
+          </span>
+
 
           <!-- Beating heart SVG -->
           <svg
@@ -137,8 +147,22 @@ useBodyScrollLock(() => props.visible);
 
 .sparkle {
   position: absolute;
-  font-size: 1.1rem;
   pointer-events: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sparkle-icon {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: #fbbf24;
+}
+
+.sparkle-heart {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: #f43f5e;
 }
 
 .sparkle-1 {

@@ -42,7 +42,7 @@ function createMockBoardPage(overrides: Partial<ReturnType<typeof useBoardPage>>
     isMarkingLetter: ref(false),
     markingLetterMessage: ref(''),
     isPageLoaderVisible: computed(() => false),
-    pageLoaderMessage: computed(() => 'Завантажуємо щоденник... 💕'),
+    pageLoaderMessage: computed(() => 'Завантажуємо щоденник...'),
     pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...'),
     handleUnlockPin: vi.fn(),
     handleCancelPin: vi.fn(),
@@ -207,7 +207,7 @@ describe('Board.vue', () => {
     vi.mocked(useBoardPage).mockReturnValue(
       createMockBoardPage({
         isPageLoaderVisible: computed(() => true),
-        pageLoaderMessage: computed(() => 'Завантажуємо щоденник... 💕'),
+        pageLoaderMessage: computed(() => 'Завантажуємо щоденник...'),
         pageLoaderSubmessage: computed(() => 'Синхронізуємо ваші побачення з сервером...')
       })
     );
@@ -216,7 +216,7 @@ describe('Board.vue', () => {
     const loader = wrapper.findComponent({ name: 'RomanticLoader' });
     expect(loader.exists()).toBe(true);
     expect(loader.props('visible')).toBe(true);
-    expect(loader.props('message')).toBe('Завантажуємо щоденник... 💕');
+    expect(loader.props('message')).toBe('Завантажуємо щоденник...');
     expect(loader.props('submessage')).toBe('Синхронізуємо ваші побачення з сервером...');
   });
 

@@ -28,7 +28,7 @@ describe('Memories.vue', () => {
     {
       letter: 'К',
       partnerName: 'Андрій',
-      playerId: 1, // odd -> 👨
+      playerId: 1, // odd -> male
       status: 'used',
       note: 'Каяки на заході сонця',
       selectedAt: '2026-09-20T10:00:00Z',
@@ -37,7 +37,7 @@ describe('Memories.vue', () => {
     {
       letter: 'О',
       partnerName: 'Олена',
-      playerId: 2, // even -> 👩
+      playerId: 2, // even -> female
       status: 'used',
       note: 'Опера у театрі',
       selectedAt: '2026-09-10T10:00:00Z',
@@ -47,7 +47,7 @@ describe('Memories.vue', () => {
     {
       letter: 'Е',
       partnerName: 'Гість',
-      playerId: null, // null -> 👤
+      playerId: null, // null -> neutral
       status: 'excluded',
       completedAt: '2026-09-15T12:00:00Z'
     }
@@ -96,27 +96,28 @@ describe('Memories.vue', () => {
   it('renders page-title and list of history-card-item elements', () => {
     const wrapper = mount(Memories);
 
-    expect(wrapper.find('.page-title').text()).toBe('📖 Спільні спогади');
+    expect(wrapper.find('.page-title').text()).toContain('Спільні спогади');
+    expect(wrapper.find('.page-title-book-svg').exists()).toBe(true);
     expect(wrapper.findAll('.history-card-item')).toHaveLength(3);
     expect(wrapper.text()).toContain('Каяки на заході сонця');
     expect(wrapper.text()).toContain('Опера у театрі');
   });
 
-  it('renders correct partner gender emojis: odd=👨, even=👩, null=👤 in reversed order', () => {
+  it('renders correct partner gender avatars: odd=male, even=female, null=neutral in reversed order', () => {
     const wrapper = mount(Memories);
     const partnerPills = wrapper.findAll('.partner-pill');
 
     expect(partnerPills).toHaveLength(3);
-    // 1st (reversed from sampleHistory[2]): playerId null -> 👤
-    expect(partnerPills[0].find('.partner-icon').text()).toBe('👤');
+    // 1st (reversed from sampleHistory[2]): playerId null -> neutral avatar
+    expect(partnerPills[0].find('.partner-icon.avatar-neutral').exists()).toBe(true);
     expect(partnerPills[0].text()).toContain('Гість');
 
-    // 2nd (reversed from sampleHistory[1]): playerId 2 (even) -> 👩
-    expect(partnerPills[1].find('.partner-icon').text()).toBe('👩');
+    // 2nd (reversed from sampleHistory[1]): playerId 2 (even) -> female avatar
+    expect(partnerPills[1].find('.partner-icon.avatar-female').exists()).toBe(true);
     expect(partnerPills[1].text()).toContain('Олена');
 
-    // 3rd (reversed from sampleHistory[0]): playerId 1 (odd) -> 👨
-    expect(partnerPills[2].find('.partner-icon').text()).toBe('👨');
+    // 3rd (reversed from sampleHistory[0]): playerId 1 (odd) -> male avatar
+    expect(partnerPills[2].find('.partner-icon.avatar-male').exists()).toBe(true);
     expect(partnerPills[2].text()).toContain('Андрій');
   });
 
@@ -149,7 +150,7 @@ describe('Memories.vue', () => {
 
     const wrapper = mount(Memories);
     const partnerPill = wrapper.find('.partner-pill');
-    expect(partnerPill.find('.partner-icon').text()).toBe('👩');
+    expect(partnerPill.find('.partner-icon.avatar-female').exists()).toBe(true);
   });
 
   it('renders excluded items with cross badge and excluded pill', () => {
@@ -159,7 +160,8 @@ describe('Memories.vue', () => {
 
     expect(excludedCard.classes()).toContain('is-excluded-item');
     expect(excludedCard.find('.item-letter-badge').classes()).toContain('is-excluded');
-    expect(excludedCard.find('.excluded-pill').text()).toContain('✕ Літеру виключено з щоденнику');
+    expect(excludedCard.find('.excluded-pill').text()).toContain('Літеру виключено з щоденнику');
+    expect(excludedCard.find('.excluded-pill .badge-cross-svg').exists()).toBe(true);
     expect(excludedCard.find('.item-note').exists()).toBe(false);
   });
 
@@ -217,8 +219,9 @@ describe('Memories.vue', () => {
     const wrapper = mount(Memories);
     expect(wrapper.find('.empty-history').exists()).toBe(true);
     expect(wrapper.text()).toContain('Поки що немає спільних спогадів');
-    expect(wrapper.find('.empty-icon').text()).toBe('💌');
+    expect(wrapper.find('.empty-icon .empty-envelope-svg').exists()).toBe(true);
   });
+
 
   it('falls back to letters state for completed/excluded letters not yet in history', () => {
     vi.mocked(useAlphabetState).mockReturnValue(

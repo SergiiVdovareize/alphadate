@@ -2,6 +2,9 @@
 import { ref } from 'vue';
 import { compressImageFile } from '../utils/image';
 import AppAlert from './AppAlert.vue';
+import IconCamera from './icons/IconCamera.vue';
+import IconClose from './icons/IconClose.vue';
+
 
 const props = withDefaults(
   defineProps<{
@@ -20,7 +23,7 @@ const props = withDefaults(
     ariaLabel: 'Завантажити фото з побачення',
     buttonText: 'Прикріпити фото',
     processingText: 'Обробка фото...',
-    successLabel: '📸 Фото прикріплено',
+    successLabel: 'Фото прикріплено',
     changeButtonText: 'Змінити',
     removeButtonTitle: 'Видалити фото'
   }
@@ -101,11 +104,14 @@ const removePhoto = () => {
           :disabled="disabled || isProcessing"
           @click="removePhoto"
         >
-          ✕
+          <IconClose />
         </button>
       </div>
       <div class="photo-info-wrap">
-        <span class="photo-success-label photo-status-text">{{ successLabel }}</span>
+        <span class="photo-success-label photo-status-text">
+          <IconCamera class="photo-success-icon" />
+          {{ successLabel }}
+        </span>
         <button
           type="button"
           class="change-photo-btn"
@@ -125,26 +131,7 @@ const removePhoto = () => {
         :disabled="disabled || isProcessing"
         @click="triggerFileInput"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke-width="1.8"
-          stroke="currentColor"
-          class="camera-icon"
-          aria-hidden="true"
-        >
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z"
-          />
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z"
-          />
-        </svg>
+        <IconCamera class="camera-icon" />
         <span v-if="isProcessing">{{ processingText }}</span>
         <span v-else>{{ buttonText }}</span>
       </button>
@@ -297,9 +284,18 @@ const removePhoto = () => {
 
 .photo-success-label,
 .photo-status-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--color-ink, #2d3748);
+}
+
+.photo-success-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--color-accent, #d97732);
 }
 
 .change-photo-btn {

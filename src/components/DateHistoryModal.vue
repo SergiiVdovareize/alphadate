@@ -2,9 +2,14 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import type { LetterHistoryItem, LetterState } from '../types';
 import { formatDurationBetween, formatCompletionDate } from '../utils/formatDuration';
-import { buildDisplayHistory, filterLetterHistory, getPartnerEmoji } from '../utils/history';
+import { buildDisplayHistory, filterLetterHistory, getPartnerAvatarType } from '../utils/history';
 import PhotoLightboxModal from './PhotoLightboxModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
+import IconBook from './icons/IconBook.vue';
+import IconClose from './icons/IconClose.vue';
+import IconClock from './icons/IconClock.vue';
+import IconPartnerAvatar from './icons/IconPartnerAvatar.vue';
+
 
 const props = defineProps<{
   isOpen: boolean;
@@ -97,10 +102,13 @@ useBodyScrollLock(() => props.isOpen);
       <header class="modal-header">
         <h3 id="history-modal-title" class="modal-title">
           <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
-          <span v-else>📖 Спільні спогади</span>
+          <span v-else class="title-with-icon">
+            <IconBook class="modal-title-book-svg" />
+            <span>Спільні спогади</span>
+          </span>
         </h3>
         <button type="button" class="close-icon-btn" aria-label="Закрити" @click="emit('close')">
-          ✕
+          <IconClose class="close-icon-svg" />
         </button>
       </header>
 
@@ -122,7 +130,8 @@ useBodyScrollLock(() => props.isOpen);
               <div class="memory-letter-heading">
                 <span class="memory-letter-char">{{ item.letter }}</span>
                 <span v-if="item.status === 'excluded'" class="excluded-badge">
-                  ✕ Літеру виключено з щоденнику
+                  <IconClose class="badge-cross-svg" />
+                  <span>Літеру виключено з щоденнику</span>
                 </span>
               </div>
 
@@ -130,7 +139,13 @@ useBodyScrollLock(() => props.isOpen);
                 <div v-if="item.partnerName" class="meta-row">
                   <span class="meta-label">Організатор:</span>
                   <span class="partner-pill">
-                    <span class="partner-icon" aria-hidden="true">{{ getPartnerEmoji(item.playerId) }}</span>
+                    <span
+                      class="partner-icon"
+                      :class="'avatar-' + getPartnerAvatarType(item.playerId)"
+                      aria-hidden="true"
+                    >
+                      <IconPartnerAvatar :avatar-type="getPartnerAvatarType(item.playerId)" />
+                    </span>
                     <strong>{{ item.partnerName }}</strong>
                   </span>
                 </div>
@@ -138,7 +153,8 @@ useBodyScrollLock(() => props.isOpen);
                 <div v-if="item.status !== 'excluded'" class="meta-row">
                   <span class="meta-label">Час на виконання:</span>
                   <span class="duration-badge">
-                    ⏱ {{ formatDurationBetween(item.selectedAt, item.completedAt) }}
+                    <IconClock class="duration-clock-svg" />
+                    <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                   </span>
                 </div>
 
@@ -180,7 +196,9 @@ useBodyScrollLock(() => props.isOpen);
         <!-- Link to open full dedicated memories page -->
         <div class="view-all-history-section">
           <button type="button" class="view-all-history-link" @click="handleViewAll">
-            <span class="view-all-icon" aria-hidden="true">📖</span>
+            <span class="view-all-icon" aria-hidden="true">
+              <IconBook class="view-all-book-svg" />
+            </span>
             <span class="view-all-text">Відкрити всі спільні спогади</span>
           </button>
         </div>
@@ -266,6 +284,18 @@ useBodyScrollLock(() => props.isOpen);
   color: var(--color-ink, #2d3748);
 }
 
+.title-with-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-title-book-svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--color-accent, #d97732);
+}
+
 .close-icon-btn {
   background: transparent;
   border: none;
@@ -285,6 +315,12 @@ useBodyScrollLock(() => props.isOpen);
     background-color 0.15s ease,
     transform 0.1s ease;
 }
+
+.close-icon-svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
 
 .close-icon-btn:hover {
   color: var(--color-ink, #2d3748);
@@ -338,6 +374,9 @@ useBodyScrollLock(() => props.isOpen);
 }
 
 .excluded-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--color-error, #c53030);
@@ -345,6 +384,12 @@ useBodyScrollLock(() => props.isOpen);
   border: 1px solid rgba(197, 48, 48, 0.2);
   padding: 0.25rem 0.65rem;
   border-radius: 8px;
+}
+
+.badge-cross-svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
 }
 
 .memory-letter-char {
@@ -390,13 +435,44 @@ useBodyScrollLock(() => props.isOpen);
 }
 
 .partner-icon {
-  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.partner-avatar-svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  flex-shrink: 0;
+}
+
+.avatar-female-svg {
+  color: var(--color-primary, #e11d48);
+}
+
+.avatar-male-svg {
+  color: #0284c7;
+}
+
+.avatar-neutral-svg {
+  color: #64748b;
 }
 
 .duration-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   font-weight: 700;
   color: var(--color-accent-confirm, #5ea885);
 }
+
+.duration-clock-svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex-shrink: 0;
+}
+
 
 .date-text {
   font-weight: 600;
@@ -518,9 +594,16 @@ useBodyScrollLock(() => props.isOpen);
 }
 
 .view-all-icon {
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
   line-height: 1;
 }
+
+.view-all-book-svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
 
 .empty-history {
   display: flex;

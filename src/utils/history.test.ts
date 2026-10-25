@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { buildDisplayHistory, filterLetterHistory, getPartnerEmoji } from './history';
+import { buildDisplayHistory, filterLetterHistory, getPartnerAvatarType } from './history';
 import type { LetterHistoryItem, LetterState } from '../types';
 
 describe('utils/history', () => {
+
+
   const sampleHistory: LetterHistoryItem[] = [
     {
       letter: 'А',
@@ -42,12 +44,14 @@ describe('utils/history', () => {
     expect(filteredNull).toHaveLength(0);
   });
 
-  it('returns appropriate emojis for player IDs', () => {
-    expect(getPartnerEmoji(1)).toBe('👨');
-    expect(getPartnerEmoji(3)).toBe('👨');
-    expect(getPartnerEmoji(2)).toBe('👩');
-    expect(getPartnerEmoji(4)).toBe('👩');
-    expect(getPartnerEmoji(null)).toBe('👤');
-    expect(getPartnerEmoji(undefined)).toBe('👤');
+  it('returns appropriate avatar types for player IDs', () => {
+    expect(getPartnerAvatarType(1)).toBe('male');
+    expect(getPartnerAvatarType(3)).toBe('male');
+    expect(getPartnerAvatarType(2)).toBe('female');
+    expect(getPartnerAvatarType(4)).toBe('female');
+    expect(getPartnerAvatarType(null)).toBe('neutral');
+    expect(getPartnerAvatarType(undefined)).toBe('neutral');
   });
 });
+
+

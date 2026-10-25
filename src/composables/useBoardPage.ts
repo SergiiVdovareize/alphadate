@@ -219,7 +219,7 @@ export function useBoardPage() {
   const handleCompleteLetter = async (note: string, photo?: string) => {
     if (!activeLetter.value || isMarkingLetter.value || isSyncing.value) return;
     isMarkingLetter.value = true;
-    markingLetterMessage.value = 'Зберігаємо побачення... 💕';
+    markingLetterMessage.value = 'Зберігаємо побачення...';
     try {
       if (photo) {
         await markAsStatus(activeLetter.value.letter, 'used', note, true, photo);
@@ -235,7 +235,7 @@ export function useBoardPage() {
   const handleExcludeLetter = async () => {
     if (!activeLetter.value || isMarkingLetter.value || isSyncing.value) return;
     isMarkingLetter.value = true;
-    markingLetterMessage.value = 'Оновлюємо щоденник... ✨';
+    markingLetterMessage.value = 'Оновлюємо щоденник...';
     try {
       await markAsStatus(activeLetter.value.letter, 'excluded');
     } finally {
@@ -299,9 +299,9 @@ export function useBoardPage() {
 
   const pageLoaderMessage = computed(() => {
     if (isMarkingLetter.value) {
-      return markingLetterMessage.value || 'Зберігаємо побачення... 💕';
+      return markingLetterMessage.value || 'Зберігаємо побачення...';
     }
-    return 'Завантажуємо щоденник... 💕';
+    return 'Завантажуємо щоденник...';
   });
 
   const pageLoaderSubmessage = computed(() => {

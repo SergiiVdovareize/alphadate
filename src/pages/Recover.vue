@@ -2,6 +2,8 @@
 import AppLogo from '../components/AppLogo.vue';
 import AppAlert from '../components/AppAlert.vue';
 import AppButton from '../components/AppButton.vue';
+import IconMail from '../components/icons/IconMail.vue';
+
 import { useRecoverPage } from '../composables/useRecoverPage';
 
 const {
@@ -172,7 +174,9 @@ const {
           </form>
 
           <div v-else class="success-box" role="status">
-            <div class="success-icon" aria-hidden="true">💌</div>
+            <div class="success-icon" aria-hidden="true">
+              <IconMail class="success-envelope-svg" />
+            </div>
             <h3 class="success-title">Лист надіслано!</h3>
             <p class="success-desc">
               Якщо щоденник було зареєстровано на цю адресу, ми надіслали лист із посиланням на нього.
@@ -510,7 +514,15 @@ h1 {
 }
 
 .success-icon {
-  font-size: 1.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #276749;
+}
+
+.success-envelope-svg {
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .success-title {
