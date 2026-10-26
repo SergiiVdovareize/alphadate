@@ -2,8 +2,7 @@
 import { ref } from 'vue';
 import { compressImageFile } from '../utils/image';
 import AppAlert from './AppAlert.vue';
-import IconCamera from './icons/IconCamera.vue';
-import IconClose from './icons/IconClose.vue';
+import { Camera, X } from 'lucide-vue-next';
 
 
 const props = withDefaults(
@@ -104,12 +103,12 @@ const removePhoto = () => {
           :disabled="disabled || isProcessing"
           @click="removePhoto"
         >
-          <IconClose />
+          <X />
         </button>
       </div>
       <div class="photo-info-wrap">
         <span class="photo-success-label photo-status-text">
-          <IconCamera class="photo-success-icon" />
+          <Camera class="photo-success-icon" />
           {{ successLabel }}
         </span>
         <button
@@ -131,7 +130,7 @@ const removePhoto = () => {
         :disabled="disabled || isProcessing"
         @click="triggerFileInput"
       >
-        <IconCamera class="camera-icon" />
+        <Camera class="camera-icon" />
         <span v-if="isProcessing">{{ processingText }}</span>
         <span v-else>{{ buttonText }}</span>
       </button>

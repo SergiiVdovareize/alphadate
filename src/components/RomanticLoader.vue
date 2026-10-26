@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import IconSparkle from './icons/IconSparkle.vue';
-import IconHeart from './icons/IconHeart.vue';
+import { Sparkles as IconSparkle, Heart as IconHeart } from 'lucide-vue-next';
 
 
 const props = withDefaults(

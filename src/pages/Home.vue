@@ -5,7 +5,7 @@ import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
 import AppAlert from '../components/AppAlert.vue';
 import AppButton from '../components/AppButton.vue';
-import IconHeart from '../components/icons/IconHeart.vue';
+import { Heart as IconHeart } from 'lucide-vue-next';
 
 const router = useRouter();
 const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, createBoard } =

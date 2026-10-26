@@ -8,8 +8,7 @@ import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
 import PinModal from '../components/PinModal.vue';
 import SetPinModal from '../components/SetPinModal.vue';
 import RomanticLoader from '../components/RomanticLoader.vue';
-import IconAlertTriangle from '../components/icons/IconAlertTriangle.vue';
-import IconBook from '../components/icons/IconBook.vue';
+import { AlertTriangle, Book } from 'lucide-vue-next';
 
 
 const {
@@ -102,7 +101,7 @@ const goToMemories = () => {
           aria-label="Захистити щоденник PIN-кодом"
           @click="handleOpenSetPin"
         >
-          <IconAlertTriangle class="attention-icon" />
+          <AlertTriangle class="attention-icon" />
         </button>
       </Transition>
     </header>
@@ -110,7 +109,7 @@ const goToMemories = () => {
     <template v-if="!isPinRequired">
       <!-- Sync error notification banner -->
       <div v-if="fetchError" class="sync-warning-banner" role="alert">
-        <IconAlertTriangle class="sync-warning-icon" />
+        <AlertTriangle class="sync-warning-icon" />
         <span>{{ fetchError }} (показано локальні дані)</span>
       </div>
 
@@ -171,7 +170,7 @@ const goToMemories = () => {
       <div class="history-trigger-section">
         <button type="button" class="history-journal-link" @click="openHistory()">
           <span class="journal-icon" aria-hidden="true">
-            <IconBook class="journal-icon-svg" />
+            <Book class="journal-icon-svg" />
           </span>
           <span class="journal-link-text">Спільні спогади</span>
           <span v-if="history.length > 0" class="history-count-pill">

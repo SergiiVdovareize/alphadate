@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import type { LetterState } from '../composables/useAlphabetState';
-import IconDice from './icons/IconDice.vue';
+import { Dices as Dice } from 'lucide-vue-next';
 
 
 const props = defineProps<{
@@ -50,7 +50,7 @@ const handleRandomPick = () => {
     >
       <span v-if="isPicking" class="picking-label">
         <span class="dice-icon" aria-hidden="true">
-          <IconDice class="dice-icon-svg" />
+          <Dice class="dice-icon-svg" />
         </span>
         Обираємо...
       </span>

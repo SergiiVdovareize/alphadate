@@ -2,7 +2,7 @@
 import AppLogo from '../components/AppLogo.vue';
 import AppAlert from '../components/AppAlert.vue';
 import AppButton from '../components/AppButton.vue';
-import IconMail from '../components/icons/IconMail.vue';
+import { Mail as IconMail } from 'lucide-vue-next';
 
 import { useRecoverPage } from '../composables/useRecoverPage';
 

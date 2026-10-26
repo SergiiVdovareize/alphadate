@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@knadh/oat": "^0.5.0",
+    "lucide-vue-next": "^1.0.0",
     "vue": "^3.5.12",
     "vue-router": "^4.6.4"
   },

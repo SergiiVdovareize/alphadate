@@ -5,10 +5,7 @@ import { formatDurationBetween, formatCompletionDate } from '../utils/formatDura
 import { buildDisplayHistory, filterLetterHistory, getPartnerAvatarType } from '../utils/history';
 import PhotoLightboxModal from './PhotoLightboxModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import IconBook from './icons/IconBook.vue';
-import IconClose from './icons/IconClose.vue';
-import IconClock from './icons/IconClock.vue';
-import IconPartnerAvatar from './icons/IconPartnerAvatar.vue';
+import { Book, X, Clock, User } from 'lucide-vue-next';
 
 
 const props = defineProps<{
@@ -103,12 +100,12 @@ useBodyScrollLock(() => props.isOpen);
         <h3 id="history-modal-title" class="modal-title">
           <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
           <span v-else class="title-with-icon">
-            <IconBook class="modal-title-book-svg" />
+            <Book class="modal-title-book-svg" />
             <span>Спільні спогади</span>
           </span>
         </h3>
         <button type="button" class="close-icon-btn" aria-label="Закрити" @click="emit('close')">
-          <IconClose class="close-icon-svg" />
+          <X class="close-icon-svg" />
         </button>
       </header>
 
@@ -130,7 +127,7 @@ useBodyScrollLock(() => props.isOpen);
               <div class="memory-letter-heading">
                 <span class="memory-letter-char">{{ item.letter }}</span>
                 <span v-if="item.status === 'excluded'" class="excluded-badge">
-                  <IconClose class="badge-cross-svg" />
+                  <X class="badge-cross-svg" />
                   <span>Літеру виключено з щоденнику</span>
                 </span>
               </div>
@@ -144,7 +141,7 @@ useBodyScrollLock(() => props.isOpen);
                       :class="'avatar-' + getPartnerAvatarType(item.playerId)"
                       aria-hidden="true"
                     >
-                      <IconPartnerAvatar :avatar-type="getPartnerAvatarType(item.playerId)" />
+                      <User :avatar-type="getPartnerAvatarType(item.playerId)" />
                     </span>
                     <strong>{{ item.partnerName }}</strong>
                   </span>
@@ -153,7 +150,7 @@ useBodyScrollLock(() => props.isOpen);
                 <div v-if="item.status !== 'excluded'" class="meta-row">
                   <span class="meta-label">Час на виконання:</span>
                   <span class="duration-badge">
-                    <IconClock class="duration-clock-svg" />
+                    <Clock class="duration-clock-svg" />
                     <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                   </span>
                 </div>
@@ -197,7 +194,7 @@ useBodyScrollLock(() => props.isOpen);
         <div class="view-all-history-section">
           <button type="button" class="view-all-history-link" @click="handleViewAll">
             <span class="view-all-icon" aria-hidden="true">
-              <IconBook class="view-all-book-svg" />
+              <Book class="view-all-book-svg" />
             </span>
             <span class="view-all-text">Відкрити всі спільні спогади</span>
           </button>

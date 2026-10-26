@@ -5,11 +5,7 @@ import RomanticLoader from '../components/RomanticLoader.vue';
 import InlineMemoryEditor from '../components/InlineMemoryEditor.vue';
 import PhotoLightboxModal from '../components/PhotoLightboxModal.vue';
 import { useMemoriesPage } from '../composables/useMemoriesPage';
-import IconBook from '../components/icons/IconBook.vue';
-import IconClose from '../components/icons/IconClose.vue';
-import IconClock from '../components/icons/IconClock.vue';
-import IconMail from '../components/icons/IconMail.vue';
-import IconPartnerAvatar from '../components/icons/IconPartnerAvatar.vue';
+import { Book, X, Clock, Mail, User } from 'lucide-vue-next';
 
 const {
   isPinRequired,
@@ -99,7 +95,7 @@ const vSyncBadge = {
       <h1 class="page-title">
         <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
         <span v-else class="title-with-icon">
-          <IconBook class="page-title-book-svg" />
+          <Book class="page-title-book-svg" />
           <span>Спільні спогади</span>
         </span>
       </h1>
@@ -123,7 +119,7 @@ const vSyncBadge = {
             <div class="memory-letter-heading">
               <span class="memory-letter-char">{{ item.letter }}</span>
               <span v-if="item.status === 'excluded'" class="excluded-badge">
-                <IconClose class="badge-cross-svg" />
+                <X class="badge-cross-svg" />
                 <span>Літеру виключено з щоденнику</span>
               </span>
             </div>
@@ -137,7 +133,7 @@ const vSyncBadge = {
                     :class="'avatar-' + getPartnerAvatarType(resolvePlayerId(item))"
                     aria-hidden="true"
                   >
-                    <IconPartnerAvatar :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
+                    <User :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
                   </span>
                   <strong>{{ item.partnerName }}</strong>
                 </span>
@@ -146,7 +142,7 @@ const vSyncBadge = {
               <div v-if="item.status !== 'excluded'" class="meta-row">
                 <span class="meta-label">Час на виконання:</span>
                 <span class="duration-badge">
-                  <IconClock class="duration-clock-svg" />
+                  <Clock class="duration-clock-svg" />
                   <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                 </span>
               </div>
@@ -226,7 +222,7 @@ const vSyncBadge = {
       <div class="view-all-history-section">
         <button type="button" class="view-all-history-link" @click="handleViewAll">
           <span class="view-all-icon" aria-hidden="true">
-            <IconBook class="view-all-book-svg" />
+            <Book class="view-all-book-svg" />
           </span>
           <span class="view-all-text">Відкрити спільні спогади</span>
         </button>
@@ -237,7 +233,7 @@ const vSyncBadge = {
     <div v-else class="history-list-view">
       <div v-if="displayHistory.length === 0" class="empty-history">
         <span class="empty-icon" aria-hidden="true">
-          <IconMail class="empty-envelope-svg" />
+          <Mail class="empty-envelope-svg" />
         </span>
         <p class="empty-title">Поки що немає спільних спогадів</p>
         <p class="empty-desc">
@@ -256,7 +252,7 @@ const vSyncBadge = {
             <div class="item-letter-badge" :class="{ 'is-excluded': item.status === 'excluded' }">
               <span>{{ item.letter }}</span>
               <span v-if="item.status === 'excluded'" class="badge-sub-cross" aria-hidden="true">
-                <IconClose class="badge-cross-svg" />
+                <X class="badge-cross-svg" />
               </span>
             </div>
             <div class="item-main-info">
@@ -267,7 +263,7 @@ const vSyncBadge = {
                     :class="'avatar-' + getPartnerAvatarType(resolvePlayerId(item))"
                     aria-hidden="true"
                   >
-                    <IconPartnerAvatar :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
+                    <User :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
                   </span>
                   <strong>{{ item.partnerName || 'Партнер' }}</strong>
                 </span>
@@ -281,7 +277,7 @@ const vSyncBadge = {
                   <span>Літеру виключено з щоденнику</span>
                 </span>
                 <span v-else class="duration-badge">
-                  <IconClock class="duration-clock-svg" />
+                  <Clock class="duration-clock-svg" />
                   <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                 </span>
               </div>

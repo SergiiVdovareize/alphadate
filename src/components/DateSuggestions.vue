@@ -2,9 +2,7 @@
 import { useDateSuggestions } from '../composables/useDateSuggestions';
 import AppAlert from './AppAlert.vue';
 import AppButton from './AppButton.vue';
-import IconLightbulb from './icons/IconLightbulb.vue';
-import IconRefresh from './icons/IconRefresh.vue';
-import IconSparkle from './icons/IconSparkle.vue';
+import { Lightbulb, RefreshCcw, Sparkles } from 'lucide-vue-next';
 
 
 const props = defineProps<{
@@ -27,7 +25,7 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
       @click="toggleOpen"
     >
       <span class="btn-icon" aria-hidden="true">
-        <IconLightbulb class="btn-bulb-svg" />
+        <Lightbulb class="btn-bulb-svg" />
       </span>
       <span class="btn-text">Ідеї для побачення на літеру «{{ letter }}»</span>
       <svg
@@ -67,7 +65,7 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
           @click="() => fetchSuggestions(true)"
         >
           <span class="retry-btn-content">
-            <IconRefresh class="retry-icon-svg" />
+            <RefreshCcw class="retry-icon-svg" />
             <span>Спробувати знову</span>
           </span>
         </AppButton>
@@ -77,7 +75,7 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
       <div v-else-if="hasSuggestions" class="suggestions-content">
         <div class="ai-disclaimer">
           <span class="ai-sparkle" aria-hidden="true">
-            <IconSparkle class="ai-sparkle-svg" />
+            <Sparkles class="ai-sparkle-svg" />
           </span>
           <span class="ai-disclaimer-text">
             Ці ідеї згенеровано штучним інтелектом — сміливо адаптуйте їх під ваші спільні смаки!

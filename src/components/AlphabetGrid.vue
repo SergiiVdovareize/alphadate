@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { LetterState } from '../composables/useAlphabetState';
-import IconCheck from './icons/IconCheck.vue';
-import IconClose from './icons/IconClose.vue';
+import { Check, X } from 'lucide-vue-next';
 
 
 const props = defineProps<{
@@ -66,10 +65,10 @@ const getLetterAriaLabel = (item: LetterState): string => {
     >
       <span>{{ item.letter }}</span>
       <span v-if="item.status === 'used'" class="used-check-badge" aria-hidden="true">
-        <IconCheck class="used-check-svg" />
+        <Check class="used-check-svg" />
       </span>
       <span v-else-if="item.status === 'excluded'" class="excluded-cross-badge" aria-hidden="true">
-        <IconClose class="excluded-cross-svg" />
+        <X class="excluded-cross-svg" />
       </span>
     </button>
   </div>
