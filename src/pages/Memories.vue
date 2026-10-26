@@ -5,7 +5,7 @@ import RomanticLoader from '../components/RomanticLoader.vue';
 import InlineMemoryEditor from '../components/InlineMemoryEditor.vue';
 import PhotoLightboxModal from '../components/PhotoLightboxModal.vue';
 import { useMemoriesPage } from '../composables/useMemoriesPage';
-import { Book, X, Clock, Mail, User } from 'lucide-vue-next';
+import { Book, X, Clock, Mail, User, Mars, Venus } from 'lucide-vue-next';
 
 const {
   isPinRequired,
@@ -263,7 +263,15 @@ const vSyncBadge = {
                     :class="'avatar-' + getPartnerAvatarType(resolvePlayerId(item))"
                     aria-hidden="true"
                   >
-                    <User :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
+                    <template v-if="getPartnerAvatarType(resolvePlayerId(item)) === 'male'">
+                      <Mars class="partner-icon avatar-male-svg" aria-hidden="true" />
+                    </template>
+                    <template v-else-if="getPartnerAvatarType(resolvePlayerId(item)) === 'female'">
+                      <Venus class="partner-icon avatar-female-svg" aria-hidden="true" />
+                    </template>
+                    <template v-else>
+                      <User class="partner-icon avatar-neutral-svg" aria-hidden="true" />
+                    </template>
                   </span>
                   <strong>{{ item.partnerName || 'Партнер' }}</strong>
                 </span>

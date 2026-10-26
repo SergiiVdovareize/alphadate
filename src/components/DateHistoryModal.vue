@@ -5,7 +5,7 @@ import { formatDurationBetween, formatCompletionDate } from '../utils/formatDura
 import { buildDisplayHistory, filterLetterHistory, getPartnerAvatarType } from '../utils/history';
 import PhotoLightboxModal from './PhotoLightboxModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Book, X, Clock, User } from 'lucide-vue-next';
+import { Book, X, Clock, User, Mars, Venus } from 'lucide-vue-next';
 
 
 const props = defineProps<{
@@ -141,7 +141,15 @@ useBodyScrollLock(() => props.isOpen);
                       :class="'avatar-' + getPartnerAvatarType(item.playerId)"
                       aria-hidden="true"
                     >
-                      <User :avatar-type="getPartnerAvatarType(item.playerId)" />
+                      <template v-if="getPartnerAvatarType(item.playerId) === 'male'">
+                        <Mars class="partner-icon avatar-male-svg" aria-hidden="true" />
+                      </template>
+                      <template v-else-if="getPartnerAvatarType(item.playerId) === 'female'">
+                        <Venus class="partner-icon avatar-female-svg" aria-hidden="true" />
+                      </template>
+                      <template v-else>
+                        <User class="partner-icon avatar-neutral-svg" aria-hidden="true" />
+                      </template>
                     </span>
                     <strong>{{ item.partnerName }}</strong>
                   </span>
