@@ -2,7 +2,8 @@
 import AppLogo from '../components/AppLogo.vue';
 import AppAlert from '../components/AppAlert.vue';
 import AppButton from '../components/AppButton.vue';
-import { Mail as IconMail } from 'lucide-vue-next';
+import AppIcon from '../components/AppIcon.vue';
+import { mdiEmailOutline } from '@mdi/js';
 
 import { useRecoverPage } from '../composables/useRecoverPage';
 
@@ -77,9 +78,8 @@ const {
             <h2 id="step-2-heading" class="step-title">Пошукайте лист від AlphaDate у пошті</h2>
           </div>
           <p class="step-desc">
-            Одразу під час створення щоденника ми надсилали вітальний лист із прямим посиланням
-            (при реєстрації могла вводитись пошта будь-якого партнера). Спробуйте знайти його за
-            словом
+            Одразу під час створення щоденника ми надсилали вітальний лист із прямим посиланням (при
+            реєстрації могла вводитись пошта будь-якого партнера). Спробуйте знайти його за словом
             <button
               type="button"
               class="copy-keyword-btn"
@@ -153,11 +153,7 @@ const {
               />
             </div>
 
-            <AppAlert
-              v-if="errorMessage"
-              class="error-banner"
-              :message="errorMessage"
-            />
+            <AppAlert v-if="errorMessage" class="error-banner" :message="errorMessage" />
 
             <AppButton
               type="submit"
@@ -175,14 +171,14 @@ const {
 
           <div v-else class="success-box" role="status">
             <div class="success-icon" aria-hidden="true">
-              <IconMail class="success-envelope-svg" />
+              <AppIcon :path="mdiEmailOutline" class="success-envelope-svg" />
             </div>
             <h3 class="success-title">Лист надіслано!</h3>
             <p class="success-desc">
-              Якщо щоденник було зареєстровано на цю адресу, ми надіслали лист із посиланням на нього.
-              Будь ласка, перевірте поштову скриньку (і папку «Спам»).
-              Пам’ятайте, що при реєстрації могла вводитись пошта будь-якого партнера — якщо листа немає,
-              спробуйте також адресу іншого партнера.
+              Якщо щоденник було зареєстровано на цю адресу, ми надіслали лист із посиланням на
+              нього. Будь ласка, перевірте поштову скриньку (і папку «Спам»). Пам’ятайте, що при
+              реєстрації могла вводитись пошта будь-якого партнера — якщо листа немає, спробуйте
+              також адресу іншого партнера.
             </p>
             <button type="button" class="action-btn outline-btn" @click="goHome">
               Повернутися на головну

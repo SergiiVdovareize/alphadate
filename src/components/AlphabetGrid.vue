@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { LetterState } from '../composables/useAlphabetState';
-import { Check, X } from 'lucide-vue-next';
-
+import AppIcon from './AppIcon.vue';
+import { mdiCheck, mdiClose } from '@mdi/js';
 
 const props = defineProps<{
   letters: LetterState[];
@@ -65,10 +65,10 @@ const getLetterAriaLabel = (item: LetterState): string => {
     >
       <span>{{ item.letter }}</span>
       <span v-if="item.status === 'used'" class="used-check-badge" aria-hidden="true">
-        <Check class="used-check-svg" />
+        <AppIcon :path="mdiCheck" class="used-check-svg" />
       </span>
       <span v-else-if="item.status === 'excluded'" class="excluded-cross-badge" aria-hidden="true">
-        <X class="excluded-cross-svg" />
+        <AppIcon :path="mdiClose" class="excluded-cross-svg" />
       </span>
     </button>
   </div>
@@ -287,5 +287,4 @@ const getLetterAriaLabel = (item: LetterState): string => {
 .excluded-cross-badge {
   color: var(--color-error, #c53030);
 }
-
 </style>

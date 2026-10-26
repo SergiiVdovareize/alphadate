@@ -2,8 +2,8 @@
 import { ref } from 'vue';
 import { compressImageFile } from '../utils/image';
 import AppAlert from './AppAlert.vue';
-import { Camera, X } from 'lucide-vue-next';
-
+import AppIcon from './AppIcon.vue';
+import { mdiCameraOutline, mdiClose } from '@mdi/js';
 
 const props = withDefaults(
   defineProps<{
@@ -57,8 +57,7 @@ const onFileChange = async (e: Event) => {
     const compressed = await compressImageFile(file);
     emit('update:modelValue', compressed);
   } catch (err: unknown) {
-    const msg =
-      err instanceof Error ? err.message : 'Не вдалося обробити фото. Спробуйте інше.';
+    const msg = err instanceof Error ? err.message : 'Не вдалося обробити фото. Спробуйте інше.';
     photoError.value = msg;
     emit('error', msg);
   } finally {
@@ -103,12 +102,12 @@ const removePhoto = () => {
           :disabled="disabled || isProcessing"
           @click="removePhoto"
         >
-          <X />
+          <AppIcon :path="mdiClose" :size="12" />
         </button>
       </div>
       <div class="photo-info-wrap">
         <span class="photo-success-label photo-status-text">
-          <Camera class="photo-success-icon" />
+          <AppIcon :path="mdiCameraOutline" class="photo-success-icon" />
           {{ successLabel }}
         </span>
         <button
@@ -130,7 +129,7 @@ const removePhoto = () => {
         :disabled="disabled || isProcessing"
         @click="triggerFileInput"
       >
-        <Camera class="camera-icon" />
+        <AppIcon :path="mdiCameraOutline" class="camera-icon" />
         <span v-if="isProcessing">{{ processingText }}</span>
         <span v-else>{{ buttonText }}</span>
       </button>

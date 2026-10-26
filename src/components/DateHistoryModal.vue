@@ -5,8 +5,15 @@ import { formatDurationBetween, formatCompletionDate } from '../utils/formatDura
 import { buildDisplayHistory, filterLetterHistory, getPartnerAvatarType } from '../utils/history';
 import PhotoLightboxModal from './PhotoLightboxModal.vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Book, X, Clock, User, Mars, Venus } from 'lucide-vue-next';
-
+import AppIcon from './AppIcon.vue';
+import {
+  mdiBookOpenVariant,
+  mdiClose,
+  mdiClockOutline,
+  mdiAccount,
+  mdiFaceMan,
+  mdiFaceWoman
+} from '@mdi/js';
 
 const props = defineProps<{
   isOpen: boolean;
@@ -100,12 +107,12 @@ useBodyScrollLock(() => props.isOpen);
         <h3 id="history-modal-title" class="modal-title">
           <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
           <span v-else class="title-with-icon">
-            <Book class="modal-title-book-svg" />
+            <AppIcon :path="mdiBookOpenVariant" class="modal-title-book-svg" />
             <span>Спільні спогади</span>
           </span>
         </h3>
         <button type="button" class="close-icon-btn" aria-label="Закрити" @click="emit('close')">
-          <X class="close-icon-svg" />
+          <AppIcon :path="mdiClose" class="close-icon-svg" />
         </button>
       </header>
 
@@ -127,7 +134,7 @@ useBodyScrollLock(() => props.isOpen);
               <div class="memory-letter-heading">
                 <span class="memory-letter-char">{{ item.letter }}</span>
                 <span v-if="item.status === 'excluded'" class="excluded-badge">
-                  <X class="badge-cross-svg" />
+                  <AppIcon :path="mdiClose" class="badge-cross-svg" />
                   <span>Літеру виключено з щоденнику</span>
                 </span>
               </div>
@@ -142,13 +149,25 @@ useBodyScrollLock(() => props.isOpen);
                       aria-hidden="true"
                     >
                       <template v-if="getPartnerAvatarType(item.playerId) === 'male'">
-                        <Mars class="partner-icon avatar-male-svg" aria-hidden="true" />
+                        <AppIcon
+                          :path="mdiFaceMan"
+                          class="partner-icon avatar-male-svg"
+                          aria-hidden="true"
+                        />
                       </template>
                       <template v-else-if="getPartnerAvatarType(item.playerId) === 'female'">
-                        <Venus class="partner-icon avatar-female-svg" aria-hidden="true" />
+                        <AppIcon
+                          :path="mdiFaceWoman"
+                          class="partner-icon avatar-female-svg"
+                          aria-hidden="true"
+                        />
                       </template>
                       <template v-else>
-                        <User class="partner-icon avatar-neutral-svg" aria-hidden="true" />
+                        <AppIcon
+                          :path="mdiAccount"
+                          class="partner-icon avatar-neutral-svg"
+                          aria-hidden="true"
+                        />
                       </template>
                     </span>
                     <strong>{{ item.partnerName }}</strong>
@@ -158,7 +177,7 @@ useBodyScrollLock(() => props.isOpen);
                 <div v-if="item.status !== 'excluded'" class="meta-row">
                   <span class="meta-label">Час на виконання:</span>
                   <span class="duration-badge">
-                    <Clock class="duration-clock-svg" />
+                    <AppIcon :path="mdiClockOutline" class="duration-clock-svg" />
                     <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                   </span>
                 </div>
@@ -202,7 +221,7 @@ useBodyScrollLock(() => props.isOpen);
         <div class="view-all-history-section">
           <button type="button" class="view-all-history-link" @click="handleViewAll">
             <span class="view-all-icon" aria-hidden="true">
-              <Book class="view-all-book-svg" />
+              <AppIcon :path="mdiBookOpenVariant" class="view-all-book-svg" />
             </span>
             <span class="view-all-text">Відкрити всі спільні спогади</span>
           </button>
@@ -325,7 +344,6 @@ useBodyScrollLock(() => props.isOpen);
   width: 1.25rem;
   height: 1.25rem;
 }
-
 
 .close-icon-btn:hover {
   color: var(--color-ink, #2d3748);
@@ -478,7 +496,6 @@ useBodyScrollLock(() => props.isOpen);
   flex-shrink: 0;
 }
 
-
 .date-text {
   font-weight: 600;
   color: var(--color-ink, #2d3748);
@@ -533,7 +550,9 @@ useBodyScrollLock(() => props.isOpen);
   padding: 0;
   cursor: pointer;
   display: block;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .memory-photo-box:hover {
@@ -608,7 +627,6 @@ useBodyScrollLock(() => props.isOpen);
   width: 1.15rem;
   height: 1.15rem;
 }
-
 
 .empty-history {
   display: flex;

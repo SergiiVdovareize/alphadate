@@ -5,7 +5,8 @@ import { useHome } from '../composables/useHome';
 import AppLogo from '../components/AppLogo.vue';
 import AppAlert from '../components/AppAlert.vue';
 import AppButton from '../components/AppButton.vue';
-import { Heart as IconHeart } from 'lucide-vue-next';
+import AppIcon from '../components/AppIcon.vue';
+import { mdiHeart } from '@mdi/js';
 
 const router = useRouter();
 const { partners, email, pin, isLoading, errorMessage, savedBoards, openBoard, createBoard } =
@@ -51,12 +52,8 @@ const onExpandLeave = (element: Element) => {
 const isEmailError = computed(
   () => !!errorMessage.value && errorMessage.value.includes('електронну пошту')
 );
-const isPartnerError = computed(
-  () => !!errorMessage.value && errorMessage.value.includes('ім’я')
-);
-const isPinError = computed(
-  () => !!errorMessage.value && errorMessage.value.includes('PIN')
-);
+const isPartnerError = computed(() => !!errorMessage.value && errorMessage.value.includes('ім’я'));
+const isPinError = computed(() => !!errorMessage.value && errorMessage.value.includes('PIN'));
 </script>
 
 <template>
@@ -76,7 +73,7 @@ const isPinError = computed(
             <div class="suggestion-header">
               <span class="suggestion-tag">
                 <span class="tag-heart" aria-hidden="true">
-                  <IconHeart class="tag-heart-svg" />
+                  <AppIcon :path="mdiHeart" class="tag-heart-svg" />
                 </span>
                 {{ savedBoards.length > 1 ? 'Останній щоденник' : 'Збережений щоденник' }}
               </span>
@@ -142,55 +139,55 @@ const isPinError = computed(
           >
             <div v-if="isBoardsListOpen" class="saved-boards-collapse">
               <div class="saved-boards-dropdown">
-              <div class="dropdown-list" role="list">
-                <button
-                  v-for="(board, idx) in savedBoards"
-                  :key="board.key"
-                  type="button"
-                  class="board-select-btn"
-                  :class="{ 'board-select-current': idx === 0 }"
-                  @click="openBoard(board.key)"
-                >
-                  <div class="board-card-icon-wrap" aria-hidden="true">
+                <div class="dropdown-list" role="list">
+                  <button
+                    v-for="(board, idx) in savedBoards"
+                    :key="board.key"
+                    type="button"
+                    class="board-select-btn"
+                    :class="{ 'board-select-current': idx === 0 }"
+                    @click="openBoard(board.key)"
+                  >
+                    <div class="board-card-icon-wrap" aria-hidden="true">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.8"
+                        stroke="currentColor"
+                        class="board-card-icon"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+                        />
+                      </svg>
+                    </div>
+                    <div class="board-card-content">
+                      <span class="board-select-names">{{ board.partners.join(' та ') }}</span>
+                      <span v-if="idx === 0" class="current-badge">Останній</span>
+                    </div>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
                       viewBox="0 0 24 24"
-                      stroke-width="1.8"
+                      stroke-width="2"
                       stroke="currentColor"
-                      class="board-card-icon"
+                      class="board-card-arrow"
+                      aria-hidden="true"
                     >
                       <path
                         stroke-linecap="round"
                         stroke-linejoin="round"
-                        d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
+                        d="M8.25 4.5l7.5 7.5-7.5 7.5"
                       />
                     </svg>
-                  </div>
-                  <div class="board-card-content">
-                    <span class="board-select-names">{{ board.partners.join(' та ') }}</span>
-                    <span v-if="idx === 0" class="current-badge">Останній</span>
-                  </div>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="2"
-                    stroke="currentColor"
-                    class="board-card-arrow"
-                    aria-hidden="true"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M8.25 4.5l7.5 7.5-7.5 7.5"
-                    />
-                  </svg>
-                </button>
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        </Transition>
+          </Transition>
         </div>
       </div>
 
@@ -202,9 +199,7 @@ const isPinError = computed(
           :aria-expanded="isHowItWorksOpen"
           @click="isHowItWorksOpen = !isHowItWorksOpen"
         >
-          <span class="how-it-works-toggle-title">
-            Як це працює?
-          </span>
+          <span class="how-it-works-toggle-title"> Як це працює? </span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 20 20"
@@ -230,35 +225,49 @@ const isPinError = computed(
           <div v-if="isHowItWorksOpen" class="how-it-works-collapse">
             <div class="how-it-works-content">
               <p class="how-it-works-lead">
-                <strong>Alphabet Dating</strong> — це романтична традиція для пари, яка перетворює побачення на спільну захопливу пригоду за українським алфавітом від <strong>А</strong> до <strong>Я</strong>.
+                <strong>Alphabet Dating</strong> — це романтична традиція для пари, яка перетворює
+                побачення на спільну захопливу пригоду за українським алфавітом від
+                <strong>А</strong> до <strong>Я</strong>.
               </p>
               <ol class="how-it-works-steps">
                 <li class="how-step">
                   <span class="step-num" aria-hidden="true">1</span>
                   <div class="step-text">
                     <strong>Обирайте літеру по черзі</strong>
-                    <span>Обирайте разом або довіртеся рандомайзеру. Хто обрав — той планує побачення-сюрприз!</span>
+                    <span
+                      >Обирайте разом або довіртеся рандомайзеру. Хто обрав — той планує
+                      побачення-сюрприз!</span
+                    >
                   </div>
                 </li>
                 <li class="how-step">
                   <span class="step-num" aria-hidden="true">2</span>
                   <div class="step-text">
                     <strong>Придумуйте ідею на обрану літеру</strong>
-                    <span>Наприклад: <em>«А»</em> — Астрономічна обсерваторія, <em>«К»</em> — Каякінг, <em>«П»</em> — Пікнік на заході сонця.</span>
+                    <span
+                      >Наприклад: <em>«А»</em> — Астрономічна обсерваторія, <em>«К»</em> — Каякінг,
+                      <em>«П»</em> — Пікнік на заході сонця.</span
+                    >
                   </div>
                 </li>
                 <li class="how-step">
                   <span class="step-num" aria-hidden="true">3</span>
                   <div class="step-text">
                     <strong>Встигніть до завершення таймера</strong>
-                    <span>На виконання кожної літери є 30 днів, щоб не відкладати романтичні плани на потім.</span>
+                    <span
+                      >На виконання кожної літери є 30 днів, щоб не відкладати романтичні плани на
+                      потім.</span
+                    >
                   </div>
                 </li>
                 <li class="how-step">
                   <span class="step-num" aria-hidden="true">4</span>
                   <div class="step-text">
                     <strong>Зберігайте спільні спогади</strong>
-                    <span>Відзначайте літеру виконаною, додавайте фотографії та щирі враження до вашого щоденника.</span>
+                    <span
+                      >Відзначайте літеру виконаною, додавайте фотографії та щирі враження до вашого
+                      щоденника.</span
+                    >
                   </div>
                 </li>
               </ol>
@@ -270,7 +279,7 @@ const isPinError = computed(
       <form class="setup-form" novalidate @submit.prevent="createBoard">
         <div v-for="(_, index) in partners" :key="index" class="input-group">
           <label :for="`partner-${index}`">
-            {{ index === 0 ? "Ваше ім’я" : "Ім’я партнера або партнерки" }}
+            {{ index === 0 ? 'Ваше ім’я' : 'Ім’я партнера або партнерки' }}
           </label>
           <input
             :id="`partner-${index}`"
@@ -318,11 +327,7 @@ const isPinError = computed(
           />
         </div>
 
-        <AppAlert
-          v-if="errorMessage"
-          class="form-error-banner"
-          :message="errorMessage"
-        />
+        <AppAlert v-if="errorMessage" class="form-error-banner" :message="errorMessage" />
 
         <AppButton
           type="submit"

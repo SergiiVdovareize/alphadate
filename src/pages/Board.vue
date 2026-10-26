@@ -8,8 +8,8 @@ import ActiveLetterPanel from '../components/ActiveLetterPanel.vue';
 import PinModal from '../components/PinModal.vue';
 import SetPinModal from '../components/SetPinModal.vue';
 import RomanticLoader from '../components/RomanticLoader.vue';
-import { AlertTriangle, Book } from 'lucide-vue-next';
-
+import AppIcon from '../components/AppIcon.vue';
+import { mdiAlertOutline, mdiBookOpenVariant } from '@mdi/js';
 
 const {
   boardId,
@@ -101,7 +101,7 @@ const goToMemories = () => {
           aria-label="Захистити щоденник PIN-кодом"
           @click="handleOpenSetPin"
         >
-          <AlertTriangle class="attention-icon" />
+          <AppIcon :path="mdiAlertOutline" class="attention-icon" />
         </button>
       </Transition>
     </header>
@@ -109,7 +109,7 @@ const goToMemories = () => {
     <template v-if="!isPinRequired">
       <!-- Sync error notification banner -->
       <div v-if="fetchError" class="sync-warning-banner" role="alert">
-        <AlertTriangle class="sync-warning-icon" />
+        <AppIcon :path="mdiAlertOutline" class="sync-warning-icon" />
         <span>{{ fetchError }} (показано локальні дані)</span>
       </div>
 
@@ -170,7 +170,7 @@ const goToMemories = () => {
       <div class="history-trigger-section">
         <button type="button" class="history-journal-link" @click="openHistory()">
           <span class="journal-icon" aria-hidden="true">
-            <Book class="journal-icon-svg" />
+            <AppIcon :path="mdiBookOpenVariant" class="journal-icon-svg" />
           </span>
           <span class="journal-link-text">Спільні спогади</span>
           <span v-if="history.length > 0" class="history-count-pill">
@@ -178,7 +178,6 @@ const goToMemories = () => {
           </span>
         </button>
       </div>
-
 
       <!-- Date History Modal for single letter view -->
       <DateHistoryModal

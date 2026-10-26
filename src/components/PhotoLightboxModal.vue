@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, computed } from 'vue';
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { X } from 'lucide-vue-next';
-
+import AppIcon from './AppIcon.vue';
+import { mdiClose } from '@mdi/js';
 
 interface LightboxPhoto {
   src: string;
@@ -60,14 +60,10 @@ onUnmounted(() => {
           title="Закрити зображення"
           @click="emit('close')"
         >
-          <X class="lightbox-close-icon" />
+          <AppIcon :path="mdiClose" class="lightbox-close-icon" />
         </button>
         <div class="lightbox-image-wrap">
-          <img
-            :src="photo.src"
-            :alt="photo.alt || 'Фото спогаду'"
-            class="lightbox-img"
-          />
+          <img :src="photo.src" :alt="photo.alt || 'Фото спогаду'" class="lightbox-img" />
         </div>
       </div>
     </Transition>
@@ -145,7 +141,6 @@ onUnmounted(() => {
   width: 20px;
   height: 20px;
 }
-
 
 .lightbox-image-wrap {
   position: relative;

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue';
 import type { LetterState } from '../composables/useAlphabetState';
-import { Dices as Dice } from 'lucide-vue-next';
-
+import AppIcon from './AppIcon.vue';
+import { mdiDiceMultiple } from '@mdi/js';
 
 const props = defineProps<{
   pickRandom: () => LetterState | null;
@@ -50,7 +50,7 @@ const handleRandomPick = () => {
     >
       <span v-if="isPicking" class="picking-label">
         <span class="dice-icon" aria-hidden="true">
-          <Dice class="dice-icon-svg" />
+          <AppIcon :path="mdiDiceMultiple" class="dice-icon-svg" />
         </span>
         Обираємо...
       </span>

@@ -5,7 +5,16 @@ import RomanticLoader from '../components/RomanticLoader.vue';
 import InlineMemoryEditor from '../components/InlineMemoryEditor.vue';
 import PhotoLightboxModal from '../components/PhotoLightboxModal.vue';
 import { useMemoriesPage } from '../composables/useMemoriesPage';
-import { Book, X, Clock, Mail, User, Mars, Venus } from 'lucide-vue-next';
+import AppIcon from '../components/AppIcon.vue';
+import {
+  mdiBookOpenVariant,
+  mdiClose,
+  mdiClockOutline,
+  mdiEmailOutline,
+  mdiAccount,
+  mdiFaceMan,
+  mdiFaceWoman
+} from '@mdi/js';
 
 const {
   isPinRequired,
@@ -30,8 +39,6 @@ const {
   resolvePlayerId,
   getPartnerAvatarType
 } = useMemoriesPage();
-
-
 
 const vSyncBadge = {
   mounted(el: HTMLElement) {
@@ -95,7 +102,7 @@ const vSyncBadge = {
       <h1 class="page-title">
         <span v-if="currentSelectedLetter">Спогад про літеру «{{ currentSelectedLetter }}»</span>
         <span v-else class="title-with-icon">
-          <Book class="page-title-book-svg" />
+          <AppIcon :path="mdiBookOpenVariant" class="page-title-book-svg" />
           <span>Спільні спогади</span>
         </span>
       </h1>
@@ -119,7 +126,7 @@ const vSyncBadge = {
             <div class="memory-letter-heading">
               <span class="memory-letter-char">{{ item.letter }}</span>
               <span v-if="item.status === 'excluded'" class="excluded-badge">
-                <X class="badge-cross-svg" />
+                <AppIcon :path="mdiClose" class="badge-cross-svg" />
                 <span>Літеру виключено з щоденнику</span>
               </span>
             </div>
@@ -133,7 +140,27 @@ const vSyncBadge = {
                     :class="'avatar-' + getPartnerAvatarType(resolvePlayerId(item))"
                     aria-hidden="true"
                   >
-                    <User :avatar-type="getPartnerAvatarType(resolvePlayerId(item))" />
+                    <template v-if="getPartnerAvatarType(resolvePlayerId(item)) === 'male'">
+                      <AppIcon
+                        :path="mdiFaceMan"
+                        class="partner-icon avatar-male-svg"
+                        aria-hidden="true"
+                      />
+                    </template>
+                    <template v-else-if="getPartnerAvatarType(resolvePlayerId(item)) === 'female'">
+                      <AppIcon
+                        :path="mdiFaceWoman"
+                        class="partner-icon avatar-female-svg"
+                        aria-hidden="true"
+                      />
+                    </template>
+                    <template v-else>
+                      <AppIcon
+                        :path="mdiAccount"
+                        class="partner-icon avatar-neutral-svg"
+                        aria-hidden="true"
+                      />
+                    </template>
                   </span>
                   <strong>{{ item.partnerName }}</strong>
                 </span>
@@ -142,7 +169,7 @@ const vSyncBadge = {
               <div v-if="item.status !== 'excluded'" class="meta-row">
                 <span class="meta-label">Час на виконання:</span>
                 <span class="duration-badge">
-                  <Clock class="duration-clock-svg" />
+                  <AppIcon :path="mdiClockOutline" class="duration-clock-svg" />
                   <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                 </span>
               </div>
@@ -191,8 +218,12 @@ const vSyncBadge = {
                       class="edit-icon-svg"
                       aria-hidden="true"
                     >
-                      <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-                      <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                      <path
+                        d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"
+                      />
+                      <path
+                        d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -222,7 +253,7 @@ const vSyncBadge = {
       <div class="view-all-history-section">
         <button type="button" class="view-all-history-link" @click="handleViewAll">
           <span class="view-all-icon" aria-hidden="true">
-            <Book class="view-all-book-svg" />
+            <AppIcon :path="mdiBookOpenVariant" class="view-all-book-svg" />
           </span>
           <span class="view-all-text">Відкрити спільні спогади</span>
         </button>
@@ -233,7 +264,7 @@ const vSyncBadge = {
     <div v-else class="history-list-view">
       <div v-if="displayHistory.length === 0" class="empty-history">
         <span class="empty-icon" aria-hidden="true">
-          <Mail class="empty-envelope-svg" />
+          <AppIcon :path="mdiEmailOutline" class="empty-envelope-svg" />
         </span>
         <p class="empty-title">Поки що немає спільних спогадів</p>
         <p class="empty-desc">
@@ -252,7 +283,7 @@ const vSyncBadge = {
             <div class="item-letter-badge" :class="{ 'is-excluded': item.status === 'excluded' }">
               <span>{{ item.letter }}</span>
               <span v-if="item.status === 'excluded'" class="badge-sub-cross" aria-hidden="true">
-                <X class="badge-cross-svg" />
+                <AppIcon :path="mdiClose" class="badge-cross-svg" />
               </span>
             </div>
             <div class="item-main-info">
@@ -264,13 +295,25 @@ const vSyncBadge = {
                     aria-hidden="true"
                   >
                     <template v-if="getPartnerAvatarType(resolvePlayerId(item)) === 'male'">
-                      <Mars class="partner-icon avatar-male-svg" aria-hidden="true" />
+                      <AppIcon
+                        :path="mdiFaceMan"
+                        class="partner-icon avatar-male-svg"
+                        aria-hidden="true"
+                      />
                     </template>
                     <template v-else-if="getPartnerAvatarType(resolvePlayerId(item)) === 'female'">
-                      <Venus class="partner-icon avatar-female-svg" aria-hidden="true" />
+                      <AppIcon
+                        :path="mdiFaceWoman"
+                        class="partner-icon avatar-female-svg"
+                        aria-hidden="true"
+                      />
                     </template>
                     <template v-else>
-                      <User class="partner-icon avatar-neutral-svg" aria-hidden="true" />
+                      <AppIcon
+                        :path="mdiAccount"
+                        class="partner-icon avatar-neutral-svg"
+                        aria-hidden="true"
+                      />
                     </template>
                   </span>
                   <strong>{{ item.partnerName || 'Партнер' }}</strong>
@@ -281,11 +324,11 @@ const vSyncBadge = {
               </div>
               <div class="item-duration-line">
                 <span v-if="item.status === 'excluded'" class="excluded-pill">
-                  <IconClose class="badge-cross-svg" />
+                  <AppIcon :path="mdiClose" class="badge-cross-svg" />
                   <span>Літеру виключено з щоденнику</span>
                 </span>
                 <span v-else class="duration-badge">
-                  <Clock class="duration-clock-svg" />
+                  <AppIcon :path="mdiClockOutline" class="duration-clock-svg" />
                   <span>{{ formatDurationBetween(item.selectedAt, item.completedAt) }}</span>
                 </span>
               </div>
@@ -324,8 +367,12 @@ const vSyncBadge = {
                   class="edit-icon-svg"
                   aria-hidden="true"
                 >
-                  <path d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z" />
-                  <path d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z" />
+                  <path
+                    d="m5.433 13.917 1.262-3.155A4 4 0 0 1 7.58 9.42l6.92-6.918a2.121 2.121 0 0 1 3 3l-6.92 6.918c-.383.383-.84.685-1.343.886l-3.154 1.262a.5.5 0 0 1-.65-.65Z"
+                  />
+                  <path
+                    d="M3.5 5.75c0-.69.56-1.25 1.25-1.25H10A.75.75 0 0 0 10 3H4.75A2.75 2.75 0 0 0 2 5.75v9.5A2.75 2.75 0 0 0 4.75 18h9.5A2.75 2.75 0 0 0 17 15.25V10a.75.75 0 0 0-1.5 0v5.25c0 .69-.56 1.25-1.25 1.25h-9.5c-.69 0-1.25-.56-1.25-1.25v-9.5Z"
+                  />
                 </svg>
               </button>
             </div>
@@ -443,7 +490,6 @@ const vSyncBadge = {
   height: 1.5rem;
   color: var(--color-accent, #d97732);
 }
-
 
 /* Single Letter View */
 .single-letter-container {
@@ -640,7 +686,6 @@ const vSyncBadge = {
   flex-shrink: 0;
 }
 
-
 .date-text {
   font-weight: 600;
   color: var(--color-ink, #2d3748);
@@ -761,7 +806,6 @@ const vSyncBadge = {
   opacity: 0.8;
 }
 
-
 .empty-title {
   font-size: 1.1rem;
   font-weight: 700;
@@ -857,7 +901,6 @@ const vSyncBadge = {
   height: 0.8rem;
   flex-shrink: 0;
 }
-
 
 .item-main-info {
   flex: 1;

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useBodyScrollLock } from '../composables/useBodyScrollLock';
-import { Sparkles as IconSparkle, Heart as IconHeart } from 'lucide-vue-next';
-
+import AppIcon from './AppIcon.vue';
+import { mdiCreation, mdiHeart } from '@mdi/js';
 
 const props = withDefaults(
   defineProps<{
@@ -32,15 +32,14 @@ useBodyScrollLock(() => props.visible);
         <div class="heart-animation-wrapper">
           <div class="heart-halo" aria-hidden="true"></div>
           <span class="sparkle sparkle-1" aria-hidden="true">
-            <IconSparkle class="sparkle-icon" />
+            <AppIcon :path="mdiCreation" class="sparkle-icon" />
           </span>
           <span class="sparkle sparkle-2" aria-hidden="true">
-            <IconHeart class="sparkle-icon sparkle-heart" />
+            <AppIcon :path="mdiHeart" class="sparkle-icon sparkle-heart" />
           </span>
           <span class="sparkle sparkle-3" aria-hidden="true">
-            <IconSparkle class="sparkle-icon" />
+            <AppIcon :path="mdiCreation" class="sparkle-icon" />
           </span>
-
 
           <!-- Beating heart SVG -->
           <svg
