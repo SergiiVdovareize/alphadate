@@ -9,7 +9,9 @@ import {
   STORAGE_KEYS,
   getBoardStateStorageKey,
   getPinFirstSeenStorageKey,
-  getPinDismissedStorageKey
+  getPinDismissedStorageKey,
+  BOARD_CACHE_STALE_THRESHOLD_MS,
+  VISIBILITY_REFRESH_COOLDOWN_MS
 } from '../constants';
 import type {
   LetterStatus,
@@ -27,6 +29,18 @@ const defaultState: LetterState[] = UKRAINIAN_ALPHABET.map((letter) => ({
 }));
 
 /**
+ * In-memory registry of board synchronization timestamps for intra-session freshness tracking.
+ */
+const inMemorySyncTimestamps = new Map<string, number>();
+
+/**
+ * Resets in-memory board sync timestamps (used primarily for test isolation).
+ */
+export function resetBoardSyncCache(): void {
+  inMemorySyncTimestamps.clear();
+}
+
+/**
  * Initializes localStorage for a new board key without triggering component reactive watchers.
  */
 export function initBoardLocalStorage(
@@ -35,6 +49,9 @@ export function initBoardLocalStorage(
   hasPin = false
 ): void {
   const LOCAL_STORAGE_KEY = getBoardStateStorageKey(boardId);
+  const now = Date.now();
+  inMemorySyncTimestamps.set(boardId, now);
+
   const mappedPartners: Partner[] = partnersArray.map((name, index) => ({
     id: index + 1,
     name
@@ -53,7 +70,8 @@ export function initBoardLocalStorage(
     LOCAL_STORAGE_KEY,
     JSON.stringify({
       metadata: initialMetadata,
-      letters: structuredClone(defaultState)
+      letters: structuredClone(defaultState),
+      lastSyncedAt: now
     })
   );
 }
@@ -72,87 +90,108 @@ export function useAlphabetState(boardId: string) {
   const history = ref<LetterHistoryItem[]>([]);
   const activeLetter = ref<LetterState | null>(null);
   const fetchError = ref<string | null>(null);
-  const isLoadingBackend = ref(boardId !== DEFAULT_BOARD_ID);
   const isSyncing = ref(false);
   const isBackgroundRefreshing = ref(false);
   const isPinRequired = ref(false);
   const pinError = ref<string | null>(null);
 
+  let cachedLastSyncedAt: number | null = null;
+  let hasValidCachedData = false;
   let currentSyncController: AbortController | null = null;
 
   // Load state from local storage or set default
   const fetchState = () => {
     const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Legacy migration
-          letters.value = parsed;
-        } else if (
-          parsed &&
-          parsed.letters &&
-          Array.isArray(parsed.letters) &&
-          parsed.letters.length > 0
-        ) {
-          letters.value = parsed.letters;
-          if (parsed.metadata) {
-            if (typeof parsed.metadata.partner1 === 'string') {
-              // Legacy object struct migration
-              metadata.value = {
-                partners: [
-                  { id: 1, name: parsed.metadata.partner1 },
-                  { id: 2, name: parsed.metadata.partner2 || '' }
-                ].filter((p) => p.name),
-                pinHash: parsed.metadata.pinHash || null,
-                hasPin: parsed.metadata.hasPin,
-                currentPartnerId: 1,
-                currentLetter: parsed.metadata.currentLetter || null,
-                currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
-              };
-            } else {
-              const partnersList = parsed.metadata.partners || [];
-              const mappedPartners =
-                partnersList.length > 0 && typeof partnersList[0] === 'string'
-                  ? partnersList.map((name: string, index: number) => ({ id: index + 1, name }))
-                  : partnersList;
-
-              metadata.value = {
-                partners: mappedPartners,
-                pinHash: parsed.metadata.pinHash || null,
-                hasPin: parsed.metadata.hasPin,
-                currentPartnerId: parsed.metadata.currentPartnerId || mappedPartners[0]?.id || null,
-                currentLetter: parsed.metadata.currentLetter || null,
-                currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
-              };
-            }
-          }
-        } else {
-          letters.value = structuredClone(defaultState);
-        }
-
-        if (parsed && parsed.history && Array.isArray(parsed.history)) {
-          history.value = parsed.history;
-        } else {
-          history.value = [];
-        }
-
-        // Resolve activeLetter from currentLetter
-        if (metadata.value.currentLetter) {
-          activeLetter.value =
-            letters.value.find((l) => l.letter === metadata.value.currentLetter) || null;
-        }
-      } catch (e) {
-        letters.value = structuredClone(defaultState);
-        history.value = [];
-      }
-    } else {
+    if (!saved) {
+      inMemorySyncTimestamps.delete(boardId);
       letters.value = structuredClone(defaultState);
       history.value = [];
+      hasValidCachedData = false;
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(saved);
+      if (typeof parsed?.lastSyncedAt === 'number') {
+        cachedLastSyncedAt = parsed.lastSyncedAt;
+      }
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Legacy migration
+        letters.value = parsed;
+        hasValidCachedData = true;
+      } else if (
+        parsed &&
+        parsed.letters &&
+        Array.isArray(parsed.letters) &&
+        parsed.letters.length > 0
+      ) {
+        letters.value = parsed.letters;
+        hasValidCachedData = true;
+        if (parsed.metadata) {
+          if (typeof parsed.metadata.partner1 === 'string') {
+            // Legacy object struct migration
+            metadata.value = {
+              partners: [
+                { id: 1, name: parsed.metadata.partner1 },
+                { id: 2, name: parsed.metadata.partner2 || '' }
+              ].filter((p) => p.name),
+              pinHash: parsed.metadata.pinHash || null,
+              hasPin: parsed.metadata.hasPin,
+              currentPartnerId: 1,
+              currentLetter: parsed.metadata.currentLetter || null,
+              currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
+            };
+          } else {
+            const partnersList = parsed.metadata.partners || [];
+            const mappedPartners =
+              partnersList.length > 0 && typeof partnersList[0] === 'string'
+                ? partnersList.map((name: string, index: number) => ({ id: index + 1, name }))
+                : partnersList;
+
+            metadata.value = {
+              partners: mappedPartners,
+              pinHash: parsed.metadata.pinHash || null,
+              hasPin: parsed.metadata.hasPin,
+              currentPartnerId: parsed.metadata.currentPartnerId || mappedPartners[0]?.id || null,
+              currentLetter: parsed.metadata.currentLetter || null,
+              currentLetterSelectedAt: parsed.metadata.currentLetterSelectedAt || null
+            };
+          }
+        }
+      } else {
+        letters.value = structuredClone(defaultState);
+        hasValidCachedData = false;
+      }
+
+      if (parsed && parsed.history && Array.isArray(parsed.history)) {
+        history.value = parsed.history;
+      } else {
+        history.value = [];
+      }
+
+      // Resolve activeLetter from currentLetter
+      if (metadata.value.currentLetter) {
+        activeLetter.value =
+          letters.value.find((l) => l.letter === metadata.value.currentLetter) || null;
+      }
+    } catch (e) {
+      letters.value = structuredClone(defaultState);
+      history.value = [];
+      hasValidCachedData = false;
     }
   };
 
   fetchState();
+
+  const lastSynced = inMemorySyncTimestamps.get(boardId) ?? cachedLastSyncedAt;
+  const isFreshCache =
+    boardId !== DEFAULT_BOARD_ID &&
+    hasValidCachedData &&
+    typeof lastSynced === 'number' &&
+    Date.now() - lastSynced < BOARD_CACHE_STALE_THRESHOLD_MS;
+
+  const isLoadingBackend = ref(boardId !== DEFAULT_BOARD_ID && !isFreshCache);
+
 
   // Sync state from backend asynchronously
   const fetchBackendState = async (options?: { silent?: boolean }) => {
@@ -173,6 +212,7 @@ export function useAlphabetState(boardId: string) {
       isPinRequired.value = false;
       pinError.value = null;
       if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
+        inMemorySyncTimestamps.set(boardId, Date.now());
         letters.value = data.letters;
         if (data.history && Array.isArray(data.history)) {
           history.value = data.history;
@@ -257,6 +297,7 @@ export function useAlphabetState(boardId: string) {
       fetchError.value = null;
 
       if (data && data.letters && Array.isArray(data.letters) && data.letters.length > 0) {
+        inMemorySyncTimestamps.set(boardId, Date.now());
         letters.value = data.letters;
         if (data.history && Array.isArray(data.history)) {
           history.value = data.history;
@@ -315,7 +356,16 @@ export function useAlphabetState(boardId: string) {
     }
   };
 
-  fetchBackendState();
+  if (isFreshCache) {
+    if (
+      typeof lastSynced === 'number' &&
+      Date.now() - lastSynced >= VISIBILITY_REFRESH_COOLDOWN_MS
+    ) {
+      fetchBackendState({ silent: true });
+    }
+  } else {
+    fetchBackendState();
+  }
 
   // Watch for changes and save to local storage
   watch(
@@ -326,7 +376,8 @@ export function useAlphabetState(boardId: string) {
         JSON.stringify({
           metadata: metadata.value,
           letters: letters.value,
-          history: history.value
+          history: history.value,
+          lastSyncedAt: inMemorySyncTimestamps.get(boardId) ?? Date.now()
         })
       );
     },
@@ -358,6 +409,7 @@ export function useAlphabetState(boardId: string) {
         if (data.currentLetterSelectedAt !== undefined) {
           metadata.value.currentLetterSelectedAt = data.currentLetterSelectedAt;
         }
+        inMemorySyncTimestamps.set(boardId, Date.now());
       }
     } catch (e: unknown) {
       if (e instanceof DOMException && e.name === 'AbortError') {
@@ -453,6 +505,7 @@ export function useAlphabetState(boardId: string) {
     if (boardId === DEFAULT_BOARD_ID) return;
     try {
       await api.deleteBoard(boardId);
+      inMemorySyncTimestamps.delete(boardId);
       clearStoredPin(boardId);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
       localStorage.removeItem(getPinFirstSeenStorageKey(boardId));
@@ -492,6 +545,7 @@ export function useAlphabetState(boardId: string) {
       if (res.photo !== undefined) {
         finalPhoto = res.photo;
       }
+      inMemorySyncTimestamps.set(boardId, Date.now());
     }
 
     // Update letters array

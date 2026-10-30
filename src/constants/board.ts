@@ -1,4 +1,4 @@
-import { MS_PER_SECOND } from './time';
+import { MS_PER_SECOND, MS_PER_MINUTE } from './time';
 
 export const DEFAULT_BOARD_ID = 'default';
 
@@ -45,3 +45,4 @@ export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export const DEFAULT_COUNTDOWN_DAYS = 30;
 export const URGENT_DAYS_THRESHOLD = 3;
 export const INITIAL_SELECTION_OFFSET_MS = 5 * MS_PER_SECOND;
+export const BOARD_CACHE_STALE_THRESHOLD_MS = 5 * MS_PER_MINUTE;
