@@ -365,4 +365,93 @@ describe('useAlphabetState', () => {
     expect(letterItem?.note).toBe('Новий відгук');
     expect(letterItem?.photo).toBeUndefined();
   });
+
+  it('skips blocking loader when cached board data is fresh and within cooldown', () => {
+    initBoardLocalStorage('fresh-board', ['Анна', 'Богдан']);
+    vi.mocked(api.getBoard).mockClear();
+
+    const state = useAlphabetState('fresh-board');
+    expect(state.isLoadingBackend.value).toBe(false);
+    expect(state.isBackgroundRefreshing.value).toBe(false);
+    expect(api.getBoard).not.toHaveBeenCalled();
+  });
+
+  it('performs silent background refresh when cached board data is fresh but past cooldown', async () => {
+    const pastCooldown = Date.now() - 10_000; // 10s ago (> 2s cooldown, < 5min stale threshold)
+    localStorage.setItem(
+      'alphadate_state_fresh-revalidate-board',
+      JSON.stringify({
+        metadata: {
+          partners: [{ id: 1, name: 'Анна' }],
+          currentLetter: null,
+          currentLetterSelectedAt: null
+        },
+        letters: [{ letter: 'А', status: 'available' }],
+        lastSyncedAt: pastCooldown
+      })
+    );
+
+    vi.mocked(api.getBoard).mockResolvedValueOnce({
+      success: true,
+      letters: [{ letter: 'А', status: 'used', note: 'Оновлено' }],
+      metadata: {
+        partners: [{ id: 1, name: 'Анна' }],
+        pinHash: null,
+        currentPartnerId: 1,
+        currentLetter: null,
+        currentLetterSelectedAt: null
+      }
+    });
+
+    const state = useAlphabetState('fresh-revalidate-board');
+    expect(state.isLoadingBackend.value).toBe(false);
+    expect(state.isBackgroundRefreshing.value).toBe(true);
+
+    await vi.waitFor(() => expect(state.isBackgroundRefreshing.value).toBe(false));
+    expect(state.isLoadingBackend.value).toBe(false);
+    expect(state.letters.value[0].status).toBe('used');
+  });
+
+  it('shows blocking loader when cached board data is stale', async () => {
+    const staleTimestamp = Date.now() - 10 * 60 * 1000; // 10 minutes ago (> 5min threshold)
+    localStorage.setItem(
+      'alphadate_state_stale-board',
+      JSON.stringify({
+        metadata: {
+          partners: [{ id: 1, name: 'Олена' }],
+          currentLetter: null,
+          currentLetterSelectedAt: null
+        },
+        letters: [{ letter: 'А', status: 'available' }],
+        lastSyncedAt: staleTimestamp
+      })
+    );
+
+    let resolveFetch!: (val: Awaited<ReturnType<typeof api.getBoard>>) => void;
+    vi.mocked(api.getBoard).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        })
+    );
+
+    const state = useAlphabetState('stale-board');
+    expect(state.isLoadingBackend.value).toBe(true);
+    expect(state.isBackgroundRefreshing.value).toBe(false);
+
+    resolveFetch({
+      success: true,
+      letters: [{ letter: 'А', status: 'used' }],
+      metadata: {
+        partners: [{ id: 1, name: 'Олена' }],
+        pinHash: null,
+        currentPartnerId: 1,
+        currentLetter: null,
+        currentLetterSelectedAt: null
+      }
+    });
+
+    await vi.waitFor(() => expect(state.isLoadingBackend.value).toBe(false));
+    expect(state.letters.value[0].status).toBe('used');
+  });
 });

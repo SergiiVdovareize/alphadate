@@ -9,6 +9,7 @@ import {
   STORAGE_KEYS,
   getBoardStateStorageKey,
   getPinFirstSeenStorageKey,
+  getPinDismissedStorageKey,
   BOARD_CACHE_STALE_THRESHOLD_MS,
   VISIBILITY_REFRESH_COOLDOWN_MS
 } from '../constants';
