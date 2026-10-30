@@ -9,7 +9,6 @@ import {
   STORAGE_KEYS,
   getBoardStateStorageKey,
   getPinFirstSeenStorageKey,
-  getPinDismissedStorageKey,
   BOARD_CACHE_STALE_THRESHOLD_MS,
   VISIBILITY_REFRESH_COOLDOWN_MS
 } from '../constants';
@@ -32,13 +31,6 @@ const defaultState: LetterState[] = UKRAINIAN_ALPHABET.map((letter) => ({
  * In-memory registry of board synchronization timestamps for intra-session freshness tracking.
  */
 const inMemorySyncTimestamps = new Map<string, number>();
-
-/**
- * Resets in-memory board sync timestamps (used primarily for test isolation).
- */
-export function resetBoardSyncCache(): void {
-  inMemorySyncTimestamps.clear();
-}
 
 /**
  * Initializes localStorage for a new board key without triggering component reactive watchers.
@@ -251,11 +243,11 @@ export function useAlphabetState(boardId: string) {
         e instanceof ApiError
           ? e.status === 401
           : Boolean(
-              e &&
-              typeof e === 'object' &&
-              'status' in e &&
-              (e as { status: unknown }).status === 401
-            );
+            e &&
+            typeof e === 'object' &&
+            'status' in e &&
+            (e as { status: unknown }).status === 401
+          );
       const isPinFlag = Boolean(
         e &&
         typeof e === 'object' &&
