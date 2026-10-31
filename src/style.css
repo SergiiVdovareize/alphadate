@@ -1,4 +1,6 @@
 :root {
+  color-scheme: light;
+
   /* 2 Base Colors + 1 Accent Color (Pastel, No Gradients) */
   --color-bg: #fcf8f5;
   --color-surface: #ffffff;
@@ -46,6 +48,7 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
   font-family:
