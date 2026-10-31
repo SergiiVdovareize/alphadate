@@ -159,6 +159,13 @@ export function useBoardPage() {
     clearRoulette();
     isPickingRandom.value = true;
 
+    if (typeof document !== 'undefined') {
+      const gridEl = document.querySelector('.alphabet-grid');
+      if (gridEl && typeof gridEl.scrollIntoView === 'function') {
+        gridEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
     // Build jump sequence across available letters
     const hopsCount = ROULETTE_CONFIG.HOPS_COUNT;
     const hops: string[] = [];

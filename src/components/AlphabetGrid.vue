@@ -40,7 +40,7 @@ const getLetterAriaLabel = (item: LetterState): string => {
 </script>
 
 <template>
-  <div class="alphabet-grid">
+  <div class="alphabet-grid" :class="{ 'is-roulette-active': Boolean(highlightedLetter) }">
     <button
       v-for="item in letters"
       :key="item.letter"
@@ -137,13 +137,16 @@ const getLetterAriaLabel = (item: LetterState): string => {
   background-color: var(--color-accent) !important;
   color: #ffffff !important;
   border-color: var(--color-ink, #2d3748) !important;
-  transform: translateY(-4px) scale(1.14);
-  box-shadow: 0 7px 0 var(--color-ink, #2d3748) !important;
+  transform: translateY(-5px) scale(1.18);
+  box-shadow:
+    0 8px 0 var(--color-ink, #2d3748),
+    0 0 16px rgba(var(--color-accent-rgb), 0.45) !important;
   z-index: 10;
   transition:
-    transform 0.05s ease,
-    background-color 0.05s ease;
-  animation: roulette-pop 0.15s ease-out;
+    transform 0.06s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.06s ease,
+    box-shadow 0.06s ease;
+  animation: roulette-pop 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes roulette-pop {
@@ -151,10 +154,10 @@ const getLetterAriaLabel = (item: LetterState): string => {
     transform: scale(0.96);
   }
   50% {
-    transform: translateY(-5px) scale(1.18);
+    transform: translateY(-6px) scale(1.22);
   }
   100% {
-    transform: translateY(-4px) scale(1.14);
+    transform: translateY(-5px) scale(1.18);
   }
 }
 
@@ -170,7 +173,7 @@ const getLetterAriaLabel = (item: LetterState): string => {
   color: #ffffff !important;
   border-color: var(--color-ink, #2d3748) !important;
   z-index: 15;
-  animation: winner-celebrate 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+  animation: winner-celebrate 0.75s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
 }
 
 @keyframes winner-celebrate {
@@ -178,18 +181,26 @@ const getLetterAriaLabel = (item: LetterState): string => {
     transform: scale(1);
     box-shadow: 0 4px 0 var(--color-ink, #2d3748);
   }
-  35% {
-    transform: translateY(-8px) scale(1.24);
+  25% {
+    transform: translateY(-10px) scale(1.26);
     box-shadow:
-      0 12px 0 var(--color-ink, #2d3748),
-      0 0 0 4px rgba(var(--color-accent-rgb), 0.5),
-      0 0 20px rgba(var(--color-accent-rgb), 0.4);
+      0 14px 0 var(--color-ink, #2d3748),
+      0 0 0 6px rgba(var(--color-accent-rgb), 0.45),
+      0 0 28px rgba(var(--color-accent-rgb), 0.6);
   }
-  65% {
-    transform: translateY(-2px) scale(1.08);
+  50% {
+    transform: translateY(-3px) scale(1.12);
     box-shadow:
-      0 6px 0 var(--color-ink, #2d3748),
-      0 0 0 2px rgba(var(--color-accent-rgb), 0.3);
+      0 7px 0 var(--color-ink, #2d3748),
+      0 0 0 4px rgba(var(--color-accent-rgb), 0.35),
+      0 0 18px rgba(var(--color-accent-rgb), 0.45);
+  }
+  75% {
+    transform: translateY(-6px) scale(1.18);
+    box-shadow:
+      0 10px 0 var(--color-ink, #2d3748),
+      0 0 0 5px rgba(var(--color-accent-rgb), 0.4),
+      0 0 22px rgba(var(--color-accent-rgb), 0.5);
   }
   100% {
     transform: translateY(0) scale(1);
@@ -209,6 +220,11 @@ const getLetterAriaLabel = (item: LetterState): string => {
   opacity: 0.3;
   box-shadow: 0 1.5px 0 var(--color-ink, #2d3748);
   transform: none;
+}
+
+.alphabet-grid.is-roulette-active .letter-btn:disabled:not(.status-used):not(.status-excluded) {
+  opacity: 0.95;
+  box-shadow: var(--shadow-3d-sm, 0 3px 0 #2d3748);
 }
 
 /* Mobile tap target improvement */
