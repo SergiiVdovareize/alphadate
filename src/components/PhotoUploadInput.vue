@@ -102,7 +102,7 @@ const removePhoto = () => {
           :disabled="disabled || isProcessing"
           @click="removePhoto"
         >
-          <AppIcon :path="mdiClose" :size="12" />
+          <AppIcon :path="mdiClose" :size="16" />
         </button>
       </div>
       <div class="photo-info-wrap">
@@ -223,9 +223,9 @@ const removePhoto = () => {
 
 .photo-thumbnail-wrap {
   position: relative;
-  width: 52px;
-  height: 52px;
-  border-radius: 8px;
+  width: 76px;
+  height: 76px;
+  border-radius: 10px;
   overflow: hidden;
   border: 1.5px solid var(--color-ink, #2d3748);
   flex-shrink: 0;
@@ -242,27 +242,36 @@ const removePhoto = () => {
 .remove-photo-btn,
 .remove-photo-badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
   background: rgba(45, 55, 72, 0.85);
   color: #ffffff;
   border: none;
-  font-size: 0.65rem;
+  font-size: 0.85rem;
   font-weight: 700;
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
   padding: 0;
 }
 
 .remove-photo-btn:hover:not(:disabled),
 .remove-photo-badge:hover:not(:disabled) {
+  background: rgba(45, 55, 72, 1);
+}
+
+.remove-photo-btn:active:not(:disabled),
+.remove-photo-badge:active:not(:disabled) {
+  transform: scale(0.92);
+}
   background: var(--color-error, #b00020);
 }
 
