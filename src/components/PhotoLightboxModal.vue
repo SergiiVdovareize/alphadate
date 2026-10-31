@@ -136,26 +136,26 @@ onUnmounted(() => {
 
 .lightbox-close-btn {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.85rem;
+  right: 0.85rem;
   z-index: 10;
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #ffffff;
-  border-radius: 8px;
-  width: 40px;
-  height: 40px;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 700;
   cursor: pointer;
   transition:
     background-color 0.15s ease,
     transform 0.1s ease;
   line-height: 1;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 
 .lightbox-close-btn:hover {
@@ -173,8 +173,8 @@ onUnmounted(() => {
 }
 
 .lightbox-close-icon {
-  width: 20px;
-  height: 20px;
+  width: 26px;
+  height: 26px;
 }
 
 .lightbox-fade-enter-active,
