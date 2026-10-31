@@ -272,8 +272,6 @@ const removePhoto = () => {
 .remove-photo-badge:active:not(:disabled) {
   transform: scale(0.92);
 }
-  background: var(--color-error, #b00020);
-}
 
 .remove-photo-btn:disabled,
 .remove-photo-badge:disabled {
