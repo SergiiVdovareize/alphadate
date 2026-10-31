@@ -488,7 +488,7 @@ const vSyncBadge = {
 .page-title-book-svg {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--color-accent, #d97732);
+  color: currentColor;
 }
 
 /* Single Letter View */
