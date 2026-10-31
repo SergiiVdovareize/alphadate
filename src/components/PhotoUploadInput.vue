@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { compressImageFile } from '../utils/image';
 import AppAlert from './AppAlert.vue';
 import AppIcon from './AppIcon.vue';
+import PhotoLightboxModal from './PhotoLightboxModal.vue';
 import { mdiCameraOutline, mdiClose } from '@mdi/js';
 
 const props = withDefaults(
@@ -37,6 +38,7 @@ const emit = defineEmits<{
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const isProcessing = ref(false);
 const photoError = ref<string | null>(null);
+const isLightboxOpen = ref(false);
 
 const triggerFileInput = () => {
   if (props.disabled || isProcessing.value) return;
@@ -92,7 +94,16 @@ const removePhoto = () => {
 
     <!-- Preview if attached -->
     <div v-if="modelValue" class="photo-preview-card inline-photo-preview">
-      <div class="photo-thumbnail-wrap">
+      <div
+        class="photo-thumbnail-wrap"
+        role="button"
+        tabindex="0"
+        title="Збільшити фото"
+        aria-label="Збільшити прикріплене фото"
+        @click="isLightboxOpen = true"
+        @keydown.enter="isLightboxOpen = true"
+        @keydown.space.prevent="isLightboxOpen = true"
+      >
         <img :src="modelValue" :alt="ariaLabel" class="photo-thumbnail" />
         <button
           type="button"
@@ -100,9 +111,9 @@ const removePhoto = () => {
           :aria-label="removeButtonTitle"
           :title="removeButtonTitle"
           :disabled="disabled || isProcessing"
-          @click="removePhoto"
+          @click.stop="removePhoto"
         >
-          <AppIcon :path="mdiClose" :size="16" />
+          <AppIcon :path="mdiClose" :size="18" />
         </button>
       </div>
       <div class="photo-info-wrap">
@@ -136,6 +147,12 @@ const removePhoto = () => {
     </div>
 
     <AppAlert v-if="photoError" class="photo-error-msg" :message="photoError" />
+
+    <!-- Lightbox modal for enlarged preview -->
+    <PhotoLightboxModal
+      :photo="isLightboxOpen && modelValue ? { src: modelValue, alt: ariaLabel } : null"
+      @close="isLightboxOpen = false"
+    />
   </div>
 </template>
 
@@ -223,13 +240,14 @@ const removePhoto = () => {
 
 .photo-thumbnail-wrap {
   position: relative;
-  width: 76px;
-  height: 76px;
-  border-radius: 10px;
+  width: 104px;
+  height: 104px;
+  border-radius: 12px;
   overflow: hidden;
   border: 1.5px solid var(--color-ink, #2d3748);
   flex-shrink: 0;
   background: #000;
+  cursor: pointer;
 }
 
 .photo-thumbnail {
@@ -242,15 +260,15 @@ const removePhoto = () => {
 .remove-photo-btn,
 .remove-photo-badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: rgba(45, 55, 72, 0.85);
+  top: 5px;
+  right: 5px;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(45, 55, 72, 0.88);
   color: #ffffff;
   border: none;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
   line-height: 1;
   display: flex;
@@ -261,6 +279,7 @@ const removePhoto = () => {
     background-color 0.15s ease,
     transform 0.1s ease;
   padding: 0;
+  z-index: 2;
 }
 
 .remove-photo-btn:hover:not(:disabled),
