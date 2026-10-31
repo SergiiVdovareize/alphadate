@@ -246,7 +246,7 @@ const removePhoto = () => {
   right: 2px;
   width: 18px;
   height: 18px;
-  border-radius: 9999px;
+  border-radius: 4px;
   background: rgba(45, 55, 72, 0.85);
   color: #ffffff;
   border: none;

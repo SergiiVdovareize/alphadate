@@ -53,17 +53,19 @@ onUnmounted(() => {
           tabindex="-1"
           @click="emit('close')"
         />
-        <button
-          type="button"
-          class="lightbox-close-btn"
-          aria-label="Закрити зображення"
-          title="Закрити зображення"
-          @click="emit('close')"
-        >
-          <AppIcon :path="mdiClose" class="lightbox-close-icon" />
-        </button>
         <div class="lightbox-image-wrap">
-          <img :src="photo.src" :alt="photo.alt || 'Фото спогаду'" class="lightbox-img" />
+          <div class="lightbox-image-container">
+            <img :src="photo.src" :alt="photo.alt || 'Фото спогаду'" class="lightbox-img" />
+            <button
+              type="button"
+              class="lightbox-close-btn"
+              aria-label="Закрити зображення"
+              title="Закрити зображення"
+              @click="emit('close')"
+            >
+              <AppIcon :path="mdiClose" class="lightbox-close-icon" />
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -82,7 +84,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 1rem;
   margin: 0;
   box-sizing: border-box;
   overflow: hidden;
@@ -99,17 +101,50 @@ onUnmounted(() => {
   z-index: 1;
 }
 
+.lightbox-image-wrap {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  pointer-events: none;
+}
+
+.lightbox-image-container {
+  position: relative;
+  display: inline-block;
+  max-width: 90vw;
+  max-height: 90vh;
+  pointer-events: auto;
+}
+
+.lightbox-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  user-select: none;
+  display: block;
+}
+
 .lightbox-close-btn {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 10001;
-  background: rgba(0, 0, 0, 0.4);
-  border: none;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   color: #ffffff;
-  border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  border-radius: 8px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,7 +160,7 @@ onUnmounted(() => {
 
 .lightbox-close-btn:hover {
   background: rgba(0, 0, 0, 0.85);
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 
 .lightbox-close-btn:active {
@@ -140,32 +175,6 @@ onUnmounted(() => {
 .lightbox-close-icon {
   width: 20px;
   height: 20px;
-}
-
-.lightbox-image-wrap {
-  position: relative;
-  z-index: 2;
-  width: 100vw;
-  height: 100vh;
-  max-width: 100vw;
-  max-height: 100vh;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.lightbox-img {
-  width: 100%;
-  height: 100%;
-  max-width: 100vw;
-  max-height: 100vh;
-  object-fit: contain;
-  border-radius: 0;
-  box-shadow: none;
-  user-select: none;
-  display: block;
 }
 
 .lightbox-fade-enter-active,
