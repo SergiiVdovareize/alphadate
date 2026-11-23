@@ -126,4 +126,33 @@ describe('DateSuggestions.vue', () => {
     expect(closeMock).toHaveBeenCalledTimes(1);
     expect(dialog.attributes('open')).toBeUndefined();
   });
+
+  it('adds shimmering class every 10s when idle and resets on click for board 9rusg', async () => {
+    vi.useFakeTimers();
+
+    const wrapper = mount(DateSuggestions, {
+      props: {
+        boardId: '9rusg',
+        letter: 'Д'
+      }
+    });
+
+    const btn = wrapper.find('.hint-image-btn');
+    expect(btn.classes()).not.toContain('is-shimmering');
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(btn.classes()).toContain('is-shimmering');
+
+    await vi.advanceTimersByTimeAsync(1_400);
+    expect(btn.classes()).not.toContain('is-shimmering');
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(btn.classes()).toContain('is-shimmering');
+
+    await btn.trigger('click');
+    expect(btn.classes()).not.toContain('is-shimmering');
+
+    wrapper.unmount();
+    vi.useRealTimers();
+  });
 });

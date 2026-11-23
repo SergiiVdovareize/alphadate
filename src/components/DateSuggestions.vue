@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useDateSuggestions } from '../composables/useDateSuggestions';
 import { HINT_IMAGE_BOARD_ID } from '../constants';
 import AppAlert from './AppAlert.vue';
@@ -17,8 +17,46 @@ const isHintImageBoard = computed(() => props.boardId === HINT_IMAGE_BOARD_ID);
 const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetchSuggestions } =
   useDateSuggestions(props);
 
+const SHIMMER_INTERVAL_MS = 10_000;
+const SHIMMER_DURATION_MS = 1_400;
+
 const hintDialogRef = ref<HTMLDialogElement | null>(null);
+const isHintShimmering = ref(false);
+let shimmerIdleTimer: ReturnType<typeof setTimeout> | null = null;
+let shimmerDurationTimer: ReturnType<typeof setTimeout> | null = null;
 let pressedOutside = false;
+
+const clearHintShimmerTimers = () => {
+  if (shimmerIdleTimer) {
+    clearTimeout(shimmerIdleTimer);
+    shimmerIdleTimer = null;
+  }
+  if (shimmerDurationTimer) {
+    clearTimeout(shimmerDurationTimer);
+    shimmerDurationTimer = null;
+  }
+  isHintShimmering.value = false;
+};
+
+const scheduleHintShimmer = () => {
+  if (!isHintImageBoard.value) return;
+  clearHintShimmerTimers();
+  shimmerIdleTimer = setTimeout(() => {
+    isHintShimmering.value = true;
+    shimmerDurationTimer = setTimeout(() => {
+      isHintShimmering.value = false;
+      scheduleHintShimmer();
+    }, SHIMMER_DURATION_MS);
+  }, SHIMMER_INTERVAL_MS);
+};
+
+onMounted(() => {
+  scheduleHintShimmer();
+});
+
+onUnmounted(() => {
+  clearHintShimmerTimers();
+});
 
 const isOutsideDialog = (event: PointerEvent, dialog: HTMLDialogElement) => {
   const rect = dialog.getBoundingClientRect();
@@ -31,6 +69,7 @@ const isOutsideDialog = (event: PointerEvent, dialog: HTMLDialogElement) => {
 };
 
 const openHintImage = () => {
+  clearHintShimmerTimers();
   const dialog = hintDialogRef.value;
   if (!dialog) return;
   if (typeof dialog.showModal === 'function') {
@@ -44,14 +83,16 @@ const openHintImage = () => {
 
 const closeHintImage = () => {
   const dialog = hintDialogRef.value;
-  if (!dialog) return;
-  if (typeof dialog.close === 'function') {
-    if (dialog.open) {
-      dialog.close();
+  if (dialog) {
+    if (typeof dialog.close === 'function') {
+      if (dialog.open) {
+        dialog.close();
+      }
+    } else {
+      dialog.removeAttribute('open');
     }
-  } else {
-    dialog.removeAttribute('open');
   }
+  scheduleHintShimmer();
 };
 
 const handleDialogPointerDown = (event: PointerEvent) => {
@@ -75,7 +116,12 @@ const handleDialogPointerUp = (event: PointerEvent) => {
 <template>
   <div class="suggestions-wrapper">
     <template v-if="isHintImageBoard">
-      <button type="button" class="suggestions-link-btn hint-image-btn" @click="openHintImage">
+      <button
+        type="button"
+        class="suggestions-link-btn hint-image-btn"
+        :class="{ 'is-shimmering': isHintShimmering }"
+        @click="openHintImage"
+      >
         <span class="btn-icon" aria-hidden="true">
           <AppIcon :path="mdiLightbulbOutline" class="btn-bulb-svg" />
         </span>
@@ -87,6 +133,7 @@ const handleDialogPointerUp = (event: PointerEvent) => {
         class="hint-fullscreen-dialog"
         closedby="any"
         aria-label="Підказка"
+        @close="scheduleHintShimmer"
         @pointerdown="handleDialogPointerDown"
         @pointerup="handleDialogPointerUp"
       >
@@ -416,6 +463,51 @@ const handleDialogPointerUp = (event: PointerEvent) => {
   color: var(--color-ink-muted, #718096);
 }
 
+.hint-image-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.hint-image-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 15%,
+    rgba(217, 119, 50, 0.22) 42%,
+    rgba(255, 255, 255, 0.78) 50%,
+    rgba(217, 119, 50, 0.22) 58%,
+    transparent 85%
+  );
+  transform: translateX(-130%);
+  pointer-events: none;
+}
+
+.hint-image-btn.is-shimmering {
+  color: var(--color-accent, #d97732);
+  background-color: rgba(217, 119, 50, 0.08);
+}
+
+.hint-image-btn.is-shimmering::after {
+  animation: hint-btn-shimmer 1.4s ease-in-out 1;
+}
+
+@keyframes hint-btn-shimmer {
+  0% {
+    transform: translateX(-130%);
+  }
+  100% {
+    transform: translateX(130%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hint-image-btn.is-shimmering::after {
+    animation: none;
+  }
+}
+
 .hint-fullscreen-dialog[open] {
   display: flex;
   align-items: center;
@@ -423,13 +515,15 @@ const handleDialogPointerUp = (event: PointerEvent) => {
 }
 
 .hint-fullscreen-dialog:modal {
-  max-width: 95vw;
-  max-height: 95vh;
+  width: fit-content;
+  max-width: calc(100vw - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
   padding: 0;
   border: none;
   background: transparent;
   margin: auto;
-  overflow: visible;
+  overflow: hidden;
+  box-sizing: border-box;
   overscroll-behavior: contain;
 }
 
@@ -442,15 +536,19 @@ const handleDialogPointerUp = (event: PointerEvent) => {
 
 .hint-dialog-content {
   position: relative;
-  display: inline-block;
-  max-width: 95vw;
-  max-height: 95vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: calc(100dvh - 1.5rem);
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .hint-fullscreen-img {
-  max-width: 95vw;
-  max-height: 95vh;
-  width: auto;
+  max-width: calc(100vw - 1.5rem);
+  max-height: calc(100dvh - 1.5rem);
+  width: 100%;
   height: auto;
   object-fit: contain;
   border-radius: 10px;
