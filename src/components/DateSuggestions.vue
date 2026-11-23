@@ -1,108 +1,199 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import { useDateSuggestions } from '../composables/useDateSuggestions';
+import { HINT_IMAGE_BOARD_ID } from '../constants';
 import AppAlert from './AppAlert.vue';
 import AppButton from './AppButton.vue';
 import AppIcon from './AppIcon.vue';
-import { mdiLightbulbOutline, mdiRefresh, mdiCreation } from '@mdi/js';
+import { mdiLightbulbOutline, mdiRefresh, mdiCreation, mdiClose } from '@mdi/js';
 
 const props = defineProps<{
   boardId: string;
   letter: string;
 }>();
 
+const isHintImageBoard = computed(() => props.boardId === HINT_IMAGE_BOARD_ID);
+
 const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetchSuggestions } =
   useDateSuggestions(props);
+
+const hintDialogRef = ref<HTMLDialogElement | null>(null);
+let pressedOutside = false;
+
+const isOutsideDialog = (event: PointerEvent, dialog: HTMLDialogElement) => {
+  const rect = dialog.getBoundingClientRect();
+  return (
+    event.clientX < rect.left ||
+    event.clientX > rect.right ||
+    event.clientY < rect.top ||
+    event.clientY > rect.bottom
+  );
+};
+
+const openHintImage = () => {
+  const dialog = hintDialogRef.value;
+  if (!dialog) return;
+  if (typeof dialog.showModal === 'function') {
+    if (!dialog.open) {
+      dialog.showModal();
+    }
+  } else {
+    dialog.setAttribute('open', '');
+  }
+};
+
+const closeHintImage = () => {
+  const dialog = hintDialogRef.value;
+  if (!dialog) return;
+  if (typeof dialog.close === 'function') {
+    if (dialog.open) {
+      dialog.close();
+    }
+  } else {
+    dialog.removeAttribute('open');
+  }
+};
+
+const handleDialogPointerDown = (event: PointerEvent) => {
+  if ('closedBy' in HTMLDialogElement.prototype) return;
+  const dialog = hintDialogRef.value;
+  if (!dialog) return;
+  pressedOutside = isOutsideDialog(event, dialog);
+};
+
+const handleDialogPointerUp = (event: PointerEvent) => {
+  if ('closedBy' in HTMLDialogElement.prototype) return;
+  const dialog = hintDialogRef.value;
+  if (!dialog) return;
+  if (pressedOutside && isOutsideDialog(event, dialog)) {
+    closeHintImage();
+  }
+  pressedOutside = false;
+};
 </script>
 
 <template>
   <div class="suggestions-wrapper">
-    <!-- Toggle Link -->
-    <button
-      type="button"
-      class="suggestions-link-btn"
-      :class="{ 'is-open': isOpen, 'has-data': hasSuggestions }"
-      :aria-expanded="isOpen"
-      @click="toggleOpen"
-    >
-      <span class="btn-icon" aria-hidden="true">
-        <AppIcon :path="mdiLightbulbOutline" class="btn-bulb-svg" />
-      </span>
-      <span class="btn-text">Ідеї для побачення на літеру «{{ letter }}»</span>
-      <svg
-        class="chevron-icon"
-        :class="{ rotated: isOpen }"
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        aria-hidden="true"
+    <template v-if="isHintImageBoard">
+      <button type="button" class="suggestions-link-btn hint-image-btn" @click="openHintImage">
+        <span class="btn-icon" aria-hidden="true">
+          <AppIcon :path="mdiLightbulbOutline" class="btn-bulb-svg" />
+        </span>
+        <span class="btn-text">Отримати наступну підказку</span>
+      </button>
+
+      <dialog
+        ref="hintDialogRef"
+        class="hint-fullscreen-dialog"
+        closedby="any"
+        aria-label="Підказка"
+        @pointerdown="handleDialogPointerDown"
+        @pointerup="handleDialogPointerUp"
       >
-        <path
-          fill-rule="evenodd"
-          d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-          clip-rule="evenodd"
-        />
-      </svg>
-    </button>
-
-    <!-- Expandable Section -->
-    <div v-if="isOpen" class="suggestions-drawer">
-      <!-- Loading State -->
-      <div v-if="isLoading" class="loading-state">
-        <div class="loading-spinner" aria-hidden="true"></div>
-        <p class="loading-text">Підбираємо романтичні ідеї на літеру «{{ letter }}»...</p>
-        <p class="ai-disclaimer-loading">
-          Ідеї генерує AI, тому вони можуть бути не завжди влучними.
-        </p>
-      </div>
-
-      <!-- Error State -->
-      <div v-else-if="error" class="error-state">
-        <AppAlert :message="error" type="error" class="error-text" />
-        <AppButton
-          type="button"
-          class="retry-btn"
-          variant="outline"
-          size="sm"
-          @click="() => fetchSuggestions(true)"
-        >
-          <span class="retry-btn-content">
-            <AppIcon :path="mdiRefresh" class="retry-icon-svg" />
-            <span>Спробувати знову</span>
-          </span>
-        </AppButton>
-      </div>
-
-      <!-- Suggestions List -->
-      <div v-else-if="hasSuggestions" class="suggestions-content">
-        <div class="ai-disclaimer">
-          <span class="ai-sparkle" aria-hidden="true">
-            <AppIcon :path="mdiCreation" class="ai-sparkle-svg" />
-          </span>
-          <span class="ai-disclaimer-text">
-            Ці ідеї згенеровано штучним інтелектом — сміливо адаптуйте їх під ваші спільні смаки!
-          </span>
+        <div class="hint-dialog-content">
+          <img src="/next-hint-9rusg.jpg" alt="Підказка" class="hint-fullscreen-img" />
+          <button
+            type="button"
+            class="hint-close-btn"
+            aria-label="Закрити підказку"
+            title="Закрити підказку"
+            @click="closeHintImage"
+          >
+            <AppIcon :path="mdiClose" class="hint-close-icon" />
+          </button>
         </div>
-        <ul class="suggestions-list">
-          <li v-for="(item, idx) in suggestions" :key="idx" class="suggestion-item">
-            <h4 class="suggestion-title">{{ item.title }}</h4>
-            <p class="suggestion-desc">{{ item.description }}</p>
-          </li>
-        </ul>
-      </div>
+      </dialog>
+    </template>
 
-      <!-- Empty fallback -->
-      <div v-else class="empty-state">
-        <p>Для цієї літери ще немає ідей.</p>
-        <AppButton
-          type="button"
-          class="retry-btn"
-          variant="outline"
-          size="sm"
-          @click="() => fetchSuggestions(true)"
+    <template v-else>
+      <!-- Toggle Link -->
+      <button
+        type="button"
+        class="suggestions-link-btn"
+        :class="{ 'is-open': isOpen, 'has-data': hasSuggestions }"
+        :aria-expanded="isOpen"
+        @click="toggleOpen"
+      >
+        <span class="btn-icon" aria-hidden="true">
+          <AppIcon :path="mdiLightbulbOutline" class="btn-bulb-svg" />
+        </span>
+        <span class="btn-text">Ідеї для побачення на літеру «{{ letter }}»</span>
+        <svg
+          class="chevron-icon"
+          :class="{ rotated: isOpen }"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
         >
-          Спробувати знову
-        </AppButton>
+          <path
+            fill-rule="evenodd"
+            d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+            clip-rule="evenodd"
+          />
+        </svg>
+      </button>
+
+      <!-- Expandable Section -->
+      <div v-if="isOpen" class="suggestions-drawer">
+        <!-- Loading State -->
+        <div v-if="isLoading" class="loading-state">
+          <div class="loading-spinner" aria-hidden="true"></div>
+          <p class="loading-text">Підбираємо романтичні ідеї на літеру «{{ letter }}»...</p>
+          <p class="ai-disclaimer-loading">
+            Ідеї генерує AI, тому вони можуть бути не завжди влучними.
+          </p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="error-state">
+          <AppAlert :message="error" type="error" class="error-text" />
+          <AppButton
+            type="button"
+            class="retry-btn"
+            variant="outline"
+            size="sm"
+            @click="() => fetchSuggestions(true)"
+          >
+            <span class="retry-btn-content">
+              <AppIcon :path="mdiRefresh" class="retry-icon-svg" />
+              <span>Спробувати знову</span>
+            </span>
+          </AppButton>
+        </div>
+
+        <!-- Suggestions List -->
+        <div v-else-if="hasSuggestions" class="suggestions-content">
+          <div class="ai-disclaimer">
+            <span class="ai-sparkle" aria-hidden="true">
+              <AppIcon :path="mdiCreation" class="ai-sparkle-svg" />
+            </span>
+            <span class="ai-disclaimer-text">
+              Ці ідеї згенеровано штучним інтелектом — сміливо адаптуйте їх під ваші спільні смаки!
+            </span>
+          </div>
+          <ul class="suggestions-list">
+            <li v-for="(item, idx) in suggestions" :key="idx" class="suggestion-item">
+              <h4 class="suggestion-title">{{ item.title }}</h4>
+              <p class="suggestion-desc">{{ item.description }}</p>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Empty fallback -->
+        <div v-else class="empty-state">
+          <p>Для цієї літери ще немає ідей.</p>
+          <AppButton
+            type="button"
+            class="retry-btn"
+            variant="outline"
+            size="sm"
+            @click="() => fetchSuggestions(true)"
+          >
+            Спробувати знову
+          </AppButton>
+        </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -323,5 +414,88 @@ const { isOpen, isLoading, error, suggestions, hasSuggestions, toggleOpen, fetch
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--color-ink-muted, #718096);
+}
+
+.hint-fullscreen-dialog[open] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hint-fullscreen-dialog:modal {
+  max-width: 95vw;
+  max-height: 95vh;
+  padding: 0;
+  border: none;
+  background: transparent;
+  margin: auto;
+  overflow: visible;
+  overscroll-behavior: contain;
+}
+
+.hint-fullscreen-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.hint-dialog-content {
+  position: relative;
+  display: inline-block;
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+.hint-fullscreen-img {
+  max-width: 95vw;
+  max-height: 95vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  display: block;
+  user-select: none;
+}
+
+.hint-close-btn {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
+  backdrop-filter: blur(6px);
+}
+
+.hint-close-btn:hover {
+  background: rgba(0, 0, 0, 0.85);
+  transform: scale(1.05);
+}
+
+.hint-close-btn:active {
+  transform: scale(0.95);
+}
+
+.hint-close-btn:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.hint-close-icon {
+  width: 26px;
+  height: 26px;
 }
 </style>

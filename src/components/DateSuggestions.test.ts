@@ -93,4 +93,37 @@ describe('DateSuggestions.vue', () => {
     expect(wrapper.find('.error-text').text()).toBe('Помилка сервера');
     expect(wrapper.find('.retry-btn').exists()).toBe(true);
   });
+
+  it('renders "Отримати наступну підказку" button for board 9rusg and opens fullscreen image dialog on click', async () => {
+    const wrapper = mount(DateSuggestions, {
+      props: {
+        boardId: '9rusg',
+        letter: 'Д'
+      }
+    });
+
+    expect(wrapper.text()).toContain('Отримати наступну підказку');
+    expect(wrapper.text()).not.toContain('Ідеї для побачення на літеру');
+
+    const dialog = wrapper.find('dialog.hint-fullscreen-dialog');
+    expect(dialog.exists()).toBe(true);
+    const dialogEl = dialog.element as HTMLDialogElement;
+    const showModalMock = vi.fn(() => {
+      dialogEl.setAttribute('open', '');
+    });
+    const closeMock = vi.fn(() => {
+      dialogEl.removeAttribute('open');
+    });
+    dialogEl.showModal = showModalMock;
+    dialogEl.close = closeMock;
+
+    await wrapper.find('.hint-image-btn').trigger('click');
+    expect(showModalMock).toHaveBeenCalledTimes(1);
+    expect(dialog.attributes('open')).toBeDefined();
+    expect(wrapper.find('.hint-fullscreen-img').attributes('src')).toBe('/next-hint-9rusg.jpg');
+
+    await wrapper.find('.hint-close-btn').trigger('click');
+    expect(closeMock).toHaveBeenCalledTimes(1);
+    expect(dialog.attributes('open')).toBeUndefined();
+  });
 });
