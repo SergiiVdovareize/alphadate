@@ -1,7 +1,6 @@
 import { MS_PER_SECOND, MS_PER_MINUTE } from './time';
 
 export const DEFAULT_BOARD_ID = 'default';
-export const HINT_IMAGE_BOARD_ID = '9rusg';
 
 export const UKRAINIAN_ALPHABET = [
   'А',
